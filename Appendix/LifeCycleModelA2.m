@@ -97,8 +97,18 @@ Params.warmglow3=Params.sigma; % By using the same curvature as the utility of c
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
+% SET MEAN OF GAUSSIAN-MIXTURE EQUAL TO ZERO
+Params.mu_epsilon_z(2)=-(Params.mixtureprobabilities(1)*Params.mu_epsilon_z(1))/Params.mixtureprobabilities(2);
+
 % Discretize z, the AR(1) process with gaussian mixture innovations 
 [z_grid,pi_z] = discretizeAR1wGM_FarmerToda(0,Params.rho_z,Params.mixtureprobabilities,Params.mu_epsilon_z,Params.sigma_epsilon_z,n_z);
+% mew=0;
+% rho=Params.rho_z;
+% mixprobs_i=Params.mixtureprobabilities;
+% mu_i=Params.mu_epsilon_z;
+% sigma_i=Params.sigma_epsilon_z;
+% znum=n_z;
+
 z_grid=exp(z_grid); % Take exponential of the grid
 [mean_z,variance_z,corr_z,statdist_z]=MarkovChainMoments(z_grid,pi_z); % Calculate the mean of the grid so as can normalise it
 z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is exactly 1)

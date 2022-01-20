@@ -128,7 +128,7 @@ Params.warmglow3=Params.sigma; % By using the same curvature as the utility of c
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
-[z_grid_J, pi_z_J] = discretizeLifeCycleAR1_FellaGallipoliPan(Params.rho_z,Params.sigma_epsilon_z,n_z,Params.J);
+[z_grid_J, pi_z_J,jequaloneDistz] = discretizeLifeCycleAR1_FellaGallipoliPan(Params.rho_z,Params.sigma_epsilon_z,n_z,Params.J);
 % z_grid_J is n_z-by-J, so z_grid_J(:,j) is the grid for age j
 % pi_z_J is n_z-by-n_z-by-J, so pi_z_J(:,:,j) is the transition matrix for age j
 % Note: 
@@ -258,7 +258,7 @@ xlabel('Assets (a)')
 % Before we plot the life-cycle profiles we have to define how agents are
 % at age j=1. We will give them all zero assets.
 jequaloneDist=zeros(n_a,n_z,'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,floor((n_z+1)/2))=1; % All agents start with zero assets, and the median shock
+jequaloneDist(1,:)=jequaloneDistz'; % All agents start with zero assets, and the median shock
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
