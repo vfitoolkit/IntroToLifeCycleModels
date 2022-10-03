@@ -78,6 +78,9 @@ LifeCycleModel24
 clear all
 LifeCycleModel25
 
+clear all
+LifeCycleModel29
+
 % Now the appendix models
 addpath('./Appendix/')
 
@@ -104,6 +107,9 @@ LifeCycleModelA7
 
 clear all
 LifeCycleModelA8
+
+clear all
+LifeCycleModelA9
 
 
 % Now the assignment models
