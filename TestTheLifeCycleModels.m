@@ -31,7 +31,10 @@ clear all
 LifeCycleModel10
 
 clear all
-LifeCycleModel11
+LifeCycleModel11A
+
+clear all
+LifeCycleModel11B
 
 clear all
 LifeCycleModel12
@@ -69,6 +72,11 @@ LifeCycleModel22
 clear all
 LifeCycleModel23
 
+clear all
+LifeCycleModel24
+
+clear all
+LifeCycleModel25
 
 % Now the appendix models
 addpath('./Appendix/')
