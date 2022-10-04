@@ -20,7 +20,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=201; % Endogenous asset holdings
-n_z=[21,5]; % Exogenous labor productivity units shock, two of them
+n_z=[9,9]; % Exogenous labor productivity units shock, two of them
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Parameters
