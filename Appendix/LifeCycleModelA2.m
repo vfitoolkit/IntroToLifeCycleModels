@@ -39,7 +39,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=201; % Endogenous asset holdings
-n_z=101; % Exogenous labor productivity units shock
+n_z=31; % Exogenous labor productivity units shock
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Parameters
@@ -287,7 +287,7 @@ title('Stationary distribution of z; log(z) is AR(1) with gaussian mixture shock
 % Look at the gaussian mixture innovations
 % We first simulate a time series of z of length T
 T=100;
-z_timeseries=MarkovChainSimulation(T,z_grid,pi_z,n_z);
+z_timeseries=MarkovChainSimulation(T,z_grid,pi_z);
 % The innovations are in the log AR(1)
 innov=log(z_timeseries(2:end))-Params.rho_z*log(z_timeseries(1:end-1));
 % Plot the innovations to see the gaussian mixture shocks
