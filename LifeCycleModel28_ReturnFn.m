@@ -1,5 +1,5 @@
 function F=LifeCycleModel28_ReturnFn(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,warmglow1,warmglow2,warmglow3,beta,sj)
-% The first four are the 'always required' decision variables, next period
+% The first seven are the 'always required' decision variables, next period
 % endogenous states, this period endogenous states, exogenous states
 % After that we need all the parameters the return function uses, it
 % doesn't matter what order we put them here.
