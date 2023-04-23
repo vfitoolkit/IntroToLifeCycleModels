@@ -1,4 +1,4 @@
-function prob=SemiExoStateFn(n1,n2,n1prime,n2prime,f,probofbirth,probofchild,probofadult)
+function prob=LifeCycleModel30_SemiExoStateFn(n1,n2,n1prime,n2prime,f,probofbirth,probofchild,probofadult)
 
 prob=-1; % Just a placeholder (one that will cause errors if not overwritten)
 probn1=-1;
