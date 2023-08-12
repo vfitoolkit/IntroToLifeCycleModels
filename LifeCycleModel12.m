@@ -6,30 +6,56 @@
 % 1. Use vfoptions to state that you are using Epstein-Zin preferences.
 % 2. Set the appropriate preference parameters.
 % 3. Minor adjustment to 'discount factors' and 'return function'.
+% 4. Warm glow of bequests
 
 % 1. Use vfoptions to state that you are using Epstein-Zin preferences.
 vfoptions.exoticpreferences='EpsteinZin'; %Use Epstein-Zin preferences
+% EZ preferences are different for positive and negative valued utility
+% functions, by default it would be assumed that the utility is negative,
+% but let's just be explicit and specify this anyway
+vfoptions.EZpositiveutility=0; % If utility function was positive valued, you would need to set this to one
 
 % 2. Set the appropriate preference parameters.
 % Epstein-Zin preference parameters
-Params.gamma=2; % Risk aversion
-Params.psi=0.5; % Intertemporal Elasticity of substitution (IES)
-% Params.chi is set below with all the other parameters
+vfoptions.EZriskaversion='phi'; % Name of the relative risk aversion parameter
+Params.phi=-1;
 
 % 3. Minor adjustment to 'discount factors' and 'return function'.
-% Set the discount parameters (note that Epstein Zin parameters must be the
-% last two, and in the order 'risk version, IES')
-% Set the return fn.
+% To be able to use a warm-glow-of-bequests with Epstein-Zin preferences we have to distingush
+% conditional survival probabilities from the regular discount factor. 
+% So below the discount factor is now just beta, and we add
+% vfoptions.survivalprobability='sj'
+% We no longer include warm-glow of bequests in the return fn.
+
+% 4. Warm-glow of bequests
+% Using warm-glow of bequests together with EZ preferences is subtle, so dealing with them has been mostly automated.
+% Need to define two things (if you don't want bequests you simply do not define these)
+vfoptions.WarmGlowBequestsFn=@(aprime,sigma,wg,agej,Jr) (agej>=Jr+10)*wg*(aprime^(1-sigma))/(1-sigma); % First input arguement must be aprime, after than can be any parameters
+% Comment: Loosely speaking you want the WarmGlowBequestsFn to output the 'same'
+% thing as the return fn. Our utility function has (c^(1-sigma))/(1-sigma)
+% and hence we set the warmglow to (aprime^(1-sigma))/(1-sigma). We can
+% then control the importance of the warm-glow of bequests by multiplying
+% it by a constant, here called wg. Note that to keep this in line with previous models we
+% also include a term so that the warm-glow of bequests in only non-zero
+% once we are 10 periods into the retirement, hence the (agej>=Jr+10)
+% We declare the value of 'wg' below (there is also a comment on how to interpret wg).
+% Comment: If a parameter in the WarmGlowBequestsFn depends on age, then it is the last period of life
+% from which the parameter value is taken. So be careful. This may mean you want to create
+% an offset version of a parameter to put into the WarmGlowBequestsFn. (E.g., if
+% you die at the end of period 20, then it is the period 20 parameter
+% values that will be used to evaluate WarmGlowBequestsFn; people often 
+% think of the warm-glow as being received in the following period.)
 
 % When using Epstein-Zin preferences the risk aversion is done as part of
 % the value function iteration but not as part of the return function
 % itself. This is in contrast to standard preferences when the risk
-% aversion is done as part of the return function.
+% aversion can just be done as part of the return function.
 
-% That is all. Every other line of code is unchanged!! Epstein-Zin really is that easy ;)
+% That is all. Every other line of code is essentially unchanged!! Epstein-Zin really is that easy ;)
 
-% Note: actually I also delete the three 'old' preference parameters and get rid
-% of the line that set vfoptions to defaults and these are obviously no longer needed.
+% See pdf for an explanation of how exactly warm-glow of bequests is being
+% handled, as well as why it goes wrong if you just put warm-glow of
+% bequests in the return function like you would with standard preferences.
 
 %% How does VFI Toolkit think about this?
 %
@@ -54,11 +80,9 @@ N_j=Params.J; % Number of periods in finite horizon
 
 % Discount rate
 Params.beta = 0.96;
-% Preferences (no longer need following three as using Epstein-Zin preferences)
-% Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-% Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
-% Params.psi = 10; % Weight on leisure
-Params.chi=0.9; % Weight on leisure. This has not been seriously calibrated
+Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+Params.psi = 10; % Weight on leisure
 
 % Prices
 Params.w=1; % Wage
@@ -92,9 +116,9 @@ Params.sj=1-Params.dj(21:101); % Conditional survival probabilities
 Params.sj(end)=0; % In the present model the last period (j=J) value of sj is actually irrelevant
 
 % Warm glow of bequest
-Params.warmglow1=0.3; % (relative) importance of bequests
-Params.warmglow2=3; % bliss point of bequests (essentially, the target amount)
-Params.warmglow3=2;
+Params.wg=10; % (relative) importance of bequests
+% Note: wg can be interpreted as the target for the ratio of terminal wealth to terminal 
+% consumption (terminal meaning at end of the last period, period J). See pdf for explanation.
 
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from
@@ -118,17 +142,21 @@ h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition im
 d_grid=h_grid;
 
 %% Now, create the return function 
-DiscountFactorParamNames={'beta','sj','gamma','psi'}; 
-% Note: the last two must be the Epstein-Zin preferences (for risk averions and IES respectively)
-% Other than the last two, the rest will be treated as standard discount factors.
+DiscountFactorParamNames={'beta'}; 
+vfoptions.survivalprobability='sj';
+% Note that because we have a warm-glow-of-bequests together with Epstein-Zin preferences we can no longer treat sj 
+% as just another discount factor (if you have EZ preferences but no warm-glow you can just put sj as another discount factor)
 
-% Change to 'LifeCycleModel12_ReturnFn', when using Epstein-Zin preferences the utility function 
-% inside the return function has to be set appropriately
-ReturnFn=@(h,aprime,a,z,w,chi,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel12_ReturnFn(h,aprime,a,z,w,chi,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+% 'LifeCycleModel12_ReturnFn' is the same as was used for model 9, except we have to remove the warm-glow of bequests from the return
+% fn as it has to be treated specially when using Epstein-Zin preferences.
+% Note that the vfoptions.EZriskaversion parameter modifies this and makes it Epstein-Zin preferences.
+ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j) ...
+    LifeCycleModel12_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
 % vfoptions=struct(); % Just using the defaults.
+vfoptions.lowmemory=2
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -146,6 +174,12 @@ size(Policy)
 % The n_a,n_z,N_j represent the state on which the decisions/policys
 % depend, and there is one decision for each decision variable 'd' and each endogenous state variable 'a'
 
+% Check for hitting top of asset grid
+temp=reshape(max(max(Policy(2,:,:,:),[],3),[],2),[1,N_j])
+
+temp=reshape(max(max(Policy(1,:,:,:),[],3),[],2),[1,N_j])
+
+
 %% Let's take a quick look at what we have calculated, namely V and Policy
 
 % The value function V depends on the state, so now it depends on both asset holdings and age.
@@ -156,12 +190,12 @@ zind=floor(n_z+1)/2; % This will be the median
 figure(1)
 subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(V(:,zind,:),[n_a,Params.J]))
 title('Value function: median value of z')
-xlabel('Age j')
-ylabel('Assets (a)')
+xlabel('Assets (a)')
+ylabel('Age j')
 subplot(2,1,2); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(Params.agejshifter+(1:1:Params.J)),reshape(V(:,zind,:),[n_a,Params.J]))
 title('Value function: median value of z')
-xlabel('Age in Years')
-ylabel('Assets (a)')
+xlabel('Assets (a)')
+ylabel('Age in Years')
 
 % Do another plot of V, this time as a function (of assets) for a given age (I do a few for different ages)
 figure(2)
@@ -170,11 +204,36 @@ title('Value fn at age j=1')
 legend('min z','median z','max z') % Just include the legend once in the top subplot
 subplot(5,1,2); plot(a_grid,V(:,1,20),a_grid,V(:,zind,20),a_grid,V(:,end,20)) % j=20
 title('Value fn at age j=20')
-subplot(5,1,3); plot(a_grid,V(:,1,45),a_grid,V(:,zind,45),a_grid,V(:,end,45)) % j=45
-title('Value fn at age j=45')
-subplot(5,1,4); plot(a_grid,V(:,1,46),a_grid,V(:,end,46),a_grid,V(:,end,46)) % j=46
-title('Value fn at age j=46 (first year of retirement)')
+subplot(5,1,3); plot(a_grid,V(:,1,79),a_grid,V(:,zind,79),a_grid,V(:,end,79)) % j=79 % 45
+title('Value fn at age j=79')
+subplot(5,1,4); plot(a_grid,V(:,1,80),a_grid,V(:,end,80),a_grid,V(:,end,80)) % j=80 % 46
+title('Value fn at age j=80 (first year of retirement)')
 subplot(5,1,5); plot(a_grid,V(:,1,81),a_grid,V(:,zind,81),a_grid,V(:,end,81)) % j=81
+title('Value fn at age j=81')
+xlabel('Assets (a)')
+
+
+figure(2)
+subplot(5,2,1); plot(a_grid,V(:,1,60),a_grid,V(:,zind,60),a_grid,V(:,end,60)) % j=1
+title('Value fn at age j=60')
+legend('min z','median z','max z') % Just include the legend once in the top subplot
+subplot(5,2,2); plot(a_grid,V(:,1,65),a_grid,V(:,zind,65),a_grid,V(:,end,65)) % j=20
+title('Value fn at age j=65')
+subplot(5,2,3); plot(a_grid,V(:,1,70),a_grid,V(:,zind,70),a_grid,V(:,end,70)) % j=79 % 45
+title('Value fn at age j=70')
+subplot(5,2,4); plot(a_grid,V(:,1,72),a_grid,V(:,end,72),a_grid,V(:,end,72)) % j=80 % 46
+title('Value fn at age j=72')
+subplot(5,2,5); plot(a_grid,V(:,1,74),a_grid,V(:,zind,74),a_grid,V(:,end,74)) % j=81
+title('Value fn at age j=74')
+subplot(5,2,6); plot(a_grid,V(:,1,76),a_grid,V(:,zind,76),a_grid,V(:,end,76)) % j=1
+title('Value fn at age j=76')
+subplot(5,2,7); plot(a_grid,V(:,1,78),a_grid,V(:,zind,78),a_grid,V(:,end,78)) % j=20
+title('Value fn at age j=78')
+subplot(5,2,8); plot(a_grid,V(:,1,79),a_grid,V(:,zind,79),a_grid,V(:,end,79)) % j=79 % 45
+title('Value fn at age j=79')
+subplot(5,2,9); plot(a_grid,V(:,1,80),a_grid,V(:,end,80),a_grid,V(:,end,80)) % j=80 % 46
+title('Value fn at age j=80')
+subplot(5,2,10); plot(a_grid,V(:,1,81),a_grid,V(:,zind,81),a_grid,V(:,end,81)) % j=81
 title('Value fn at age j=81')
 xlabel('Assets (a)')
 
@@ -186,13 +245,13 @@ figure(3)
 PolicyVals=PolicyInd2Val_FHorz_Case1(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid);
 subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,zind,:),[n_a,Params.J]))
 title('Policy function: fraction of time worked (h), median z')
-xlabel('Age j')
-ylabel('Assets (a)')
+xlabel('Assets (a)')
+ylabel('Age j')
 zlabel('Fraction of Time Worked (h)')
 subplot(2,1,2); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(2,:,zind,:),[n_a,Params.J]))
 title('Policy function: next period assets (aprime), median z')
-xlabel('Age j')
-ylabel('Assets (a)')
+xlabel('Assets (a)')
+ylabel('Age j')
 zlabel('Next period assets (aprime)')
 
 % Again, plot both policies (h and aprime), this time as a function (of assets) for a given age  (I do a few for different ages)
