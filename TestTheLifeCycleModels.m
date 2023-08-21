@@ -57,6 +57,7 @@ LifeCycleModel17
 clear all
 LifeCycleModel18
 
+% There is no model 19 (is just equations)
 % clear all
 % LifeCycleModel19
 
@@ -69,14 +70,23 @@ LifeCycleModel21
 clear all
 LifeCycleModel22
 
-clear all
-LifeCycleModel23
+% There is no model 23 (yet)
+% clear all
+% LifeCycleModel23
 
 clear all
 LifeCycleModel24
 
 clear all
 LifeCycleModel25
+
+% There is no model 26 (yet)
+% clear all
+% LifeCycleModel26
+
+% There is no model 27 (yet)
+% clear all
+% LifeCycleModel27
 
 clear all
 LifeCycleModel28
@@ -95,6 +105,10 @@ LifeCycleModel33
 
 clear all
 LifeCycleModel34
+
+% There is no model 35 (yet)
+% clear all
+% LifeCycleModel35
 
 % Now the appendix models
 addpath('./Appendix/')
