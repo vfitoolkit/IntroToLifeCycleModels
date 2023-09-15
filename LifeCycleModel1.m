@@ -26,7 +26,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=1; % Codes require an endogeneous state, but by making it only one grid point it is essentially irrelevant
-n_z=1; % This is how the VFI Toolkit thinks about deterministic models
+n_z=0; % This is how the VFI Toolkit thinks about deterministic models
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Parameters
@@ -45,8 +45,6 @@ Params.w=1; % Wage
 % to figure out what is going on. By making them just a single grid point, 
 % and then not using them anywhere, we are essentially solving a model without them.
 a_grid=1;
-z_grid=1;
-pi_z=1;
 
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
@@ -59,40 +57,37 @@ d_grid=h_grid;
 DiscountFactorParamNames={'beta'};
 
 % When setting up the return function the first 'inputs' must be the
-% decision variables, next period endogenous states, this period
-% endogenous states, and the exogenous states.
+% decision variables, next period endogenous states, this period endogenous states.
 % In the current model, the decision variable is h.
 % We don't have an endogenous state, but toolkit requires one and this is
 % the 'a', which we created as a single grid point. We will call the next
-% period version of this aprime. We don't have an exogenous state, but
-% toolkit requires one and we will called it 'z' (again with single grid
-% point it will be irrelevant).
+% period version of this aprime. We don't have an exogenous state so we set
+% n_z=0.
 % So 'decision variables, next period endogenous states, this period
-% endogenous states, and the exogenous states' becomes
-% (h,aprime,a,z)
+% endogenous states becomes
+% (h,aprime,a)
 % After this we can put the parameters.
 
 % To understand how to create the ReturnFn, look inside
 % 'LifeCycleModel1_ReturnFn' (you can right-click on it's name below and click 'Open LifeCycleModel1_ReturnFn')
 % We then just have to make the @() contain exactly the same inputs as
 % 'LifeCycleModel1_ReturnFn', and then give the parameter names.
-ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta) LifeCycleModel1_ReturnFn(h,aprime,a,z,w,sigma,psi,eta)
+ReturnFn=@(h,aprime,a,w,sigma,psi,eta) LifeCycleModel1_ReturnFn(h,aprime,a,w,sigma,psi,eta)
 % The first entries must be the decision variables (d), the next period
-% endogenous state, this period endogenous state (a), and the exogenous
-% state (z), followed by any parameters.
+% endogenous state, this period endogenous state (a), followed by any parameters.
 % VFI Toolkit will automatically look in 'Params' to find the values of these parameters.
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
-[V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
+[V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, [], [], ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
 
 % V is the value function
 % Policy is the policy function (as index)
-% Policy(1,:,:,:) is the decision variable
-% Policy(2,:,:,:) is next period asset (which is trivial in this model)
+% Policy(1,:,:) is the decision variable
+% Policy(2,:,:) is next period asset (which is trivial in this model)
 
 %% Let's take a quick look at what we have calculated, namely V and Policy
 
@@ -122,7 +117,7 @@ xlabel('Age in Years')
 
 % Plot the policy function, which represents the (grid points relating to) values of h.
 figure(2)
-plot(1:1:Params.J,h_grid(Policy(1,:,:,:))) % Notice how it is h_grid(Policy), this turns grid point index into actual values of h
+plot(1:1:Params.J,h_grid(Policy(1,:,:))) % Notice how it is h_grid(Policy), this turns grid point index into actual values of h
 title('Policy function: fraction of time worked (h)')
 xlabel('Age j')
 % Looks a bit silly, people of every age work exact same amount. This will change in future models.
@@ -132,7 +127,7 @@ xlabel('Age j')
 % There is actually also a command for converting Policy into policy values (rather than policy indexes, which is default)
 figure(3)
 PolicyVals=PolicyInd2Val_FHorz_Case1(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid);
-plot(1:1:Params.J,shiftdim(PolicyVals(1,:,:,:),3))
+plot(1:1:Params.J,shiftdim(PolicyVals(1,:,:),2))
 title('Policy function: fraction of time worked (h)')
 xlabel('Age j')
 

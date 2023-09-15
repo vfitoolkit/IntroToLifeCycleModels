@@ -19,7 +19,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=201; % Endogenous asset holdings
-n_z=1; % This is how the VFI Toolkit thinks about deterministic models
+n_z=0; % This is how the VFI Toolkit thinks about deterministic models
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Parameters
@@ -47,8 +47,6 @@ Params.pension=0.3;
 % theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
-z_grid=1;
-pi_z=1;
 
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
@@ -60,25 +58,25 @@ DiscountFactorParamNames={'beta'};
 
 % Add r to the inputs (in some sense we add a and aprime, but these were already required, if previously irrelevant)
 % Notice change to 'LifeCycleModel3_ReturnFn'
-ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r) LifeCycleModel3_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r)
+ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r) LifeCycleModel3_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
-[V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
+[V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, [], [], ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
 
-% V is now (a,z,j). By default the VFI Toolkit has included z even though in our case it is irrelevant.
+% V is now (a,j). 
 % Compare
 size(V)
 % with
-[n_a,n_z,N_j]
+[n_a,N_j]
 % there are the same.
 % Policy is
 size(Policy)
 % which is the same as
-[length(n_d)+length(n_a),n_a,n_z,N_j]
+[length(n_d)+length(n_a),n_a,N_j]
 % The n_a,n_z,N_j represent the state on which the decisions/policys
 % depend, and there is one decision for each decision variable 'd' and each endogenous state variable 'a'
 
@@ -88,38 +86,38 @@ size(Policy)
 
 % We can plot V as a 3d plot (surf is matlab command for 3d plot)
 figure(1)
-surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(V(:,1,:),[n_a,Params.J])) % The reshape is needed to get rid of z
+surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),V) % The reshape is needed to get rid of z
 title('Value function')
 xlabel('Assets (a)')
 ylabel('Age j')
 
 % Do another plot of V, this time as a function (of assets) for a given age (I do a few for different ages)
 figure(2)
-subplot(5,1,1); plot(a_grid,V(:,1,1)) % j=1
+subplot(5,1,1); plot(a_grid,V(:,1)) % j=1
 title('Value fn at age j=1')
-subplot(5,1,2); plot(a_grid,V(:,1,20)) % j=20
+subplot(5,1,2); plot(a_grid,V(:,20)) % j=20
 title('Value fn at age j=20')
-subplot(5,1,3); plot(a_grid,V(:,1,45)) % j=45
+subplot(5,1,3); plot(a_grid,V(:,45)) % j=45
 title('Value fn at age j=45')
-subplot(5,1,4); plot(a_grid,V(:,1,46)) % j=46
+subplot(5,1,4); plot(a_grid,V(:,46)) % j=46
 title('Value fn at age j=46 (first year of retirement)')
-subplot(5,1,5); plot(a_grid,V(:,1,81)) % j=81
+subplot(5,1,5); plot(a_grid,V(:,81)) % j=81
 title('Value fn at age j=81')
 xlabel('Assets (a)')
 
 % Convert the policy function to values (rather than indexes).
 % Note that there is one policy for hours worked (h), and another for next
 % period assets (aprime). 
-% Policy(1,:,:,:) is h, Policy(2,:,:,:) is aprime [as function of (a,z,j)]
+% Policy(1,:,:) is h, Policy(2,:,:) is aprime [as function of (a,j)]
 % Plot both as a 3d plot.
 figure(3)
 PolicyVals=PolicyInd2Val_FHorz_Case1(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid);
-subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,1,:),[n_a,Params.J]))
+subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,:),[n_a,Params.J]))
 title('Policy function: fraction of time worked (h)')
 xlabel('Assets (a)')
 ylabel('Age j')
 zlabel('Fraction of Time Worked (h)')
-subplot(2,1,2); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(2,:,1,:),[n_a,Params.J]))
+subplot(2,1,2); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(2,:,:),[n_a,Params.J]))
 title('Policy function: next period assets (aprime)')
 xlabel('Assets (a)')
 ylabel('Age j')
@@ -127,26 +125,26 @@ zlabel('Next period assets (aprime)')
 
 % Again, plot both policies (h and aprime), this time as a function (of assets) for a given age  (I do a few for different ages)
 figure(4)
-subplot(5,2,1); plot(a_grid,PolicyVals(1,:,1,1)) % j=1
+subplot(5,2,1); plot(a_grid,PolicyVals(1,:,1)) % j=1
 title('Policy for h at age j=1')
-subplot(5,2,3); plot(a_grid,PolicyVals(1,:,1,20)) % j=20
+subplot(5,2,3); plot(a_grid,PolicyVals(1,:,20)) % j=20
 title('Policy for h at age j=20')
-subplot(5,2,5); plot(a_grid,PolicyVals(1,:,1,45)) % j=45
+subplot(5,2,5); plot(a_grid,PolicyVals(1,:,45)) % j=45
 title('Policy for h at age j=45')
-subplot(5,2,7); plot(a_grid,PolicyVals(1,:,1,46)) % j=46
+subplot(5,2,7); plot(a_grid,PolicyVals(1,:,46)) % j=46
 title('Policy for h at age j=46 (first year of retirement)')
-subplot(5,2,9); plot(a_grid,PolicyVals(1,:,1,81)) % j=81
+subplot(5,2,9); plot(a_grid,PolicyVals(1,:,81)) % j=81
 title('Policy for h at age j=81')
 xlabel('Assets (a)')
-subplot(5,2,2); plot(a_grid,PolicyVals(2,:,1,1)) % j=1
+subplot(5,2,2); plot(a_grid,PolicyVals(2,:,1)) % j=1
 title('Policy for aprime at age j=1')
-subplot(5,2,4); plot(a_grid,PolicyVals(2,:,1,20)) % j=20
+subplot(5,2,4); plot(a_grid,PolicyVals(2,:,20)) % j=20
 title('Policy for aprime at age j=20')
-subplot(5,2,6); plot(a_grid,PolicyVals(2,:,1,45)) % j=45
+subplot(5,2,6); plot(a_grid,PolicyVals(2,:,45)) % j=45
 title('Policy for aprime at age j=45')
-subplot(5,2,8); plot(a_grid,PolicyVals(2,:,1,46)) % j=46
+subplot(5,2,8); plot(a_grid,PolicyVals(2,:,46)) % j=46
 title('Policy for aprime at age j=46 (first year of retirement)')
-subplot(5,2,10); plot(a_grid,PolicyVals(2,:,1,81)) % j=81
+subplot(5,2,10); plot(a_grid,PolicyVals(2,:,81)) % j=81
 title('Policy for aprime at age j=81')
 xlabel('Assets (a)')
 

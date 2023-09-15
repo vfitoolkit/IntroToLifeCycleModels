@@ -1,6 +1,6 @@
-function F=LifeCycleModel2_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension)
-% The first four are the 'always required' decision variables, next period
-% endogenous states, this period endogenous states, exogenous states
+function F=LifeCycleModel2_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension)
+% The first three are the 'always required' decision variables, next period
+% endogenous states, this period endogenous states.
 % After that we need all the parameters the return function uses, it
 % doesn't matter what order we put them here.
 

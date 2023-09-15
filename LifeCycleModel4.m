@@ -20,7 +20,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=201; % Endogenous asset holdings
-n_z=1; % This is how the VFI Toolkit thinks about deterministic models
+n_z=0; % This is how the VFI Toolkit thinks about deterministic models
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Parameters
@@ -48,8 +48,6 @@ Params.pension=0.3;
 % theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
-z_grid=1;
-pi_z=1;
 
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
@@ -59,15 +57,14 @@ d_grid=h_grid;
 %% Now, create the return function 
 DiscountFactorParamNames={'beta'};
 
-% Add r to the inputs (in some sense we add a and aprime, but these were already required, if previously irrelevant)
-% Notice change to 'LifeCycleModel3_ReturnFn'
-ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r) LifeCycleModel3_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r)
+% Notice still using 'LifeCycleModel3_ReturnFn'
+ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r) LifeCycleModel3_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
-[V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
+[V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, [], [], ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
 
 %% Until now the code is unchanged.
@@ -89,21 +86,21 @@ jequaloneDist(1)=1; % Note that 0 is the 1st grid point in the asset grid
 Params.mewj=ones(1,Params.J)/Params.J; % Put a fraction 1/J at each age
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
 simoptions=struct(); % Use the default options
-StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
+StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,[],Params,simoptions);
 % Again, we will explain in a later model what the stationary distribution
 % is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
+% Like with return function, we have to include (h,aprime,a) as first
 % inputs, then just any relevant parameters.
-FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z) h; % h is fraction of time worked
-FnsToEvaluate.earnings=@(h,aprime,a,z,w) w*h; % w*h is the labor earnings
-FnsToEvaluate.assets=@(h,aprime,a,z) a; % a is the current asset holdings
+FnsToEvaluate.fractiontimeworked=@(h,aprime,a) h; % h is fraction of time worked
+FnsToEvaluate.earnings=@(h,aprime,a,w) w*h; % w*h is the labor earnings
+FnsToEvaluate.assets=@(h,aprime,a) a; % a is the current asset holdings
 
 % notice that we have called these fractiontimeworked, earnings and assets
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,[],simoptions);
 
 % For example
 % AgeConditionalStats.earnings.Mean

@@ -1,4 +1,4 @@
-function F=LifeCycleModel1_ReturnFn(h,aprime,a,z,w,sigma,psi,eta)
+function F=LifeCycleModel1_ReturnFn(h,aprime,a,w,sigma,psi,eta)
 % The first four are the 'always required' decision variables, next period
 % endogenous states, this period endogenous states, exogenous states
 % After that we need all the parameters the return function uses, it

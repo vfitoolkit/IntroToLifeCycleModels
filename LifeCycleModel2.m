@@ -20,7 +20,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=1; % Codes require an endogeneous state, but by making it only one grid point it is essentially irrelevant
-n_z=1; % This is how the VFI Toolkit thinks about deterministic models
+n_z=0; % This is how the VFI Toolkit thinks about deterministic models
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Parameters
@@ -43,12 +43,10 @@ Params.Jr=46;
 Params.pension=0.3;
 
 %% Grids
-% While there are no 'a' for 'z' in this model, VFI Toolkit requires them 
-% to figure out what is going on. By making them just a single grid point, 
-% and then not using them anywhere, we are essentially solving a model without them.
+% While there are no 'a' in this model, VFI Toolkit requires them 
+% to figure out what is going on. By making it just a single grid point, 
+% and then not using it anywhere, we are essentially solving a model without them.
 a_grid=1;
-z_grid=1;
-pi_z=1;
 
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
@@ -61,14 +59,14 @@ DiscountFactorParamNames={'beta'};
 
 % Add agej,Jr & pension to the inputs
 % Notice change to 'LifeCycleModel2_ReturnFn'
-ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension) LifeCycleModel2_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension)
+ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension) LifeCycleModel2_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension)
 % VFI Toolkit will automatically look in 'Params' to find the values of these parameters.
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
-[V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
+[V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, [], [], ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
 
 %% Let's take a quick look at what we have calculated, namely V and Policy
@@ -88,7 +86,7 @@ xlabel('Age in Years')
 
 % Plot the policy function, which represents the (grid points relating to) values of h.
 figure(2)
-plot(1:1:Params.J,h_grid(Policy(1,:,:,:))) % Notice how it is h_grid(Policy), this turns grid point index into actual values of h
+plot(1:1:Params.J,h_grid(Policy(1,:,:))) % Notice how it is h_grid(Policy), this turns grid point index into actual values of h
 title('Policy function: fraction of time worked (h)')
 xlabel('Age j')
 % Notice how now with retirement no-one works (retirement is at age Param.Jr)
@@ -96,7 +94,7 @@ xlabel('Age j')
 % There is actually also a command for converting Policy into policy values (rather than policy indexes, which is default)
 figure(3)
 PolicyVals=PolicyInd2Val_FHorz_Case1(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid);
-plot(1:1:Params.J,shiftdim(PolicyVals(1,:,:,:),3))
+plot(1:1:Params.J,shiftdim(PolicyVals(1,:,:),2))
 title('Policy function: fraction of time worked (h)')
 xlabel('Age j')
 
