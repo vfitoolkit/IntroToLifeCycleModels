@@ -31,8 +31,8 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 % Grid sizes to use
 n_d=[51,2]; % Endogenous labour choice (fraction of time worked), fertility decision
 n_a=201; % Endogenous asset holdings
-n_z=11; %Exogenous labor productivity units shock
 n_semiz=[2,4]; %number of infants, number of children
+n_z=11; %Exogenous labor productivity units shock
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Additional parameters specific to fertility
@@ -144,8 +144,8 @@ d_grid=[h_grid; f_grid];
 DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModel30_ReturnFn'
-ReturnFn=@(h,f,aprime,a,z,n1,n2,w,sigma,psi,eta,agej,eta1,eta2,eta3,nbar,hbar,h_c,childcarec,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) ...
-    LifeCycleModel30_ReturnFn(h,f,aprime,a,z,n1,n2,w,sigma,psi,eta,agej,eta1,eta2,eta3,nbar,hbar,h_c,childcarec,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj);
+ReturnFn=@(h,f,aprime,a,n1,n2,z,w,sigma,psi,eta,agej,eta1,eta2,eta3,nbar,hbar,h_c,childcarec,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) ...
+    LifeCycleModel30_ReturnFn(h,f,aprime,a,n1,n2,z,w,sigma,psi,eta,agej,eta1,eta2,eta3,nbar,hbar,h_c,childcarec,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Solve ValueFnIter')
@@ -153,35 +153,36 @@ vfoptions.verbose=1;
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
- 
+
 %% Look at the fertility decisions
-PolicyVals=PolicyInd2Val_FHorz_Case1(Policy,n_d,n_a,[n_z,n_semiz],N_j,d_grid,a_grid);
+PolicyVals=PolicyInd2Val_FHorz_Case1(Policy,n_d,n_a,[n_semiz,n_z],N_j,d_grid,a_grid);
 
 figure(1)
-subplot(6,2,1); plot(a_grid,PolicyVals(2,:,end,1,1,1)) % j=1
+% Note: uses max value of z shock
+subplot(6,2,1); plot(a_grid,PolicyVals(2,:,1,1,end,1)) % j=1
 title('Policy for f at age j=1')
-subplot(6,2,3); plot(a_grid,PolicyVals(2,:,end,1,1,5)) % j=5
+subplot(6,2,3); plot(a_grid,PolicyVals(2,:,1,1,end,5)) % j=5
 title('Policy for f at age j=5')
-subplot(6,2,5); plot(a_grid,PolicyVals(2,:,end,1,1,10)) % j=10
+subplot(6,2,5); plot(a_grid,PolicyVals(2,:,1,1,end,10)) % j=10
 title('Policy for f at age j=10')
-subplot(6,2,7); plot(a_grid,PolicyVals(2,:,end,1,1,15)) % j=15
+subplot(6,2,7); plot(a_grid,PolicyVals(2,:,1,1,end,15)) % j=15
 title('Policy for f at age j=15')
-subplot(6,2,9); plot(a_grid,PolicyVals(2,:,end,1,1,20)) % j=20
+subplot(6,2,9); plot(a_grid,PolicyVals(2,:,1,1,end,20)) % j=20
 title('Policy for f at age j=20')
-subplot(6,2,11); plot(a_grid,PolicyVals(2,:,end,1,1,25)) % j=25
+subplot(6,2,11); plot(a_grid,PolicyVals(2,:,1,1,end,25)) % j=25
 title('Policy for f at age j=25')
 xlabel('Fertility Decision for Household without Children')
-subplot(6,2,2); plot(a_grid,PolicyVals(2,:,end,2,1,1)) % j=1
+subplot(6,2,2); plot(a_grid,PolicyVals(2,:,2,1,end,1)) % j=1
 title('Policy for f at age j=1')
-subplot(6,2,4); plot(a_grid,PolicyVals(2,:,end,2,1,5)) % j=5
+subplot(6,2,4); plot(a_grid,PolicyVals(2,:,2,1,end,5)) % j=5
 title('Policy for f at age j=5')
-subplot(6,2,6); plot(a_grid,PolicyVals(2,:,end,2,1,10)) % j=10
+subplot(6,2,6); plot(a_grid,PolicyVals(2,:,2,1,end,10)) % j=10
 title('Policy for f at age j=10')
-subplot(6,2,8); plot(a_grid,PolicyVals(2,:,end,2,1,15)) % j=15
+subplot(6,2,8); plot(a_grid,PolicyVals(2,:,2,1,end,15)) % j=15
 title('Policy for f at age j=15')
-subplot(6,2,10); plot(a_grid,PolicyVals(2,:,end,2,1,20)) % j=20
+subplot(6,2,10); plot(a_grid,PolicyVals(2,:,2,1,end,20)) % j=20
 title('Policy for f at age j=20')
-subplot(6,2,12); plot(a_grid,PolicyVals(2,:,end,2,1,25)) % j=20
+subplot(6,2,12); plot(a_grid,PolicyVals(2,:,2,1,end,25)) % j=20
 title('Policy for f at age j=25')
 xlabel('Fertility Decision for Household with Infant')
 % Note that a household with an infant cannot have a second, so they 
@@ -198,8 +199,8 @@ title('How the utility of children varies with age')
 %% Initial distribution of agents at birth (j=1)
 % Before we plot the life-cycle profiles we have to define how agents are
 % at age j=1. We will give them all zero assets.
-jequaloneDist=zeros([n_a,n_z,n_semiz],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,floor((n_z+1)/2),1,1)=1; % All agents start with zero assets, and the median shock, no infants, no children
+jequaloneDist=zeros([n_a,n_semiz,n_z],'gpuArray'); % Put no households anywhere on grid
+jequaloneDist(1,1,1,floor((n_z+1)/2))=1; % All agents start with zero assets, and the median shock, no infants, no children
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -216,7 +217,6 @@ AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mas
 % Because evaluating pi_semiz_J requires the d_grid we also have to provide
 simoptions.d_grid=d_grid;
 
-simoptions.verbose=1;
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 % Again, we will explain in a later model what the stationary distribution
 % is, it is not important for our current goal of graphing the life-cycle profile
@@ -224,11 +224,11 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (h,aprime,a,z) as first
 % inputs, then just any relevant parameters.
-FnsToEvaluate.fractiontimeworked=@(h,f,aprime,a,z,n1,n2) h; % h is fraction of time worked
-FnsToEvaluate.earnings=@(h,f,aprime,a,z,n1,n2,w,kappa_j) w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
-FnsToEvaluate.assets=@(h,f,aprime,a,z,n1,n2) a; % a is the current asset holdings
-FnsToEvaluate.ninfants=@(h,f,aprime,a,z,n1,n2) n1; % a is the current asset holdings
-FnsToEvaluate.nchildren=@(h,f,aprime,a,z,n1,n2) n2; % a is the current asset holdings
+FnsToEvaluate.fractiontimeworked=@(h,f,aprime,a,n1,n2,z) h; % h is fraction of time worked
+FnsToEvaluate.earnings=@(h,f,aprime,a,n1,n2,z,w,kappa_j) w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
+FnsToEvaluate.assets=@(h,f,aprime,a,n1,n2,z) a; % a is the current asset holdings
+FnsToEvaluate.ninfants=@(h,f,aprime,a,n1,n2,z) n1; % a is the current asset holdings
+FnsToEvaluate.nchildren=@(h,f,aprime,a,n1,n2,z) n2; % a is the current asset holdings
 
 % notice that we have called these fractiontimeworked, earnings and assets
 
