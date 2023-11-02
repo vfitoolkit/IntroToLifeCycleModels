@@ -4,14 +4,15 @@
 % Decision variables are 'savings' and 'riskyshare' (the share of savings
 % that is invested in the risky asset). Importantly this means that next
 % period assets (aprime) can no longer be chosen directly, and so we use
-% 'Case3' which has aprime(d,u), that next period endogenous state is a
+% 'riskyasset' which has aprime(d,u), that next period endogenous state is a
 % function of the decision variables (d) and an i.i.d. shock (u) that
 % occurs between this period and next period.
 
-% In terms of code, using Case3 means:
-% The return function and functions to evaluate have first inputs (d,a,z,...) [no aprime like in Case1]
+% In terms of code, using a riskyasset means:
+% The return function and functions to evaluate have first inputs (d,a,z,...) [no aprime like with a standard endogenous state]
 % We need to define aprime(d,u), which is done around line 105
-% When doing value function iteration, agent distribution, etc., we need to use the Case3 instead of Case1 commands.
+% When doing value function iteration, agent distribution, etc., we need to
+% state in vfoptions and simoptions that we have a riskyasset
 
 % Note: earnings are not very risky, so the present value of earnings looks
 % a lot like a safe asset, and hence people invest almost everything in the
@@ -39,6 +40,9 @@ n_a=201; % Endogenous asset holdings
 n_z=21; % Exogenous labor productivity units shock
 n_u=5; % Between period i.i.d. shock
 N_j=Params.J; % Number of periods in finite horizon
+
+vfoptions.riskyasset=1; % riskyasset aprime(d,u)
+simoptions.riskyasset=1;
 
 %% Parameters
 
@@ -103,11 +107,27 @@ riskyshare_grid=linspace(0,1,n_d(2))'; % Share of assets, from 0 to 1
 % Set up d for VFI Toolkit (is the two decision variables)
 d_grid=[a_grid; riskyshare_grid]; % Note: this does not have to be a_grid, I just chose to use same grid for savings as for assets
 
-%% Define aprime function used for Case 3 (value of next period assets, determined by this period decision, and u shock)
+%% Define aprime function used for the riskyasset (value of next period assets, determined by this period decision, and u shock)
 
-% Case3: aprime_val=aprimeFn(d,u)
+% riskyasset: aprime_val=aprimeFn(d,u)
 aprimeFn=@(savings,riskyshare,u, r) LifeCycleModel31_aprimeFn(savings,riskyshare, u, r); % Will return the value of aprime
 % Note that u is risky asset excess return and effectively includes both the (excess) mean and standard deviation of risky assets
+
+%% Put the risky asset into vfoptions and simoptions
+vfoptions.aprimeFn=aprimeFn;
+vfoptions.n_u=n_u;
+vfoptions.u_grid=u_grid;
+vfoptions.pi_u=pi_u;
+simoptions.aprimeFn=aprimeFn;
+simoptions.n_u=n_u;
+simoptions.u_grid=u_grid;
+simoptions.pi_u=pi_u;
+% Because a_grid and d_grid are involved in risky assets, but are not
+% normally needed for agent distriubiton simulation, we have to also
+% include these in simoptions
+simoptions.a_grid=a_grid;
+simoptions.d_grid=d_grid;
+
 
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
@@ -118,9 +138,8 @@ ReturnFn=@(savings,riskyshare,a,z,w,sigma,agej,Jr,pension,kappa_j) ...
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
-vfoptions=struct(); % Just using the defaults.
 tic;
-[V, Policy]=ValueFnIter_Case3_FHorz(n_d,n_a,n_z,n_u,N_j,d_grid, a_grid, z_grid, u_grid, pi_z, pi_u, ReturnFn, aprimeFn, Params, DiscountFactorParamNames, [], vfoptions);
+[V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
 
 % V is now (a,z,j). This was already true, just that previously z was trivial (a single point) 
@@ -230,9 +249,9 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
-simoptions=struct(); % Use the default options
-StationaryDist=StationaryDist_FHorz_Case3(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,n_u,N_j,d_grid, a_grid,u_grid,pi_z,pi_u,aprimeFn,Params,simoptions);
-% Case3 requires the grids when simulating the agent distribution to be able to handle aprime(d,u)
+StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
+% riskyasset requires the grids when simulating the agent distribution to be able to handle aprime(d,u). The grids are passed in simoptions.
+
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (h,aprime,a,z) as first
@@ -244,7 +263,7 @@ FnsToEvaluate.assets=@(savings,riskyshare,a,z) a; % a is the current asset holdi
 % notice that we have called these riskyshare, earnings and assets
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case3(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 % For example
 % AgeConditionalStats.earnings.Mean
@@ -253,7 +272,7 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case3(StationaryDist,Policy,FnsToEva
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 
-figure(5)
+figure(6)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.riskyshare.Mean)
 title('Life Cycle Profile: Share of savings invested in risky asset (riskyshare)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)

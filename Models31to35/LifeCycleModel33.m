@@ -28,11 +28,14 @@ Params.agejshifter=19; % Age 20 minus one. Makes keeping track of actual age eas
 Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
-n_d=[201,51]; % Decisions: savings, riskyshare
+n_d=[201,11]; % Decisions: savings, riskyshare
 n_a=201; % Endogenous asset holdings
 n_z=21; % Exogenous labor productivity units shock
 n_u=5; % Between period i.i.d. shock
 N_j=Params.J; % Number of periods in finite horizon
+
+vfoptions.riskyasset=1; % riskyasset aprime(d,u)
+simoptions.riskyasset=1;
 
 % Specify Epstein-Zin preferences
 vfoptions.exoticpreferences='EpsteinZin';
@@ -106,9 +109,25 @@ d_grid=[a_grid; riskyshare_grid]; % Note: this does not have to be a_grid, I jus
 
 %% Define aprime function used for Case 3 (value of next period assets, determined by this period decision, and u shock)
 
-% Case3: aprime_val=aprimeFn(d,u)
+% riskyasset: aprime_val=aprimeFn(d,u)
 aprimeFn=@(savings,riskyshare,u, r) LifeCycleModel31_aprimeFn(savings,riskyshare, u, r); % Will return the value of aprime
 % Note that u is risky asset excess return and effectively includes both the (excess) mean and standard deviation of risky assets
+
+%% Put the risky asset into vfoptions and simoptions
+vfoptions.aprimeFn=aprimeFn;
+vfoptions.n_u=n_u;
+vfoptions.u_grid=u_grid;
+vfoptions.pi_u=pi_u;
+simoptions.aprimeFn=aprimeFn;
+simoptions.n_u=n_u;
+simoptions.u_grid=u_grid;
+simoptions.pi_u=pi_u;
+% Because a_grid and d_grid are involved in risky assets, but are not
+% normally needed for agent distriubiton simulation, we have to also
+% include these in simoptions
+simoptions.a_grid=a_grid;
+simoptions.d_grid=d_grid;
+
 
 %% Now, create the return function 
 DiscountFactorParamNames={'beta'}; % Note: no longer contains the conditional survival probability
@@ -120,7 +139,7 @@ ReturnFn=@(savings,riskyshare,a,z,w,sigma,agej,Jr,pension,kappa_j) ...
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
 tic;
-[V, Policy]=ValueFnIter_Case3_FHorz(n_d,n_a,n_z,n_u,N_j,d_grid, a_grid, z_grid, u_grid, pi_z, pi_u, ReturnFn, aprimeFn, Params, DiscountFactorParamNames, [], vfoptions);
+[V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
 
 % V is now (a,z,j). This was already true, just that previously z was trivial (a single point) 
@@ -230,9 +249,8 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
-simoptions=struct(); % Use the default options
-StationaryDist=StationaryDist_FHorz_Case3(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,n_u,N_j,d_grid, a_grid,u_grid,pi_z,pi_u,aprimeFn,Params,simoptions);
-% Case3 requires the grids when simulating the agent distribution to be able to handle aprime(d,u)
+StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
+% riskyasset requires the grids when simulating the agent distribution to be able to handle aprime(d,u). The grids are passed in simoptions.
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (h,aprime,a,z) as first
@@ -244,7 +262,7 @@ FnsToEvaluate.assets=@(savings,riskyshare,a,z) a; % a is the current asset holdi
 % notice that we have called these riskyshare, earnings and assets
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case3(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 % For example
 % AgeConditionalStats.earnings.Mean

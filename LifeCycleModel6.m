@@ -18,7 +18,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
-n_a=201; % Endogenous asset holdings
+n_a=701; % Endogenous asset holdings
 n_z=0; % This is how the VFI Toolkit thinks about deterministic models
 N_j=Params.J; % Number of periods in finite horizon
 

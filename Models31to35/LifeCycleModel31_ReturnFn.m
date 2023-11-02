@@ -1,5 +1,5 @@
 function F=LifeCycleModel31_ReturnFn(savings,riskyshare,a,z,w,sigma,agej,Jr,pension,kappa_j)
-% Note: Case3, so first inputs are (d,a,z,...)
+% Note: riskyasset, so first inputs are (d,a,z,...)
 % riskyshare is not used here, but still has to be input as it is part of d
 
 F=-Inf;
