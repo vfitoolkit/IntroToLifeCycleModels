@@ -217,7 +217,6 @@ FnsToEvaluate.agej=@(h,aprime,a,z,e,agej) agej;
 
 %% Calculate the life-cycle profiles
 AgeConditionalStats=LifeCycleProfiles_FHorz_Case1_PType(StationaryDist, Policy, FnsToEvaluate, Params,n_d,n_a,n_z,N_j,Names_i,d_grid, a_grid, z_grid, simoptions);
-
 % By default, this includes both the 'grouped' statistics, like
 % AgeConditionalStats.earnings.Mean
 % Which are calculated across all permanent types of agents.
