@@ -8,11 +8,16 @@
 % function of the decision variables (d) and an i.i.d. shock (u) that
 % occurs between this period and next period.
 
-% In terms of code, using a riskyasset means:
+% In terms of code, using a 'riskyasset' means:
 % The return function and functions to evaluate have first inputs (d,a,z,...) [no aprime like with a standard endogenous state]
 % We need to define aprime(d,u), which is done around line 105
 % When doing value function iteration, agent distribution, etc., we need to
 % state in vfoptions and simoptions that we have a riskyasset
+
+% Note that what VFI Toolkit calls 'riskyasset' is an endogenous state
+% where we cannot choose aprime directly, and instead aprime(d,u).
+% The 'riskyasset' state will capture total assets in the model (it is not
+% the same thing as the risky asset conceptually).
 
 % Note: earnings are not very risky, so the present value of earnings looks
 % a lot like a safe asset, and hence people invest almost everything in the

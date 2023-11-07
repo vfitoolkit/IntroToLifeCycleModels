@@ -8,9 +8,9 @@
 
 % Just need to add a small number of lines to specify that we want
 % Epstein-Zin preferences, rest is unchanged. Note that as in Life-Cycle
-% model 31 we are using Case3.
+% model 31 we are using 'riskyasset'.
 
-% In terms of code, using Case3 means:
+% In terms of code, using 'riskyasset' means:
 % The return function and functions to evaluate have first inputs (d,a,z,...) [no aprime like in Case1]
 % We need to define aprime(d,u), which is done around line 105
 % When doing value function iteration, agent distribution, etc., we need to use the Case3 instead of Case1 commands.
