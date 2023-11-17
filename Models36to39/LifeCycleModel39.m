@@ -206,7 +206,7 @@ FnsToEvaluate.fractionunemployed=@(aprime,a,z) (z==0); % indicator for z=0 (unem
 FnsToEvaluate.fractionwithmedicalexpenses=@(aprime,a,z) (z==0.3); % indicator for z=0.3 medical shock
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 % For example
 % AgeConditionalStats.earnings.Mean
