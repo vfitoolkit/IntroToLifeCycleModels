@@ -178,7 +178,7 @@ FnsToEvaluate.z=@(h,aprime,a,z) z; % Need this to identify the households with a
 FnsToEvaluate.totalsavings=@(h,aprime,a,z) aprime; % aprime>=0 is the borrowing constraint
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 % Plot the life cycle profiles
 figure(1)
 subplot(3,2,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)

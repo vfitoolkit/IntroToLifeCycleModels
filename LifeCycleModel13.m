@@ -136,7 +136,7 @@ FnsToEvaluate.assets=@(h,aprime,a,z) a; % a is the current asset holdings
 % notice that we have called these fractiontimeworked, earnings and assets
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 % For example
 % AgeConditionalStats.earnings.Mean
@@ -169,11 +169,11 @@ simoptions.numbersims=10^3; % 10^3 is the default value
 % To simulate panel data you have to define 'where' an individual household
 % simulation starts from, we will use the StationaryDist (from which
 % starting points will be drawn randomly)
-InitialDist=StationaryDist;
+% InitialDist=StationaryDist;
 % We could alternatively set it to, e.g., the agej=1 part of the stationary
 % distribution (uncomment following two lines to do so)
-% InitialDist(:,:,1)=StationaryDist(:,:,1); % If the InitialDist is missing the age dimension, SimPanelValues automatically assumes it is just agej=1
-% InitialDist=InitialDist./sum(sum(InitialDist));
+InitialDist=StationaryDist(:,:,1); % If the InitialDist is missing the age dimension, SimPanelValues automatically assumes it is just agej=1
+InitialDist=InitialDist./sum(sum(InitialDist));
 
 SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z, simoptions);
 % Simulates a panel based on PolicyIndexes of 'numbersims' agents of length 'simperiods'
@@ -196,9 +196,6 @@ title('Time Series of one Household: Assets (a)')
 % Now draw the earnings plots for 50 different households
 figure(3)
 plot(1:1:Params.J,SimPanelValues.earnings(:,1:50))
-% Notice that because we set the initial distribution to be the stationary
-% distribution people are starting at different ages and therefore retire
-% at different ages (earnings are zero from retirement on)
 
 % Obviously we could run a regression on this similated panel data (which
 % we could then compare to the same regression on emprical panel data)

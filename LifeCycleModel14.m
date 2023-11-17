@@ -137,7 +137,7 @@ FnsToEvaluate.assets=@(h,aprime,a,z) a; % a is the current asset holdings
 % notice that we have called these fractiontimeworked, earnings and assets
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 % For example
 % AgeConditionalStats.earnings.Mean
@@ -182,7 +182,7 @@ xlabel('Age j')
 % We can very easily switch to just 10 deciles using the options
 simoptions.npoints=10;
 % We need to include options as the last input in
-AgeConditionalStats_npoints10=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats_npoints10=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 % And we plot the decile means
 figure(3)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats_npoints10.fractiontimeworked.QuantileMeans)
@@ -196,7 +196,7 @@ xlabel('Age j')
 % Let's switch back up to 100 points 
 % (100 is default, I turn it back up as the number of points forms the basis of the calculation of the Gini coefficient.)
 simoptions.npoints=100;
-AgeConditionalStats2=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats2=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 % We can plot the life-cycle profiles of the age-conditional Gini coefficients
 figure(4)
@@ -212,7 +212,7 @@ xlabel('Age j')
 
 % We can set agegroupings to group ages into bins, lets first just do five year bins
 simoptions.agegroupings=1:5:N_j;
-AgeConditionalStats_5yrs=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats_5yrs=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 figure(5)
 subplot(2,1,1); plot(1:5:Params.J,AgeConditionalStats_5yrs.earnings.Gini)
@@ -223,7 +223,7 @@ xlabel('Age j, grouped into 5 year age bins')
 
 % We might also set a group of 'working age'
 simoptions.agegroupings=[1,Params.Jr];
-AgeConditionalStats_WorkingAgeRetired=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats_WorkingAgeRetired=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 % Note: The Gini coefficient of earnings of the retirees is calculated to be NaN
 % because there is no variation in the earnings. I manually replace it with

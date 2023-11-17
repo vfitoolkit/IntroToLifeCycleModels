@@ -143,7 +143,7 @@ FnsToEvaluate.assets=@(h,aprime,a,z) a; % a is the current asset holdings
 FnsToEvaluate.consumption=@(h,aprime,a,z,agej,Jr,w,kappa_j,r,pension) (agej<Jr)*(w*kappa_j*z*h+(1+r)*a-aprime)+(agej>=Jr)*(pension+(1+r)*a-aprime);
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 %% Before changing model calculate PolicyVals
 PolicyVals=PolicyInd2Val_FHorz_Case1(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid);
@@ -161,7 +161,7 @@ jequaloneDist(1,1)=1;
 [V_noshock, Policy_noshock]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 StationaryDist_noshock=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy_noshock,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 % FnsToEvaluate are unchanged
-AgeConditionalStats_noshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_noshock,Policy_noshock,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats_noshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_noshock,Policy_noshock,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 PolicyVals_noshock=PolicyInd2Val_FHorz_Case1(Policy_noshock,n_d,n_a,n_z,N_j,d_grid,a_grid);
 AggVars_noshock=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist_noshock, Policy_noshock, FnsToEvaluate, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,[],simoptions);
@@ -193,7 +193,7 @@ jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
 jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, and the median shock
 
 % Switch to exogenous labor supply
-n_d=[]; % None
+n_d=0; % None
 d_grid=[]; % No decision variables
 % Change return function
 ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj,meanearningsratio) LifeCycleModel18B_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj,meanearningsratio)
@@ -204,7 +204,7 @@ FnsToEvaluate_exo.earnings=@(aprime,a,z,w,kappa_j,meanearningsratio) meanearning
 FnsToEvaluate_exo.assets=@(aprime,a,z) a; % a is the current asset holdings
 FnsToEvaluate_exo.consumption=@(aprime,a,z,agej,Jr,w,kappa_j,r,pension,meanearningsratio) (agej<Jr)*(meanearningsratio*w*kappa_j*z+(1+r)*a-aprime)+(agej>=Jr)*(pension+(1+r)*a-aprime);
 
-AgeConditionalStats_exo=LifeCycleProfiles_FHorz_Case1(StationaryDist_exo,Policy_exo,FnsToEvaluate_exo,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats_exo=LifeCycleProfiles_FHorz_Case1(StationaryDist_exo,Policy_exo,FnsToEvaluate_exo,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 PolicyVals_exo=PolicyInd2Val_FHorz_Case1(Policy_exo,n_d,n_a,n_z,N_j,d_grid,a_grid);
 AggVars_exo=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist_exo, Policy_exo, FnsToEvaluate_exo, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,[],simoptions);
@@ -218,7 +218,7 @@ jequaloneDist(1,1)=1;
 [V_exonoshock, Policy_exonoshock]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 StationaryDist_exonoshock=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy_exonoshock,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 % FnsToEvaluate_exo are unchangecd
-AgeConditionalStats_exonoshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_exonoshock,Policy_exonoshock,FnsToEvaluate_exo,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats_exonoshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_exonoshock,Policy_exonoshock,FnsToEvaluate_exo,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 PolicyVals_exonoshock=PolicyInd2Val_FHorz_Case1(Policy_exonoshock,n_d,n_a,n_z,N_j,d_grid,a_grid);
 AggVars_exonoshock=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist_exonoshock, Policy_exonoshock, FnsToEvaluate_exo, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,[],simoptions);

@@ -138,7 +138,7 @@ FnsToEvaluate.fractionunemployed=@(h,aprime,a,z) (z==0); % indicator for z=0 (un
 FnsToEvaluate.fractionwithmedicalexpenses=@(h,aprime,a,z) (z==0.3); % indicator for z=0.3 medical shock
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 % For example
 % AgeConditionalStats.earnings.Mean
@@ -176,7 +176,7 @@ simoptions=struct();
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 [V_nomedical, Policy_nomedical]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 StationaryDist_nomedical=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy_nomedical,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-AgeConditionalStats_nomedical=LifeCycleProfiles_FHorz_Case1(StationaryDist_nomedical,Policy_nomedical,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats_nomedical=LifeCycleProfiles_FHorz_Case1(StationaryDist_nomedical,Policy_nomedical,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 figure(2)
 plot(1:1:Params.J,AgeConditionalStats.assets.Mean,1:1:Params.J,AgeConditionalStats_nomedical.assets.Mean)

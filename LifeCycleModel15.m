@@ -182,7 +182,7 @@ FnsToEvaluate.consumption=@(aprime,a,z,agej,Jr,w,kappa_j,r,pension) (agej<Jr)*(w
 FnsToEvaluate.marginalutilityofcons=@(aprime,a,z,agej,Jr,w,kappa_j,r,pension,sigma) ((agej<Jr)*(w*kappa_j+(1+r)*a-aprime)+(agej>=Jr)*(pension+(1+r)*a-aprime))^(-sigma); % u(c)=(c^(1-sigma))/(1-sigma), therefore u'(c)=c^(-sigma)
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 % For example
 % AgeConditionalStats.earnings.Mean

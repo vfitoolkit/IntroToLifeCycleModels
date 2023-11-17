@@ -21,7 +21,7 @@ Params.agejshifter=19; % Age 20 minus one. Makes keeping track of actual age eas
 Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
-n_d=[]; % None
+n_d=0; % None
 n_a=201; % Endogenous asset holdings
 n_z=21; % Exogenous labor productivity units shock
 N_j=Params.J; % Number of periods in finite horizon
@@ -203,7 +203,7 @@ FnsToEvaluate.assets=@(aprime,a,z) a; % a is the current asset holdings
 % Note: fractiontimeworked has been deleted as not relevant for our exogenous labor supply model
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 % For example
 % AgeConditionalStats.earnings.Mean

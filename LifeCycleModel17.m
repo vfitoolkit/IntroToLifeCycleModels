@@ -37,7 +37,7 @@ Params.agejshifter=19; % Age 20 minus one. Makes keeping track of actual age eas
 Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
-n_d=[]; % None
+n_d=0; % None
 n_a=1001; % Endogenous asset holdings
 n_z=3; % Exogenous labor productivity units shock
 N_j=Params.J; % Number of periods in finite horizon
@@ -144,7 +144,7 @@ FnsToEvaluate.assets=@(aprime,a,z) a; % a is the current asset holdings
 FnsToEvaluate.consumption=@(aprime,a,z,agej,Jr,w,kappa_j,r,pension) (agej<Jr)*(w*kappa_j*z+(1+r)*a-aprime)+(agej>=Jr)*(pension+(1+r)*a-aprime);
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 %% Now let's just solve the model again, but this time without the exogenous shocks
 % Note that we normalized the mean of the shocks to one, so replacing them
@@ -159,7 +159,7 @@ jequaloneDist=zeros(n_a,n_z_noshock,'gpuArray'); % Put no households anywhere on
 jequaloneDist(1,1)=1; % All agents start with zero assets, and the median shock
 StationaryDist_noshock=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy_noshock,n_d,n_a,n_z_noshock,N_j,pi_z_noshock,Params,simoptions);
 % Calculate the same life-cycle profiles, but without shock
-AgeConditionalStats_noshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_noshock,Policy_noshock,FnsToEvaluate,[],Params,n_d,n_a,n_z_noshock,N_j,d_grid,a_grid,z_grid_noshock,simoptions);
+AgeConditionalStats_noshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_noshock,Policy_noshock,FnsToEvaluate,Params,[],n_d,n_a,n_z_noshock,N_j,d_grid,a_grid,z_grid_noshock,simoptions);
 
 %% Compare the next period asset policy with and without shocks to see 'precautionary savings'
 
