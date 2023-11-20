@@ -261,7 +261,7 @@ AgeConditionalStats.alpha_i.Mean(1)
 sum(Params.alpha_i.*Params.alphadist)
 
 %% Note that if we want statistics for the distribution as a whole we could use 
-AllStats=EvalFnOnAgentDist_AllStats_FHorz_Case1_PType(StationaryDist, Policy, FnsToEvaluate, Params,n_d,n_a,n_z,N_j,N_i,d_grid, a_grid, z_grid, simoptions);
+AllStats=EvalFnOnAgentDist_AllStats_FHorz_Case1_PType(StationaryDist, Policy, FnsToEvaluate, Params,[],n_d,n_a,n_z,N_j,N_i,d_grid, a_grid, z_grid, simoptions);
 
 % Which again includes both aggregate and conditional on permanent type statistics.
 % 'AllStats' covers everything from the mean and standard deviation, to the
