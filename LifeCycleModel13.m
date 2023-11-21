@@ -227,3 +227,5 @@ title('Time Series of one Household: Assets (a)')
 % Now draw the earnings plots for 50 different households
 figure(4)
 plot(1:1:Params.J,SimPanelValues2.earnings(:,1:50))
+% Note how each line is short as they are each only 10 periods
+
