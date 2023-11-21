@@ -167,22 +167,18 @@ title('Life Cycle Profile: Assets (a)')
 simoptions.simperiods=N_j; % N_j is the default value
 simoptions.numbersims=10^3; % 10^3 is the default value
 % To simulate panel data you have to define 'where' an individual household
-% simulation starts from, we will use the StationaryDist (from which
+% simulation starts from which we call InitialDist below (and from which
 % starting points will be drawn randomly)
-% InitialDist=StationaryDist;
-% We could alternatively set it to, e.g., the agej=1 part of the stationary
-% distribution (uncomment following two lines to do so)
-InitialDist=StationaryDist(:,:,1); % If the InitialDist is missing the age dimension, SimPanelValues automatically assumes it is just agej=1
-InitialDist=InitialDist./sum(sum(InitialDist));
 
-SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z, simoptions);
+
+% The obvious way to do this is to start with agents who are all agej=1
+% (first period of model). We can do this by setting InitialDist to be the
+% part of StationaryDist corresponding to period 1
+InitialDist=StationaryDist(:,:,1);
+
+% Simulating panel data is then just
+SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z, simoptions);
 % Simulates a panel based on PolicyIndexes of 'numbersims' agents of length 'simperiods'
-
-% For example
-% SimPanelValues.earnings
-% is the simulate panel of FnsToEvaluate.earnings
-% size(SimPanelValues.earnings) is [simperiods,numbersims] 
-% (what econometric theory on panel data would typically call T-by-N)
 
 % Lets draw the time series plots of h, earnings and assets for a single household (arbirarily, the 16th household)
 figure(2)
@@ -201,3 +197,33 @@ plot(1:1:Params.J,SimPanelValues.earnings(:,1:50))
 % we could then compare to the same regression on emprical panel data)
 
 
+
+
+% Or we can set a different InitialDist, namely the entire StationaryDist.
+% Because we draw randomly from the InitialDist this means that the panel
+% data simulation will now contain agents who start at different ages.
+InitialDist=StationaryDist;
+% Let's make the simulations just 10 periods this time
+simoptions.simperiods=10;
+% And now just simulate a panel from this
+SimPanelValues2=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z, simoptions);
+% Simulates a panel based on PolicyIndexes of 'numbersims' agents of length 'simperiods'
+
+% The panel data simulation use NaN where there is a missing observation,
+% so, e.g., if an agent is 'born' in period 9 and lives 10 periods (to
+% period 18) then their time series is going to show NaN for the 8 periods,
+% then 10 values, and then NaN again from period 19 on.
+
+% Lets draw the time series plots of h, earnings and assets for a single household (arbirarily, the 16th household)
+figure(3)
+subplot(3,1,1); plot(1:1:Params.J,SimPanelValues2.fractiontimeworked(:,16)) % Note that we set simperiod so to be of lenght J (which would anyway have been the default)
+title('Time Series of one Household: Fraction Time Worked (h)')
+subplot(3,1,2); plot(1:1:Params.J,SimPanelValues2.earnings(:,16))
+title('Time Series of one Household: Labor Earnings (w kappa_j h)')
+subplot(3,1,3); plot(1:1:Params.J,SimPanelValues2.assets(:,16))
+title('Time Series of one Household: Assets (a)')
+% Note: These only show simperiods, as the rest of the values are NaN and matlab simply omits these
+
+% Now draw the earnings plots for 50 different households
+figure(4)
+plot(1:1:Params.J,SimPanelValues2.earnings(:,1:50))
