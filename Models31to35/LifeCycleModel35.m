@@ -138,7 +138,7 @@ d_grid=[asset_grid; riskyshare_grid]; % Note: this does not have to be a_grid, I
 
 a_grid=[house_grid; asset_grid];
 
-%% Define aprime function used for Case 3 (value of next period assets, determined by this period decision, and u shock)
+%% Define aprime function used for the riskyasset (value of next period assets, determined by this period decision, and u shock)
 
 % riskyasset: aprime_val=aprimeFn(d,u)
 aprimeFn=@(savings,riskyshare,u, r) LifeCycleModel31_aprimeFn(savings,riskyshare, u, r); % Will return the value of aprime
