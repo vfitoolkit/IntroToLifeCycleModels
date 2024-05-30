@@ -1,17 +1,15 @@
-%% Life-Cycle Model A4: Idiosyncratic shocks as AR(2) process
-% We modify Life-Cycle Model 9 changing the persistent shock z from AR(1)
-% to AR(2). Because we need to keep track of two lags, we have to include
-% both z and the lag of z as exogenous state variables.
-% z,the idiosyncratic labor productivity units shocks, follows the AR(2)
-% z_t=\rho_{z,1} z_{t-1} + \rho_{z,2} z_{t-2} + e, e~N(0,sigma_epsilon_z^2)
-%
-% We will call the exogneous state variables z_1 and z_2, where z_2 is the lag of z_1
+%% Life-Cycle Model B1: More Complicated FnsToEvaluate
+% Create LifeCycleModelB1_ConsumptionFn() and use it as one of the FnsToEvaluate.
+% Code is unchanged from Life-Cycle Model 9 until the definition of the
+% FnsToEvaluate where one line is added (line 220), and then the
+% graphing of these is edited. There is also a seperate script that outputs
+% the value of consumption.
 
 %% How does VFI Toolkit think about this?
 %
-% No decision variable. Can set n_d=[], d_grid=[]
-% One endogenous state variable: a, assets (total household savings), normalized by the permanent shock
-% Two exogenous state variable: z and lag of z, z is the AR(2) process on idiosyncratic productivity units
+% One decision variable: h, labour hours worked
+% One endogenous state variable: a, assets (total household savings)
+% One stochastic exogenous state variable: z, an AR(1) process (in logs), idiosyncratic shock to labor productivity units
 % Age: j
 
 %% Begin setting up to use VFI Toolkit to solve
@@ -21,9 +19,9 @@ Params.agejshifter=19; % Age 20 minus one. Makes keeping track of actual age eas
 Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
-n_d=51; % None
+n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=201; % Endogenous asset holdings
-n_z=[7,7]; % Exogenous labor productivity units shock (and it's lag)
+n_z=21; % Exogenous labor productivity units shock
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Parameters
@@ -48,10 +46,9 @@ Params.pension=0.3;
 
 % Age-dependent labor productivity units
 Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-Params.Jr+1)];
-% AR(2) process z on (log) idiosyncratic shocks
-Params.Rho_z=[0.7,0.1]; % The first and second coefficients of the AR(2)
-Params.sigma_epsilon_z=0.05;
-
+% Exogenous shock process: AR1 on labor productivity units
+Params.rho_z=0.9;
+Params.sigma_epsilon_z=0.03;
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
 % Most countries have calculations of these (as they are used by the government departments that oversee pensions)
@@ -72,28 +69,29 @@ Params.warmglow1=0.3; % (relative) importance of bequests
 Params.warmglow2=3; % bliss point of bequests (essentially, the target amount)
 Params.warmglow3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
 
+
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from
 % theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
-% Discretize the AR(2) process z
-[z_grid,pi_z] = discretizeARpwGM_FarmerToda(0,Params.Rho_z,1,0,Params.sigma_epsilon_z,n_z);
-% Note: discretizeARpwGM_FarmerToda requires that the same grid size be
-% used for every 'dimension' (with AR(p) there will be p dimensions)
-
-% [z_grid,pi_z]=discretizeARpwGM_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
+% First, the AR(1) process z
+[z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
 z_grid=exp(z_grid); % Take exponential of the grid
-% Skip normalizing z1 and z2
+[mean_z,~,~,~]=MarkovChainMoments(z_grid,pi_z); % Calculate the mean of the grid so as can normalise it
+z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is exactly 1)
 
-d_grid=linspace(0,1,n_d)'; % Hours worked
+% Grid for labour choice
+h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
+% Switch into toolkit notation
+d_grid=h_grid;
 
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
 
-% Notice we change to 'LifeCycleModelA4_ReturnFn'
-ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModelA4_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+% Notice we still use 'LifeCycleModel8_ReturnFn'
+ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
@@ -111,38 +109,39 @@ size(V)
 % Policy is
 size(Policy)
 % which is the same as
-[length(n_d)+length(n_a),n_a,n_z,N_j] % Note that length(n_d)=0
+[length(n_d)+length(n_a),n_a,n_z,N_j]
 % The n_a,n_z,N_j represent the state on which the decisions/policys
 % depend, and there is one decision for each decision variable 'd' and each endogenous state variable 'a'
 
 %% Let's take a quick look at what we have calculated, namely V and Policy
-% Note that even though z2 does not affect the ReturnFn it can affect V through expections of the future.
+
+% The value function V depends on the state, so now it depends on both asset holdings and age.
 
 % We can plot V as a 3d plot (surf is matlab command for 3d plot)
 % Which z value should we plot? I will plot the median
-zind=floor(n_z(1)+1)/2; % This will be the median in both z1 and z2
+zind=floor(n_z+1)/2; % This will be the median
 figure(1)
-subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(V(:,zind,zind,:),[n_a,Params.J]))
-title('Value function: median z (and median z lag)')
-xlabel('Assets (a)')
-ylabel('Age j')
-subplot(2,1,2); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(Params.agejshifter+(1:1:Params.J)),reshape(V(:,zind,zind,:),[n_a,Params.J]))
-title('Value function: median z (and median z lag)')
-xlabel('Assets (a)')
-ylabel('Age in Years')
+subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(V(:,zind,:),[n_a,Params.J]))
+title('Value function: median value of z')
+xlabel('Age j')
+ylabel('Assets (a)')
+subplot(2,1,2); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(Params.agejshifter+(1:1:Params.J)),reshape(V(:,zind,:),[n_a,Params.J]))
+title('Value function: median value of z')
+xlabel('Age in Years')
+ylabel('Assets (a)')
 
 % Do another plot of V, this time as a function (of assets) for a given age (I do a few for different ages)
 figure(2)
-subplot(5,1,1); plot(a_grid,V(:,zind,zind,1)) % j=1
+subplot(5,1,1); plot(a_grid,V(:,1,1),a_grid,V(:,zind,1),a_grid,V(:,end,1)) % j=1
 title('Value fn at age j=1')
-legend('median z (and median z lag)') % Just include the legend once in the top subplot
-subplot(5,1,2); plot(a_grid,V(:,zind,zind,20)) % j=20
+legend('min z','median z','max z') % Just include the legend once in the top subplot
+subplot(5,1,2); plot(a_grid,V(:,1,20),a_grid,V(:,zind,20),a_grid,V(:,end,20)) % j=20
 title('Value fn at age j=20')
-subplot(5,1,3); plot(a_grid,V(:,zind,zind,45)) % j=45
+subplot(5,1,3); plot(a_grid,V(:,1,45),a_grid,V(:,zind,45),a_grid,V(:,end,45)) % j=45
 title('Value fn at age j=45')
-subplot(5,1,4); plot(a_grid,V(:,zind,zind,46)) % j=46
+subplot(5,1,4); plot(a_grid,V(:,1,46),a_grid,V(:,end,46),a_grid,V(:,end,46)) % j=46
 title('Value fn at age j=46 (first year of retirement)')
-subplot(5,1,5); plot(a_grid,V(:,zind,zind,81)) % j=81
+subplot(5,1,5); plot(a_grid,V(:,1,81),a_grid,V(:,zind,81),a_grid,V(:,end,81)) % j=81
 title('Value fn at age j=81')
 xlabel('Assets (a)')
 
@@ -152,12 +151,12 @@ xlabel('Assets (a)')
 % Plot both as a 3d plot, again I arbitrarily choose the median value of z
 figure(3)
 PolicyVals=PolicyInd2Val_FHorz_Case1(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid);
-subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,zind,zind,:),[n_a,Params.J]))
+subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,zind,:),[n_a,Params.J]))
 title('Policy function: fraction of time worked (h), median z')
 xlabel('Age j')
 ylabel('Assets (a)')
 zlabel('Fraction of Time Worked (h)')
-subplot(2,1,2); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(2,:,zind,zind,:),[n_a,Params.J]))
+subplot(2,1,2); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(2,:,zind,:),[n_a,Params.J]))
 title('Policy function: next period assets (aprime), median z')
 xlabel('Age j')
 ylabel('Assets (a)')
@@ -165,27 +164,27 @@ zlabel('Next period assets (aprime)')
 
 % Again, plot both policies (h and aprime), this time as a function (of assets) for a given age  (I do a few for different ages)
 figure(4)
-subplot(5,2,1); plot(a_grid,PolicyVals(1,:,1,zind,1),a_grid,PolicyVals(1,:,zind,zind,1),a_grid,PolicyVals(1,:,end,zind,1)) % j=1
+subplot(5,2,1); plot(a_grid,PolicyVals(1,:,1,1),a_grid,PolicyVals(1,:,zind,1),a_grid,PolicyVals(1,:,end,1)) % j=1
 title('Policy for h at age j=1')
-subplot(5,2,3); plot(a_grid,PolicyVals(1,:,1,zind,20),a_grid,PolicyVals(1,:,zind,zind,20),a_grid,PolicyVals(1,:,end,zind,20)) % j=20
+subplot(5,2,3); plot(a_grid,PolicyVals(1,:,1,20),a_grid,PolicyVals(1,:,zind,20),a_grid,PolicyVals(1,:,end,20)) % j=20
 title('Policy for h at age j=20')
-subplot(5,2,5); plot(a_grid,PolicyVals(1,:,1,zind,45),a_grid,PolicyVals(1,:,zind,zind,45),a_grid,PolicyVals(1,:,end,zind,45)) % j=45
+subplot(5,2,5); plot(a_grid,PolicyVals(1,:,1,45),a_grid,PolicyVals(1,:,zind,45),a_grid,PolicyVals(1,:,end,45)) % j=45
 title('Policy for h at age j=45')
-subplot(5,2,7); plot(a_grid,PolicyVals(1,:,1,zind,46),a_grid,PolicyVals(1,:,zind,zind,46),a_grid,PolicyVals(1,:,end,zind,46)) % j=46
+subplot(5,2,7); plot(a_grid,PolicyVals(1,:,1,46),a_grid,PolicyVals(1,:,zind,46),a_grid,PolicyVals(1,:,end,46)) % j=46
 title('Policy for h at age j=46 (first year of retirement)')
-subplot(5,2,9); plot(a_grid,PolicyVals(1,:,1,zind,81),a_grid,PolicyVals(1,:,zind,zind,81),a_grid,PolicyVals(1,:,end,zind,81)) % j=81
+subplot(5,2,9); plot(a_grid,PolicyVals(1,:,1,81),a_grid,PolicyVals(1,:,zind,81),a_grid,PolicyVals(1,:,end,81)) % j=81
 title('Policy for h at age j=81')
 xlabel('Assets (a)')
-subplot(5,2,2); plot(a_grid,PolicyVals(2,:,1,zind,1),a_grid,PolicyVals(2,:,zind,zind,1),a_grid,PolicyVals(2,:,end,zind,1)) % j=1
+subplot(5,2,2); plot(a_grid,PolicyVals(2,:,1,1),a_grid,PolicyVals(2,:,zind,1),a_grid,PolicyVals(2,:,end,1)) % j=1
 title('Policy for aprime at age j=1')
-legend('min z','median z','max z (all with median z lag)') % Just include the legend once in the top-right subplot
-subplot(5,2,4); plot(a_grid,PolicyVals(2,:,1,zind,20),a_grid,PolicyVals(2,:,zind,zind,20),a_grid,PolicyVals(2,:,end,zind,20)) % j=20
+legend('min z','median z','max z') % Just include the legend once in the top-right subplot
+subplot(5,2,4); plot(a_grid,PolicyVals(2,:,1,20),a_grid,PolicyVals(2,:,zind,20),a_grid,PolicyVals(2,:,end,20)) % j=20
 title('Policy for aprime at age j=20')
-subplot(5,2,6); plot(a_grid,PolicyVals(2,:,1,zind,45),a_grid,PolicyVals(2,:,zind,zind,45),a_grid,PolicyVals(2,:,end,zind,45)) % j=45
+subplot(5,2,6); plot(a_grid,PolicyVals(2,:,1,45),a_grid,PolicyVals(2,:,zind,45),a_grid,PolicyVals(2,:,end,45)) % j=45
 title('Policy for aprime at age j=45')
-subplot(5,2,8); plot(a_grid,PolicyVals(2,:,1,zind,46),a_grid,PolicyVals(2,:,zind,zind,46),a_grid,PolicyVals(2,:,end,zind,46)) % j=46
+subplot(5,2,8); plot(a_grid,PolicyVals(2,:,1,46),a_grid,PolicyVals(2,:,zind,46),a_grid,PolicyVals(2,:,end,46)) % j=46
 title('Policy for aprime at age j=46 (first year of retirement)')
-subplot(5,2,10); plot(a_grid,PolicyVals(2,:,1,zind,81),a_grid,PolicyVals(2,:,zind,zind,81),a_grid,PolicyVals(2,:,end,zind,81)) % j=81
+subplot(5,2,10); plot(a_grid,PolicyVals(2,:,1,81),a_grid,PolicyVals(2,:,zind,81),a_grid,PolicyVals(2,:,end,81)) % j=81
 title('Policy for aprime at age j=81')
 xlabel('Assets (a)')
 
@@ -195,7 +194,7 @@ xlabel('Assets (a)')
 % Before we plot the life-cycle profiles we have to define how agents are
 % at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,floor((n_z(1)+1)/2),floor((n_z(2)+1)/2))=1; % All agents start with zero assets, and the median shock
+jequaloneDist(1,floor((n_z+1)/2))=1; % All agents start with zero assets, and the median shock
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -215,9 +214,12 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (h,aprime,a,z) as first
 % inputs, then just any relevant parameters.
-FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z1,z2) h; % h is fraction of time worked
-FnsToEvaluate.earnings=@(h,aprime,a,z1,z2,w,kappa_j) w*kappa_j*z1*h; % w*kappa_j*z1*h is the earnings (recall z1 is value of the AR(2) process on z, z2 is just the lag)
-FnsToEvaluate.assets=@(h,aprime,a,z1,z2) a; % a is the current asset holdings
+FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z) h; % h is fraction of time worked
+FnsToEvaluate.earnings=@(h,aprime,a,z,w,kappa_j) w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
+FnsToEvaluate.assets=@(h,aprime,a,z) a; % a is the current asset holdings
+FnsToEvaluate.consumption=@(h,aprime,a,z,w,agej,Jr,pension,r,kappa_j) LifeCycleModelB1_ConsumptionFn(h,aprime,a,z,w,agej,Jr,pension,r,kappa_j); % We can just call a script/function to handle more complicated functions to evaluate
+
+% notice that we have called these fractiontimeworked, earnings and assets
 
 %% Calculate the life-cycle profiles
 AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
@@ -230,11 +232,14 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 
 figure(5)
-subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
+subplot(4,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
-subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j z1 h)')
-subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
+subplot(4,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
+title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+subplot(4,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
+subplot(4,1,4); plot(1:1:Params.J,AgeConditionalStats.consumption.Mean)
+title('Life Cycle Profile: Consumption (c)')
+
 
 
