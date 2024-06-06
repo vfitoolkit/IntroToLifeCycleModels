@@ -155,17 +155,17 @@ tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
 
-% V is now (a,z1,z2,j). One dimension for each state variable.
+% V is now (a,z1,z2,e1,e2,j). One dimension for each state variable.
 % Compare
 size(V)
 % with
-[n_a,n_z(1),n_z(2),N_j]
+[n_a,n_z(1),n_z(2),n_e(1),n_e(2),N_j]
 % there are the same.
 % Policy is
 size(Policy)
 % which is the same as
-[length(n_d)+length(n_a),n_a,n_z(1),n_z(2),N_j]
-% The n_a,n_z(1),n_z(2),N_j represent the state on which the decisions/policys
+[length(n_d)+length(n_a),n_a,n_z(1),n_z(2),n_e(1),n_e(2),N_j]
+% The n_a,n_z(1),n_z(2),n_e(1),n_e(2),N_j represent the state on which the decisions/policys
 % depend, and there is one decision for each decision variable 'd' and each
 % endogenous state variable 'a', and one for each exogenous state variable 'z'
 
