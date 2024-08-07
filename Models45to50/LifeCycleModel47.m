@@ -397,7 +397,6 @@ EstimParamsConfInts1 % W=I
 EstimParamsConfInts2 % Efficient GMM, W=Omega^(-1)
 EstimParamsConfInts3 % W=diag(Omega)^(-1)
 
-save LCM47.mat
 
 
 
