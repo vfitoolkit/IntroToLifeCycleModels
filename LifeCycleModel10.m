@@ -3,7 +3,7 @@
 % 'stochastic endowment' (two terms for same thing). This problem is
 % sometimes referred to in literature as the 'income fluctuation problem'
 
-% Essentially just set n_d=[], d_grid=[], and modify return function.
+% Essentially just set n_d=0, d_grid=[], and modify return function.
 % Also need to get rid of decision variable as input to FnsToEvaluate
 % Delete all parameters relating to h (in preferences, and wage earnings)
 
@@ -91,7 +91,7 @@ d_grid=[]; % No decision variables
 DiscountFactorParamNames={'beta','sj'};
 
 % Switch to use 'LifeCycleModel10_ReturnFn'
-ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel10_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel10_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

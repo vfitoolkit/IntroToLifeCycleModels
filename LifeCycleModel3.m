@@ -58,7 +58,7 @@ DiscountFactorParamNames={'beta'};
 
 % Add r to the inputs (in some sense we add a and aprime, but these were already required, if previously irrelevant)
 % Notice change to 'LifeCycleModel3_ReturnFn'
-ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r) LifeCycleModel3_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r)
+ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r) LifeCycleModel3_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
@@ -106,8 +106,7 @@ title('Value fn at age j=81')
 xlabel('Assets (a)')
 
 % Convert the policy function to values (rather than indexes).
-% Note that there is one policy for hours worked (h), and another for next
-% period assets (aprime). 
+% Note that there is one policy for hours worked (h), and another for next period assets (aprime). 
 % Policy(1,:,:) is h, Policy(2,:,:) is aprime [as function of (a,j)]
 % Plot both as a 3d plot.
 figure(3)

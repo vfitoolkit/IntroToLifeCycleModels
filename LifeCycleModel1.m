@@ -72,7 +72,7 @@ DiscountFactorParamNames={'beta'};
 % 'LifeCycleModel1_ReturnFn' (you can right-click on it's name below and click 'Open LifeCycleModel1_ReturnFn')
 % We then just have to make the @() contain exactly the same inputs as
 % 'LifeCycleModel1_ReturnFn', and then give the parameter names.
-ReturnFn=@(h,aprime,a,w,sigma,psi,eta) LifeCycleModel1_ReturnFn(h,aprime,a,w,sigma,psi,eta)
+ReturnFn=@(h,aprime,a,w,sigma,psi,eta) LifeCycleModel1_ReturnFn(h,aprime,a,w,sigma,psi,eta);
 % The first entries must be the decision variables (d), the next period
 % endogenous state, this period endogenous state (a), followed by any parameters.
 % VFI Toolkit will automatically look in 'Params' to find the values of these parameters.
