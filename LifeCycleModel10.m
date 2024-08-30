@@ -109,7 +109,7 @@ size(V)
 % Policy is
 size(Policy)
 % which is the same as
-[length(n_d)+length(n_a),n_a,n_z,N_j] % Note that length(n_d)=0
+[length(n_a),n_a,n_z,N_j] % Note that n_d=0 so it does not appear here
 % The n_a,n_z,N_j represent the state on which the decisions/policys
 % depend, and there is one decision for each decision variable 'd' and each endogenous state variable 'a'
 
