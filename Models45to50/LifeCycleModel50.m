@@ -296,12 +296,13 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1_PType(StationaryDist,Policy,Fn
 % parameter values, obviously the following is going to look the same as
 % the previous figure
 figure(2)
-subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
-title('Life Cycle Profile: Fraction Time Worked (h)')
-subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
-subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
-title('Life Cycle Profile: Assets (a)')
+subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean,1:1:Params.J,AgeConditionalStats.fractiontimeworked.funtimes.Mean,1:1:Params.J,AgeConditionalStats.fractiontimeworked.worktimes.Mean)
+legend('all','funtimes','worktimes')
+title('Life Cycle Profile (pre-calibration): Fraction Time Worked (h)')
+subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean, 1:1:Params.J,AgeConditionalStats.earnings.funtimes.Mean, 1:1:Params.J,AgeConditionalStats.earnings.worktimes.Mean)
+title('Life Cycle Profile (pre-calibration): Labor Earnings (w kappa_j h)')
+subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean, 1:1:Params.J,AgeConditionalStats.assets.funtimes.Mean, 1:1:Params.J,AgeConditionalStats.assets.worktimes.Mean)
+title('Life Cycle Profile (pre-calibration): Assets (a)')
 
 
 

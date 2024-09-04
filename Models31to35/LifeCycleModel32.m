@@ -205,7 +205,7 @@ xlabel('Assets (a)')
 % Policy(1,:,:,:) is savings, Policy(2,:,:,:) is riskyshare [as function of (a,z,j)]
 % Plot both as a 3d plot, again I arbitrarily choose the median value of z
 figure(3)
-PolicyVals=PolicyInd2Val_FHorz_Case3(Policy,n_d,n_a,n_z,N_j,d_grid);
+PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
 subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,zind,:),[n_a,Params.J]))
 title('Policy function: savings, median z')
 xlabel('Age j')
