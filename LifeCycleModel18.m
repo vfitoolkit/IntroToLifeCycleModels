@@ -146,7 +146,7 @@ FnsToEvaluate.consumption=@(h,aprime,a,z,agej,Jr,w,kappa_j,r,pension) (agej<Jr)*
 AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 %% Before changing model calculate PolicyVals
-PolicyVals=PolicyInd2Val_FHorz_Case1(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid);
+PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
 % And aggregate variables
 AggVars=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist, Policy, FnsToEvaluate, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,[],simoptions);
 
@@ -163,7 +163,7 @@ StationaryDist_noshock=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamN
 % FnsToEvaluate are unchanged
 AgeConditionalStats_noshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_noshock,Policy_noshock,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
-PolicyVals_noshock=PolicyInd2Val_FHorz_Case1(Policy_noshock,n_d,n_a,n_z,N_j,d_grid,a_grid);
+PolicyVals_noshock=PolicyInd2Val_Case1_FHorz(Policy_noshock,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
 AggVars_noshock=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist_noshock, Policy_noshock, FnsToEvaluate, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,[],simoptions);
 
 %% Parameter to make exogneous labor supply model have the same mean earnings as endogenous labor supply does.

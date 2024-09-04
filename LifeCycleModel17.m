@@ -163,8 +163,8 @@ AgeConditionalStats_noshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_noshock
 
 %% Compare the next period asset policy with and without shocks to see 'precautionary savings'
 
-PolicyVals=PolicyInd2Val_FHorz_Case1(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid);
-PolicyVals_noshock=PolicyInd2Val_FHorz_Case1(Policy_noshock,n_d,n_a,n_z_noshock,N_j,d_grid,a_grid);
+PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
+PolicyVals_noshock=PolicyInd2Val_Case1_FHorz(Policy_noshock,n_d,n_a,n_z_noshock,N_j,d_grid,a_grid,simoptions);
 
 % Plot the aprime policy as a function (of assets) for a given age  (I do a few for different ages)
 zind=floor(n_z+1)/2; % This will be the median

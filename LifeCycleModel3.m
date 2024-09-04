@@ -110,7 +110,7 @@ xlabel('Assets (a)')
 % Policy(1,:,:) is h, Policy(2,:,:) is aprime [as function of (a,j)]
 % Plot both as a 3d plot.
 figure(3)
-PolicyVals=PolicyInd2Val_FHorz_Case1(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid);
+PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
 subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,:),[n_a,Params.J]))
 title('Policy function: fraction of time worked (h)')
 xlabel('Assets (a)')
