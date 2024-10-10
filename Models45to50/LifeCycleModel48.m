@@ -468,7 +468,7 @@ estsummary.sensitivitytocalibrationmatrix
 % moments will be good for estimating these parameters (all else equal).
 
 estimoptions.logmoments=0; % For EstimateLifeCycleModel_MomentDerivatives, estimoptions.logmoments must be scalar either 0 or 1
-[MomentDerivatives,SortedMomentDerivatives,momentderivsummary]=EstimateLifeCycleModel_MomentDerivatives(EstimParamNames, n_d,n_a,n_z,N_j,d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, jequaloneDist,AgeWeightParamNames, FnsToEvaluate, estimoptions, vfoptions,simoptions);
+[MomentDerivatives,SortedMomentDerivatives,momentderivsummary]=EstimateLifeCycleModel_MomentDerivatives(EstimParamNames, n_d,n_a,n_z,N_j,d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, jequaloneDist,AgeWeightParamNames, [], FnsToEvaluate, estimoptions, vfoptions,simoptions);
 % Compute derivatives of model moments with respect to the 'estimated parameters'
 %
 % dM_m(theta)/dtheta
