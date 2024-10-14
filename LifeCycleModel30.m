@@ -155,7 +155,7 @@ tic;
 toc
 
 %% Look at the fertility decisions
-PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,[n_semiz,n_z],N_j,d_grid,a_grid,simoptions);
+PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions); % Note: n_semiz is in simoptions
 
 figure(1)
 % Note: uses max value of z shock
