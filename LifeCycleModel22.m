@@ -144,7 +144,7 @@ simoptions.numbersims=10^3; % 10^3 is the default value
 % starting points will be drawn randomly)
 InitialDist=jequaloneDist;
 
-SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z, simoptions);
+SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z, simoptions);
 % Simulates a panel based on PolicyIndexes of 'numbersims' agents of length 'simperiods'
 
 % For example
