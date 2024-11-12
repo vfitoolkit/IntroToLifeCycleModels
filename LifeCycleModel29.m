@@ -65,7 +65,7 @@ vfoptions.semiz_grid=[infant_grid; children_grid];
 % Define the transition probabilities of the semi-exogenous states
 vfoptions.SemiExoStateFn=@(n1,n2,n1prime,n2prime,f,probofbirth,probofchild,probofadult) LifeCycleModel29_SemiExoStateFn(n1,n2,n1prime,n2prime,f,probofbirth,probofchild,probofadult);
 % It is hardcoded that only the 'last' decision variable can influence the transition probabilities of the semi-exogenous states
-% The semi-exogenous states must be included in the return fn, fns to evaluate, etc., as the last 'z' variables.
+% The semi-exogenous states must be included in the return fn, fns to evaluate, etc. The ordering must be that semi-exogenous states come after this period endogenous state(s) and before any markov exogenous states, so (...,a,semiz,z,...)
 
 % We also need to tell simoptions about the semi-exogenous states
 simoptions.n_semiz=vfoptions.n_semiz;
