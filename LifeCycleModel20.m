@@ -128,7 +128,7 @@ toc
 % Before we plot the life-cycle profiles we have to define how agents are
 % at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, and the median shock
+jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, and the stationary dist over exogenous shocks
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -157,8 +157,6 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 
