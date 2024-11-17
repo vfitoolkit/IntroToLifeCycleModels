@@ -388,11 +388,12 @@ WeightingMatrix=diag(diag(CovarMatrixDataMoments_CFE.^(-1)));
 % So the decision of which weighting matrix to choose is about balancing robustness against efficiency. 
 % As can be seen above, trying, e.g., both W=Omega^(-1) and W=diag(Omega)^(-1) is easy enough.
 
-% Notice that all three give similar parameter estimates
+% Notice that all three give similar, but still importantly different, parameter estimates
 EstimParams1 % W=I
 EstimParams2 % Efficient GMM, W=Omega^(-1)
 EstimParams3 % W=diag(Omega)^(-1)
-% And that the efficient GMM has the smallest confidence intervals (this is what efficient means)
+% And we can also compare the confidence intervals, the efficent estimator
+% has generally smaller confidence intervals (which is what efficient is about)
 EstimParamsConfInts1 % W=I
 EstimParamsConfInts2 % Efficient GMM, W=Omega^(-1)
 EstimParamsConfInts3 % W=diag(Omega)^(-1)

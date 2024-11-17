@@ -61,6 +61,7 @@
 % parameters you want to estimate; loosely, large derivatives mean these
 % moments will be good for estimating these parameters (all else equal).
 
+
 %% How does VFI Toolkit think about this?
 %
 % One decision variable: h, labour hours worked
