@@ -187,11 +187,10 @@ ReturnFn=@(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,warmglow1,warmglow
 % is an experienceassetu, we do not include hprime as it is not chosen
 % directly.
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem
 disp('Test ValueFnIter')
 vfoptions.verbose=1; % give feedback
-vfoptions.lowmemory=1; % loop over z, makes code slower but use less memory (avoid out of memory errors). 
-                       % You want to turn this off (vfoptions.lowmemory=0) if you can, but will require a powerful GPU
+vfoptions.divideandconquer=1; % exploit monotonicity of first endogenous state (assets)
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc

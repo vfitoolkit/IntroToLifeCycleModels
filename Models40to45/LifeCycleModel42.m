@@ -146,9 +146,9 @@ ReturnFn=@(p,aprime,a,h,z,w,sigma,psi,y_m,childcarecosts,agej,Jr,pension,r,warmg
 % is an experienceasset, we do not include hprime as it is not chosen
 % directly.
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem
 disp('Test ValueFnIter')
-% vfoptions.struct(); % use the defaults
+vfoptions.divideandconquer=1; % exploit monotonicity of first endogenous state (assets)
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
