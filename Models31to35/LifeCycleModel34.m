@@ -8,7 +8,7 @@
 
 %% How does VFI Toolkit think about this?
 %
-% Three decision variable: savings, riskyshare, and h (total savings, and the share of savings invested in the risky asset, labour supply)
+% Three decision variable: h, riskyshare, and savings (labour supply, the share of savings invested in the risky asset, total savings)
 % One endogenous state variable: a, assets
 % One stochastic exogenous state variable: z, an AR(1) process (in logs), idiosyncratic shock to labor productivity units
 % One between-period i.i.d. variable: u, the return to the risky asset
@@ -21,7 +21,7 @@ Params.agejshifter=19; % Age 20 minus one. Makes keeping track of actual age eas
 Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
-n_d=[201,51,21]; % Decisions: savings, riskyshare, labor supply
+n_d=[21,51,201]; % Decisions: labor supply, riskyshare, savings
 n_a=201; % Endogenous asset holdings
 n_z=21; % Exogenous labor productivity units shock
 n_u=5; % Between period i.i.d. shock
@@ -35,6 +35,17 @@ vfoptions.exoticpreferences='EpsteinZin';
 vfoptions.EZpositiveutility=0; % Epstein-Zin preferences in utility-units have to be handled differently depending on whether the utility funciton is positive or negative valued (this is all done internally, you just need to use vfoptions to specify which)
 vfoptions.EZriskaversion='phi'; % additional risk-aversion
 % Params.phi is set below
+
+%% To speed up the use of riskyasset we use 'refine_d', which requires us to set the decision variables in a specific order
+vfoptions.refine_d=[1,1,1]; % tell the code how many d1, d2, and d3 there are
+% Idea is to distinguish three categories of decision variable:
+%  d1: decision is in the ReturnFn but not in aprimeFn
+%  d2: decision is in the aprimeFn but not in ReturnFn
+%  d3: decision is in both ReturnFn and in aprimeFn
+% Note: ReturnFn must use inputs (d1,d3,..) 
+%       aprimeFn must use inputs (d2,d3,..)
+% n_d must be set up as n_d=[n_d1, n_d2, n_d3]
+% d_grid must be set up as d_grid=[d1_grid; d2_grid; d3_grid];
 
 %% Parameters
 
@@ -98,17 +109,18 @@ z_grid=exp(z_grid); % Take exponential of the grid
 z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is exactly 1)
 
 % Labor supply
-h_grid=linspace(0,1,n_d(3))';
+h_grid=linspace(0,1,n_d(1))';
 
 % Share of assets invested in the risky asset
 riskyshare_grid=linspace(0,1,n_d(2))'; % Share of assets, from 0 to 1
 % Set up d for VFI Toolkit (is the two decision variables)
-d_grid=[a_grid; riskyshare_grid; h_grid]; % Note: this does not have to be a_grid, I just chose to use same grid for savings as for assets
+d_grid=[h_grid; riskyshare_grid; a_grid]; % Note: this does not have to be a_grid, I just chose to use same grid for savings as for assets
 
 %% Define aprime function used for Case 3 (value of next period assets, determined by this period decision, and u shock)
 
 % riskyasset: aprime_val=aprimeFn(d,u)
-aprimeFn=@(savings,riskyshare,h,u, r) LifeCycleModel34_aprimeFn(savings,riskyshare,h, u, r); % Will return the value of aprime
+% vfoptions.refine_d: the decision variables input to aprimeFn are d2,d3
+aprimeFn=@(riskyshare,savings,u, r) LifeCycleModel34_aprimeFn(riskyshare,savings, u, r); % Will return the value of aprime
 % Note that u is risky asset excess return and effectively includes both the (excess) mean and standard deviation of risky assets
 
 %% Put the risky asset into vfoptions and simoptions
@@ -130,9 +142,10 @@ simoptions.d_grid=d_grid;
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
 
-% Use 'LifeCycleModel31_ReturnFn' (because we want to turn off the bequests for now)
-ReturnFn=@(savings,riskyshare,h,a,z,w,sigma,agej,Jr,pension,kappa_j,eta,psi) ...
-    LifeCycleModel34_ReturnFn(savings,riskyshare,h,a,z,w,sigma,agej,Jr,pension,kappa_j,eta,psi)
+% Use 'LifeCycleModel34_ReturnFn'
+ReturnFn=@(h,savings,a,z,w,sigma,agej,Jr,pension,kappa_j,eta,psi) ...
+    LifeCycleModel34_ReturnFn(h,savings,a,z,w,sigma,agej,Jr,pension,kappa_j,eta,psi)
+% vfoptions.refine_d: only (d1,d3,..) are input to ReturnFn
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

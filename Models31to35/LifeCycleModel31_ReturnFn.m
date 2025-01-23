@@ -1,6 +1,6 @@
-function F=LifeCycleModel31_ReturnFn(savings,riskyshare,a,z,w,sigma,agej,Jr,pension,kappa_j)
+function F=LifeCycleModel31_ReturnFn(savings,a,z,w,sigma,agej,Jr,pension,kappa_j)
 % Note: riskyasset, so first inputs are (d,a,z,...)
-% riskyshare is not used here, but still has to be input as it is part of d
+% vfoptions.refine_d: only decisions d1,d3 are input to ReturnFn (and this model has no d1)
 
 F=-Inf;
 if agej<Jr % If working age

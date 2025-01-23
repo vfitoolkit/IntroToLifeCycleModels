@@ -1,6 +1,6 @@
-function F=LifeCycleModel35_ReturnFn(savings,riskyshare,hprime,h,a,z,w,sigma,agej,Jr,pension,kappa_j,sigma_h,f_htc,minhouse,rentprice,f_coll,houseservices)
+function F=LifeCycleModel35_ReturnFn(savings,hprime,h,a,z,w,sigma,agej,Jr,pension,kappa_j,sigma_h,f_htc,minhouse,rentprice,f_coll,houseservices)
 % Note: riskyasset, so first inputs are (d,a,z,...)
-% riskyshare is not used here, but still has to be input as it is part of d
+% vfoptions.refine_d: only decisions d1,d3 are input to ReturnFn (and this model has no d1)
 
 % Make buying/selling a house costly/illiquid
 htc=0; % house transaction cost
@@ -32,9 +32,7 @@ if savings<-f_coll*hprime
     F=-Inf; % Collateral constraint on borrowing
 end
 
-if savings<0 && riskyshare>0
-    F=-Inf; % Negative savings is only allowed in the form of a safe mortgage
-end
+% Negative savings is only allowed in the form of a safe mortgage. This is dealt with via the aprimeFn.
 
 %% Ban pensioners from negative assets
 if agej>=Jr && savings<0

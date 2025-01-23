@@ -1,27 +1,22 @@
 %% Life-Cycle Model 35: Portfolio-Choice with Housing
-% Same as life-cycle model 32, so exogenous labor, Epstein-Zin preferences
-% and no warm-glow of bequests.
+% Same as life-cycle model 35, but without the Epstein-Zin preferences
+
 % Now with housing which is modelled as a standard endogenous state that
 % can take six values (the first value is zero which represents not owning
 % a house).
-
 % In terms of code, using 'riskyasset' alongside a standard asset means:
 % The return function and functions to evaluate have first inputs (d,hprime,h,a,z,...) [no aprime like in Case1]
 % Notice that we have hprime and h (for the standard asset), but only a for
 % the risky asset (no aprime).
 % We need to define aprime(d,u)
 
-% There is not much agreement on how to handle mortality risk with Epstein-Zin preferences
-% We can treat them as a risk
-vfoptions.survivalprobability='sj';
-DiscountFactorParamNames={'beta'};
-% Or we could just treat them as another discount factor
-% DiscountFactorParamNames={'beta','sj'};
+% We just treat survival probabilities as another discount factor
+DiscountFactorParamNames={'beta','sj'};
 
 
 %% How does VFI Toolkit think about this?
 %
-% Two decision variable: riskyshare and savings (total savings, and the share of savings invested in the risky asset)
+% Two decision variable: savings and riskyshare (total savings, and the share of savings invested in the risky asset)
 % Two endogenous state variables: h and a (housing and assets)
 % One stochastic exogenous state variable: z, an AR(1) process (in logs), idiosyncratic shock to labor productivity units
 % One between-period i.i.d. variable: u, the return to the risky asset
@@ -43,13 +38,6 @@ N_j=Params.J; % Number of periods in finite horizon
 vfoptions.riskyasset=1; % riskyasset aprime(d,u)
 simoptions.riskyasset=1;
 % When there is more than one endogenous state, the riskyasset is the last one
-
-
-% Specify Epstein-Zin preferences
-vfoptions.exoticpreferences='EpsteinZin';
-vfoptions.EZpositiveutility=0; % Epstein-Zin preferences in utility-units have to be handled differently depending on whether the utility funciton is positive or negative valued (this is all done internally, you just need to use vfoptions to specify which)
-vfoptions.EZriskaversion='phi'; % additional risk-aversion
-% Params.phi is set below
 
 %% To speed up the use of riskyasset we use 'refine_d', which requires us to set the decision variables in a specific order
 vfoptions.refine_d=[0,1,1]; % tell the code how many d1, d2, and d3 there are
