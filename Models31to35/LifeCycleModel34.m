@@ -46,6 +46,7 @@ vfoptions.refine_d=[1,1,1]; % tell the code how many d1, d2, and d3 there are
 %       aprimeFn must use inputs (d2,d3,..)
 % n_d must be set up as n_d=[n_d1, n_d2, n_d3]
 % d_grid must be set up as d_grid=[d1_grid; d2_grid; d3_grid];
+simoptions.refine_d=vfoptions.refine_d;
 
 %% Parameters
 

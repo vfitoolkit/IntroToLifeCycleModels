@@ -60,6 +60,7 @@ vfoptions.refine_d=[0,1,1]; % tell the code how many d1, d2, and d3 there are
 % n_d must be set up as n_d=[n_d1, n_d2, n_d3]
 % d_grid must be set up as d_grid=[d1_grid; d2_grid; d3_grid];
 % It is possible to solve models without any d1, as is the case here.
+simoptions.refine_d=vfoptions.refine_d;
 
 %% Parameters
 
