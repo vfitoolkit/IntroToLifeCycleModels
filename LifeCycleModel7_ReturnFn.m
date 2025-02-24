@@ -1,4 +1,4 @@
-function F=LifeCycleModel7_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+function F=LifeCycleModel7_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 % The first four are the 'always required' decision variables, next period
 % endogenous states, this period endogenous states, exogenous states
 % After that we need all the parameters the return function uses, it

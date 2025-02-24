@@ -16,7 +16,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=201; % Endogenous asset holdings
-n_z=1; % This is how the VFI Toolkit thinks about deterministic models
+n_z=0; % This is how the VFI Toolkit thinks about deterministic models
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Parameters
@@ -66,8 +66,8 @@ Params.warmglow3=Params.sigma; % By using the same curvature as the utility of c
 % theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
-z_grid=1;
-pi_z=1;
+z_grid=[];
+pi_z=[];
 
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
@@ -78,7 +78,7 @@ d_grid=h_grid;
 DiscountFactorParamNames={'beta','sj'};
 
 % Notice change to 'LifeCycleModel7_ReturnFn'
-ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel7_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj);
+ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel7_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
@@ -114,9 +114,9 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (h,aprime,a,z) as first
 % inputs, then just any relevant parameters.
-FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z) h; % h is fraction of time worked
-FnsToEvaluate.earnings=@(h,aprime,a,z,w,kappa_j) w*kappa_j*h; % w*h is the labor earnings
-FnsToEvaluate.assets=@(h,aprime,a,z) a; % a is the current asset holdings
+FnsToEvaluate.fractiontimeworked=@(h,aprime,a) h; % h is fraction of time worked
+FnsToEvaluate.earnings=@(h,aprime,a,w,kappa_j) w*kappa_j*h; % w*h is the labor earnings
+FnsToEvaluate.assets=@(h,aprime,a) a; % a is the current asset holdings
 
 % notice that we have called these fractiontimeworked, earnings and assets
 
