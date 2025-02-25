@@ -9,7 +9,7 @@
 
 %% How does VFI Toolkit think about this?
 %
-% No decision variable. Can set n_d=[], d_grid=[]
+% No decision variable. Can set n_d=0, d_grid=[]
 % One endogenous state variable: a, assets (total household savings)
 % One stochastic exogenous state variable: z, an AR(1) process (in logs), a stochastic endowment
 % Age: j
@@ -76,11 +76,7 @@ Params.warmglow3=Params.sigma; % By using the same curvature as the utility of c
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
 % First, the AR(1) process z1
-if Params.rho_z<0.99
-    [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
-elseif Params.rho_z>=0.99 % Rouwenhourst performs better than Farmer-Toda when the autocorrelation is very high
-    [z_grid,pi_z]=discretizeAR1_Rouwenhorst(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
-end
+[z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
 z_grid=exp(z_grid); % Take exponential of the grid
 [mean_z,~,~,~]=MarkovChainMoments(z_grid,pi_z); % Calculate the mean of the grid so as can normalise it
 z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is 1)
@@ -91,7 +87,18 @@ d_grid=[]; % No decision variables
 DiscountFactorParamNames={'beta','sj'};
 
 % Switch to use 'LifeCycleModel10_ReturnFn'
-ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel10_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj);
+ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) ...
+    LifeCycleModel10_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj);
+% Important change: we now no longer have h as the first input to the ReturnFn, the
+% action space of our model has decreased as we no longer have a decision variable.
+% The first inputs are always the relevant 'action space' for our model, which in
+% the baseline setup for VFI Toolkit is always (i) decision variables, 
+% (ii) next period endogenous states, (iii) this period endogenous states, 
+% and (iv) exogenous states.
+% In this model we have 0 decision variables, 1 next period endogenous
+% state, aprime, 1 this period endogenous state, a, and 1 markov exogenous state, z.
+% Hence, we have (aprime,a,z,...), and everything after this is
+% interpreted to be a parameter.
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

@@ -1,13 +1,8 @@
-function F=LifeCycleModel7_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
-% Modification is that we add the bottom half of this script that relates
-% to the warm-glow of bequests. Note how we use 'agej>=Jr+10' to control
-% which ages a warm-glow of bequests is received at. Also note that because
-% the warm-glow occurs 'next period' we discount it with the discount
-% factor beta (and 1-sj is the probability of dying).
+function F=LifeCycleModelA1_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 
 F=-Inf;
 if agej<Jr % If working age
-    c=w*kappa_j*h+(1+r)*a-aprime;
+    c=w*kappa_j*z*h+(1+r)*a-aprime; % Add z here
 else % Retirement
     c=pension+(1+r)*a-aprime;
 end

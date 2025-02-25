@@ -1,8 +1,14 @@
 %% Life-Cycle Model 8: Idiosyncratic shocks
 % Introduce z, an exogenous shock that takes two possible values, 1 and 0,
 % representing employment and unemploymnet respectively.
-% Need to change n_z, z_grid, and pi_z. Also need to modify contents of the return function.
+% Need to change n_z, z_grid, and pi_z. 
+% Also need to modify contents of the return function.
 % We plot V and Policy so that you can get an idea of how the 'shape' of these changes and how to interpret them.
+% Note that this changes the 'action space' of the problem to be solved.
+% Previously we had the ReturnFn and FnsToEvaluate using inputs
+% (d,aprime,a,...). Now we add the markov exogenous state, z, to the model
+% action space and so the inputs for ReturnFn and FnsToEvaluate now become
+% (d,aprime,a,z,...) followed by parameters.
 
 %% How does VFI Toolkit think about this?
 %
@@ -82,7 +88,18 @@ d_grid=h_grid;
 DiscountFactorParamNames={'beta','sj'};
 
 % Notice change to 'LifeCycleModel8_ReturnFn'
-ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj);
+ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)... 
+    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj);
+% Important change: we now have z as the fourth input to the ReturnFn, the
+% action space of our model has increased.
+% The first inputs are always the relevant 'action space' for our model, which in
+% the baseline setup for VFI Toolkit is always (i) decision variables, 
+% (ii) next period endogenous states, (iii) this  period endogenous states, 
+% and (iv) exogenous states.
+% In this model we have 1 decision variable, h, 1 next period endogenous
+% state, aprime, 1 this period endogenous state, a, and 1 markov exogenous state, z.
+% Hence, we have (h,aprime,a,z,...), and everything after this is
+% interpreted to be a parameter.
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

@@ -1,15 +1,29 @@
 %% Life-Cycle Model 11: Idiosyncratic shocks again, persistent and transitory
 % Use two exogenous shocks: z and e, persistent and transitory shocks to labor efficiency units, respectively
-%
-% The second exogenous shock is i.i.d.
-% Life-Cycle Model 11A models it as a second markov process
-% Life-Cycle Model 11B models it as an 'e' variable, which is specificaly for i.i.d. variables allowing the codes to run faster.
+
+% VFI Toolkit distinguishes markov shocks, z, from i.i.d. shocks, e.
+% This allows the codes to run faster by taking advantage of the fact that
+% i.i.d. variables are 'simpler'.
+% In this example we will have on markov shock, z, which will be a
+% discretized AR(1) process, and one i.i.d. shock, e, which will be a
+% discretized i.i.d. Normal distribution.
+% The basic setup of VFI Toolkit is based around decision variables, d, standard
+% endogenous states, a, and markov shocks, z. Because the i.i.d. variable,
+% e, is not part of this baseline setup, we need to use vfoptions (and
+% simoptions) to tell VFI Toolkit about it.
+
+% Adding an i.i.d. shock increases the 'action space' of the model, so we
+% need to modify the ReturnFn and FnsToEvaluate inputs to start with 
+% (h,aprime,a,z,e,...), adding the i.i.d. shock e. Note, VFI Toolkit always
+% uses the ordering of 'markov exogenous states' first and 'iid exogneous
+% states' after them.
 
 %% How does VFI Toolkit think about this?
 %
 % One decision variable: h, labour hours worked
 % One endogenous state variable: a, assets (total household savings)
-% Two stochastic exogenous state variables: z and e, persistent and transitory shocks to labor efficiency units, respectively
+% One markov stochastic exogenous state variable: z, persistent shocks to labor efficiency units
+% One i.i.d. stochastic exogenous state variable: e, transitory shocks to labor efficiency units
 % Age: j
 
 %% Begin setting up to use VFI Toolkit to solve
@@ -79,20 +93,18 @@ Params.warmglow3=Params.sigma; % By using the same curvature as the utility of c
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
 % First, the AR(1) process z
-if Params.rho_z<0.99
-    [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
-elseif Params.rho_z>=0.99 % Rouwenhourst performs better than Farmer-Toda when the autocorrelation is very high
-    [z_grid,pi_z]=discretizeAR1_Rouwenhorst(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
-end
+[z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
 z_grid=exp(z_grid); % Take exponential of the grid
 [mean_z,~,~,~]=MarkovChainMoments(z_grid,pi_z); % Calculate the mean of the grid so as can normalise it
 z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is 1)
+
 % Now the iid normal process e
 [e_grid,pi_e]=discretizeAR1_FarmerToda(0,0,Params.sigma_epsilon_e,n_e);
 e_grid=exp(e_grid); % Take exponential of the grid
 pi_e=pi_e(1,:)'; % Because it is iid, the distribution is just the first row (all rows are identical). We use pi_e as a column vector for VFI Toolkit to handle iid variables.
 mean_e=pi_e'*e_grid; % Because it is iid, pi_e is the stationary distribution (you could just use MarkovChainMoments(), I just wanted to demonstate a handy trick)
 e_grid=e_grid./mean_e; % Normalise the grid on z (so that the mean of e is 1)
+
 % To use e variables we have to put them into the vfoptions and simoptions
 vfoptions.n_e=n_e;
 vfoptions.e_grid=e_grid;
@@ -100,7 +112,6 @@ vfoptions.pi_e=pi_e;
 simoptions.n_e=vfoptions.n_e;
 simoptions.e_grid=vfoptions.e_grid;
 simoptions.pi_e=vfoptions.pi_e;
-
 
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
@@ -110,10 +121,28 @@ d_grid=h_grid;
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
 
-% Notice change to 'LifeCycleModel11_ReturnFn', and now input z and e (note
-% that inside 'LifeCycleModel11_ReturnFn' it still says z1 and z2, but that
-% doesn't matter as those names are only internal to that function).
-ReturnFn=@(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel11_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+% Notice change to 'LifeCycleModel11_ReturnFn', and now input z and e.
+ReturnFn=@(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)...
+    LifeCycleModel11_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+% Important change: we now have e as the fifth input to the ReturnFn, the
+% action space of our model has increased.
+% The first inputs are always the relevant 'action space' for our model, which in
+% the baseline setup for VFI Toolkit is always (i) decision variables, 
+% (ii) next period endogenous states, (iii) this  period endogenous states, 
+% and (iv) exogenous states.
+% We use vfoptions.n_e to tell VFI Toolkit to move beyond this baseline
+% setup, specifically by including an i.i.d. exogenous state. VFI Toolkit
+% always orders an i.i.d. exogenous state e, just after a markov exogenous
+% state z.
+% In this model we have 1 decision variable, h, 1 next period endogenous
+% state, aprime, 1 this period endogenous state, a, 1 markov exogenous
+% state, z, and one i.i.d. exogenous state, e.
+% Hence, we have (h,aprime,a,z,e,...), and everything after this is
+% interpreted to be a parameter.
+
+% Comment: You can solve models without markov exogenous states, but with
+% i.i.d. exogenous states, in this case the 'action space' would be
+% (h,aprime,a,e,...).
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

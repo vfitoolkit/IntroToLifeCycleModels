@@ -1,7 +1,13 @@
 %% Life-Cycle Model 9: Idiosyncratic shocks again, AR(1)
 % Change the exogenous shock z to be a (discretized markov approximation
 % of an) AR(1) process, z_t=0+rho_z z_{t-1}+epsilon_{z,t}, epsilon_{z,t} ~N(0,simga_{epsilon,z}^2)
-% We use Farmer-Toda method to discretize it (unless rho_z>=0.99 in which case we use Rouwenhorst method)
+% We use Farmer-Toda method to discretize this AR(1) process
+% (discretize=turn it into a grid z_grid, and a transition matrix pi_z)
+%
+% (Alternative discretization methods for an AR(1) like Tauchen, Tauchen-Hussey 
+% and Rouwenhorst are illustrated in Life-Cycle Model A1. But Farmer-Toda is the 
+% best performing of these methods, expect for rho_z>=0.99, in which case 
+% Rouwenhorst performs best. Hence we use Farmer-Toda here.)
 
 %% How does VFI Toolkit think about this?
 %
@@ -89,7 +95,8 @@ d_grid=h_grid;
 DiscountFactorParamNames={'beta','sj'};
 
 % Notice we still use 'LifeCycleModel8_ReturnFn'
-ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj);
+ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)...
+    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

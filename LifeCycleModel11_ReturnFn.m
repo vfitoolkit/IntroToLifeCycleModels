@@ -1,12 +1,11 @@
-function F=LifeCycleModel11_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
-% The first four are the 'always required' decision variables, next period
-% endogenous states, this period endogenous states, exogenous states
-% After that we need all the parameters the return function uses, it
-% doesn't matter what order we put them here.
+function F=LifeCycleModel11_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+% We first use the 'model space', which here is (d,aprime,a,z,e,...)
+% After this everything is a parameter and VFI Toolkit will look for these
+% in the parameter structure
 
 F=-Inf;
 if agej<Jr % If working age
-    c=w*kappa_j*z1*z2*h+(1+r)*a-aprime; % Add z here
+    c=w*kappa_j*z*e*h+(1+r)*a-aprime; % Add z here
 else % Retirement
     c=pension+(1+r)*a-aprime;
 end

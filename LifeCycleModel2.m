@@ -59,7 +59,8 @@ DiscountFactorParamNames={'beta'};
 
 % Add agej,Jr & pension to the inputs
 % Notice change to 'LifeCycleModel2_ReturnFn'
-ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension) LifeCycleModel2_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension);
+ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension)...
+    LifeCycleModel2_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension);
 % VFI Toolkit will automatically look in 'Params' to find the values of these parameters.
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium

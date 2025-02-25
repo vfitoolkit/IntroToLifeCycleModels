@@ -1,6 +1,10 @@
 function F=LifeCycleModel1_ReturnFn(h,aprime,a,w,sigma,psi,eta)
-% The first four are the 'always required' decision variables, next period
-% endogenous states, this period endogenous states, exogenous states
+% In the baseline setup for VFI Toolkit, the first entries are always
+% (i) decision variables, (ii) next period endogenous states, (iii) this 
+% period endogenous states, and (iv) exogenous states.
+% In this model we have 1 decision variable, h, 1 next period endogenous
+% state, aprime, 1 this period endogenous state, a, and 0 exogenous states.
+% Hence, we have (h,aprime,a,...)
 % After that we need all the parameters the return function uses, it
 % doesn't matter what order we put them here.
 

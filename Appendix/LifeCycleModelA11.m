@@ -1,9 +1,7 @@
-%% Life-Cycle Model 11A: Idiosyncratic shocks again, persistent and transitory
+%% Life-Cycle Model A11: Idiosyncratic shocks again, persistent and transitory
 % Use two exogenous shocks: z1 and z2, persistent and transitory shocks to labor efficiency units, respectively
-%
-% The second exogenous shock is i.i.d.
-% Life-Cycle Model 11A models it as a second markov process
-% Life-Cycle Model 11B models it as an 'e' variable, which is specificaly for i.i.d. variables allowing the codes to run faster.
+% Shows how you can model an i.i.d shock by pretending it is a markov shocks.
+% This is not something you would ever want to do in practice (it is slower), and is just here to help you understand markov transition matrices better.
 
 %% How does VFI Toolkit think about this?
 %
@@ -103,8 +101,8 @@ d_grid=h_grid;
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
 
-% Notice change to 'LifeCycleModel11_ReturnFn', and now input z1 and z2
-ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel11_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+% Notice change to 'LifeCycleModelA11_ReturnFn', and now input z1 and z2
+ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModelA11_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

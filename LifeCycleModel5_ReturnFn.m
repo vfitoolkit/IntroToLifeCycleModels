@@ -1,8 +1,10 @@
 function F=LifeCycleModel5_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j)
-% The first three are the 'always required' decision variables, next period
-% endogenous states, this period endogenous states.
-% After that we need all the parameters the return function uses, it
-% doesn't matter what order we put them here.
+% Notice that we just use kappa_j directly. VFI Toolkit handles
+% age-dependent parameters by noticing they depend on age (because they are
+% of length N_j) and then chooses the value for the appropriate age to pass
+% to the ReturnFn. Hence inside the ReturnFn we can just use kappa_j
+% directly, and we know that the toolkit will make sure that the value for
+% the relevant age is being used.
 
 F=-Inf;
 if agej<Jr % If working age

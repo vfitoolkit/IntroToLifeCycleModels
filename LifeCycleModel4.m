@@ -58,7 +58,8 @@ d_grid=h_grid;
 DiscountFactorParamNames={'beta'};
 
 % Notice still using 'LifeCycleModel3_ReturnFn'
-ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r) LifeCycleModel3_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r);
+ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r)... 
+    LifeCycleModel3_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

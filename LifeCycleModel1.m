@@ -72,10 +72,15 @@ DiscountFactorParamNames={'beta'};
 % 'LifeCycleModel1_ReturnFn' (you can right-click on it's name below and click 'Open LifeCycleModel1_ReturnFn')
 % We then just have to make the @() contain exactly the same inputs as
 % 'LifeCycleModel1_ReturnFn', and then give the parameter names.
-ReturnFn=@(h,aprime,a,w,sigma,psi,eta) LifeCycleModel1_ReturnFn(h,aprime,a,w,sigma,psi,eta);
-% The first entries must be the decision variables (d), the next period
-% endogenous state, this period endogenous state (a), followed by any parameters.
+ReturnFn=@(h,aprime,a,w,sigma,psi,eta)...
+    LifeCycleModel1_ReturnFn(h,aprime,a,w,sigma,psi,eta);
+% The first entries must be the decision variables (d), the next period endogenous 
+% state (aprime), and this period endogenous state (a), followed by any parameters.
 % VFI Toolkit will automatically look in 'Params' to find the values of these parameters.
+
+% A standard endogenous state in VFI Toolkit is one where you can choose
+% next period endogneous state directly. Hence why we have both of (..,aprime,a,..)
+% in the ReturnFn.
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
