@@ -1,4 +1,4 @@
-%% Life-Cycle Model A4: Idiosyncratic shocks as AR(2) process
+%% Life-Cycle Model A10: Idiosyncratic shocks as AR(2) process
 % We modify Life-Cycle Model 9 changing the persistent shock z from AR(1)
 % to AR(2). Because we need to keep track of two lags, we have to include
 % both z and the lag of z as exogenous state variables.
@@ -92,8 +92,8 @@ d_grid=linspace(0,1,n_d)'; % Hours worked
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
 
-% Notice we change to 'LifeCycleModelA4_ReturnFn'
-ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModelA4_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+% Notice we change to 'LifeCycleModelA10_ReturnFn'
+ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModelA10_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

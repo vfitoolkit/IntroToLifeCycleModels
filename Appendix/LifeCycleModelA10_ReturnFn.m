@@ -1,4 +1,4 @@
-function F=LifeCycleModelA4_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+function F=LifeCycleModelA10_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 % z is AR(2), so z1 is current value and z2 is the lag
 % While both z1 and z2 must be included because they are exogenous states 
 % of the model we will only actually use the value of z1.
