@@ -1,4 +1,4 @@
-%% Life-Cycle Model A5: Idiosyncratic shocks again, life-cycle non-stationary AR(1)
+%% Life-Cycle Model A4: Idiosyncratic shocks again, life-cycle non-stationary AR(1)
 % This is the exact same model as Life-Cycle Model 9 except for the
 % exogenous shock process z. We model z as a 'non-stationary AR(1)', that
 % is, an AR(1) process whose parameters depend on age. I will refer to this
