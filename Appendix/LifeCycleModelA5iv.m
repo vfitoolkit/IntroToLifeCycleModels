@@ -1,4 +1,4 @@
-%% Life-Cycle Model A8: Shocks that depend on each other, 'unemployment' and 'recession'
+%% Life-Cycle Model A5iv: Shocks that depend on each other, 'unemployment' and 'recession'
 % We will have two exogenous shocks, z1 and z2, each of which takes two possible values
 % z2 is our 'macroeconomic' shock, it takes a value of 1 for 'recession' and 0 for 'expansion'
 % z1 is our 'microeconomic' shock, it takes a value of 1 for 'employment' and 0 for 'unemployment'
@@ -113,8 +113,8 @@ d_grid=h_grid;
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
 
-% Notice change to 'LifeCycleModelA8_ReturnFn' (modified LifeCycleModel8_ReturnFn to take the (unused) input z2
-ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModelA8_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+% Notice change to 'LifeCycleModelA5_ReturnFn', use two z markov exogenous states
+ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModelA5_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
