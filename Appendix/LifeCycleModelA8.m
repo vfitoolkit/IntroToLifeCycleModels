@@ -1,4 +1,4 @@
-%% Life-Cycle Model A7: Two idiosyncratic shocks, that follow a bivariate VAR(1)
+%% Life-Cycle Model A8: Two idiosyncratic shocks, that follow a bivariate VAR(1)
 % Use two exogenous shocks: z1 and z2, both are shocks to labor efficiency units
 % Modelled jointly as a bivariate VAR(1).
 % Extends Life-Cycle Model 11, with only change being the shocks themselves.
