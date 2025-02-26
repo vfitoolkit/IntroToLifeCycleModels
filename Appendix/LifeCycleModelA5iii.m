@@ -1,4 +1,4 @@
-%% Life-Cycle Model A9: Two correlated shocks with a joint-grid
+%% Life-Cycle Model A5iii: Two correlated shocks with a joint-grid
 % Use two exogenous shocks: z1 and z2, both are shocks to labor efficiency units
 % Modelled jointly as a bivariate VAR(1).
 % Use Farmer-Toda which produces a 'joint grid', as opposed to a cross-product (kronecker) grid.
