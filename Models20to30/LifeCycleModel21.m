@@ -1,6 +1,13 @@
 %% Life-Cycle Model 21: Idiosyncratic medical shocks in retirement
-
-
+% In Life-Cycle Model 20 we saw how to make exogenous markov z have
+% different transition probabilities at each age/period. We can also make
+% the grid values differ by age (as long as number of grid points does not
+% change). Because we only were using z as labor productivity during
+% working ages, and then just ignoring z in retirement, we can just
+% repurpose z during retirement to use it to model something else.
+% That is what we do here, we use z as labor productivity during working
+% ages, and as medical shocks in retirement. ExogShockFn is used to make
+% both the grid and transition probailities depend on age.
 
 % Note: Both the z_grid_J and the ExogShockFn approaches require that the
 % number of grid points in z_grid does NOT change with age.
@@ -105,6 +112,7 @@ disp('Test ValueFnIter')
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
+% Note: Because we have vfoptions.ExogShockFn, what we input for z_grid and  pi_z will just be ignored.
 
 %% Now, we want to graph Life-Cycle Profiles
 
@@ -125,8 +133,7 @@ end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% Again, we will explain in a later model what the stationary distribution
-% is, it is not important for our current goal of graphing the life-cycle profile
+% Note: Because we have simoptions.ExogShockFn, what we input for z_grid and  pi_z will just be ignored.
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (h,aprime,a,z) as first
@@ -139,6 +146,7 @@ FnsToEvaluate.fractionwithmedicalexpenses=@(h,aprime,a,z) (z==0.3); % indicator 
 
 %% Calculate the life-cycle profiles
 AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+% Note: Because we have simoptions.ExogShockFn, what we input for z_grid will just be ignored.
 
 % For example
 % AgeConditionalStats.earnings.Mean

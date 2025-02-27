@@ -41,8 +41,8 @@
 % with age to see the result.
 
 % Note: We are putting these shocks on the labor productivity units
-% process. Emprically they are more commonly used in exogenous labor supply
-% models. (E.g., the model in Fella, Gallipoli & Pan (2019) - "Markov-chain approximations for life-cycle models"
+% process. Alternatively you could use an exogenous labor model and have
+% this kind of process on earnings.
 
 % To implement this the only changes we need to make are the parameters
 % that determine rho and sigma (which are now vectors), and also to the
@@ -128,21 +128,12 @@ Params.warmglow3=Params.sigma; % By using the same curvature as the utility of c
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
-[z_grid_J, pi_z_J,jequaloneDistz] = discretizeLifeCycleAR1_FellaGallipoliPan(Params.rho_z,Params.sigma_epsilon_z,n_z,Params.J);
+% Discretize using KFTT, which is an extension of the Tanaka-Toda method
+[z_grid_J, pi_z_J,jequaloneDistz] = discretizeLifeCycleAR1_KFTT(0,Params.rho_z,Params.sigma_epsilon_z,n_z,Params.J);
 % z_grid_J is n_z-by-J, so z_grid_J(:,j) is the grid for age j
 % pi_z_J is n_z-by-n_z-by-J, so pi_z_J(:,:,j) is the transition matrix for age j
-% Note: 
 
 z_grid_J=exp(z_grid_J); % Take exponential of the grid
-% To use exogenous shocks that depend on age you have to add them to vfoptions and simoptions
-vfoptions.z_grid_J=z_grid_J; % Note: naming of vfoptions.z_grid_J has to be exactly as is.
-vfoptions.pi_z_J=pi_z_J; % Note: naming of vfoptions.z_grid_J has to be exactly as is.
-simoptions.z_grid_J=z_grid_J; % Note: naming of vfoptions.z_grid_J has to be exactly as is.
-simoptions.pi_z_J=pi_z_J; % Note: naming of vfoptions.z_grid_J has to be exactly as is.
-% You then just pass a 'placeholder' for z_grid and pi_z, and the commands
-% will ignore these and will only use what is in vfoptions/simoptions
-z_grid=z_grid_J(:,1); % Not actually used
-pi_z=pi_z_J(:,:,1); % Not actually used
 
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
@@ -159,10 +150,11 @@ ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warm
 disp('Test ValueFnIter')
 % vfoptions=struct(); % Just using the defaults.
 tic;
-% Note: z_grid and pi_z, this will be ignored due to presence of
-% vfoptions.z_grid_J and vfoptions.pi_z_J
-[V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
+[V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid_J, pi_z_J, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
+% Notice that we just input z_grid_J and pi_z_J where we would put z_grid and pi_z.
+% VFI Toolkit notices the size of z_grid_J and pi_z_J and based on this it 
+% understands that these depend on age and should be treated as such.
 
 % V is now (a,z,j). This was already true, just that previously z was trivial (a single point) 
 % Compare
@@ -270,7 +262,7 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
-StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
+StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z_J,Params,simoptions);
 % Again, we will explain in a later model what the stationary distribution
 % is, it is not important for our current goal of graphing the life-cycle profile
 
@@ -284,7 +276,7 @@ FnsToEvaluate.assets=@(h,aprime,a,z) a; % a is the current asset holdings
 % notice that we have called these fractiontimeworked, earnings and assets
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid_J,simoptions);
 
 % For example
 % AgeConditionalStats.earnings.Mean
@@ -309,7 +301,7 @@ title('Life Cycle Profile: Assets (a)')
 FnsToEvaluate.consumption=@(h,aprime,a,z,agej,Jr,w,kappa_j,r,pension) (agej<Jr)*(w*kappa_j*z*h+(1+r)*a-aprime) + (agej>=Jr)*(pension+(1+r)*a-aprime);
 
 % Calculate the AgeCondtionalStats again
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid_J,simoptions);
 
 figure(6)
 subplot(4,1,1); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
@@ -326,7 +318,8 @@ title('Life Cycle Profile, Variance: Consumption (c)')
 % being made to look small due to some spikes in the variance of
 % consumption at certain ages in retirement (I am guessing this is when
 % some people are reaching the asset level they want for warm-glow and so adjust
-% consumption relatively sharply?)
+% consumption relatively sharply?) This model hasn't really been calibrated
+% so it can be a bit messy.
 
 
 

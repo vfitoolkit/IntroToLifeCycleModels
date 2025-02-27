@@ -1,10 +1,14 @@
 %% Life-Cycle Model 20: Idiosyncratic shocks that depend on age
 % We might want a different shock process at each age (empirical data suggests this is more realistic).
 % There are two ways to do this, one is to create a z_grid_J and pi_z_J, which are matricies 
-% containing the z_grid and pi_z for each age; an example using an AR(1) process with age-dependent 
-% parameters is given in Life-Cycle Model A5. The other way to do this is to create a function that 
+% containing the z_grid and pi_z for each age; an example using a Life-Cycle AR(1) process with age-dependent 
+% parameters is given in Life-Cycle Model A4. The other way to do this is to create a function that 
 % returns z_grid and pi_z given age. We will demonstrate this second method
 % here, called ExogShockFn in codes.
+
+% Note: For many situations, the approach in Life-Cycle Model A4 (of
+% discretizing a life-cycle AR(1) process to get z_grid_J and pi_z_J) is
+% perhaps more likely to interest you.
 
 % We will modify Life-Cycle Model 8, which had a two-state idiosyncratic
 % shock representing employment/unemployment. Empirically unemployment
@@ -14,9 +18,9 @@
 % grid on z for all ages (the function still has to give both z_grid and
 % pi_z).
 
-% I show how to setup the function that creates the z_grid and pi_z
+% I show how to setup the function that creates the z_grid_J and pi_z_J
 % depending on age in the same part of this script as I would normally set
-% up z_grid and pi_z.
+% up z_grid_J and pi_z_J.
 
 % Note: Both the z_grid_J and the ExogShockFn approaches require that the
 % number of grid points in z_grid does NOT change with age.
@@ -121,6 +125,7 @@ disp('Test ValueFnIter')
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
+% Note: Because we have vfoptions.ExogShockFn, what we input for z_grid and pi_z will just be ignored.
 
 %% Now, we want to graph Life-Cycle Profiles
 
@@ -141,8 +146,7 @@ end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% Again, we will explain in a later model what the stationary distribution
-% is, it is not important for our current goal of graphing the life-cycle profile
+% Note: Because we have simoptions.ExogShockFn, what we input for z_grid and pi_z will just be ignored.
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (h,aprime,a,z) as first
@@ -154,6 +158,7 @@ FnsToEvaluate.fractionunemployed=@(h,aprime,a,z) (z==0); % indicator for z=0 (un
 
 %% Calculate the life-cycle profiles
 AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
+% Note: Because we have simoptions.ExogShockFn, what we input for z_grid will just be ignored.
 
 % For example
 % AgeConditionalStats.earnings.Mean
