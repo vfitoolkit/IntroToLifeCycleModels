@@ -143,12 +143,13 @@ d_grid=h_grid;
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
 
-% Notice we still use 'LifeCycleModel8_ReturnFn'
-ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+% Note 'LifeCycleModelA1_ReturnFn' is just a copy paste of 'LifeCycleModel8_ReturnFn'
+ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)...
+    LifeCycleModelA1_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
-% vfoptions=struct(); % Just using the defaults.
+vfoptions=struct(); % Just using the defaults.
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid_J, pi_z_J, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -169,81 +170,6 @@ size(Policy)
 % The n_a,n_z,N_j represent the state on which the decisions/policys
 % depend, and there is one decision for each decision variable 'd' and each endogenous state variable 'a'
 
-%% Let's take a quick look at what we have calculated, namely V and Policy
-
-% The value function V depends on the state, so now it depends on both asset holdings and age.
-
-% We can plot V as a 3d plot (surf is matlab command for 3d plot)
-% Which z value should we plot? I will plot the median
-zind=floor(n_z+1)/2; % This will be the median
-figure(1)
-subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(V(:,zind,:),[n_a,Params.J]))
-title('Value function: median value of z')
-xlabel('Age j')
-ylabel('Assets (a)')
-subplot(2,1,2); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(Params.agejshifter+(1:1:Params.J)),reshape(V(:,zind,:),[n_a,Params.J]))
-title('Value function: median value of z')
-xlabel('Age in Years')
-ylabel('Assets (a)')
-
-% Do another plot of V, this time as a function (of assets) for a given age (I do a few for different ages)
-figure(2)
-subplot(5,1,1); plot(a_grid,V(:,1,1),a_grid,V(:,zind,1),a_grid,V(:,end,1)) % j=1
-title('Value fn at age j=1')
-legend('min z','median z','max z') % Just include the legend once in the top subplot
-subplot(5,1,2); plot(a_grid,V(:,1,20),a_grid,V(:,zind,20),a_grid,V(:,end,20)) % j=20
-title('Value fn at age j=20')
-subplot(5,1,3); plot(a_grid,V(:,1,45),a_grid,V(:,zind,45),a_grid,V(:,end,45)) % j=45
-title('Value fn at age j=45')
-subplot(5,1,4); plot(a_grid,V(:,1,46),a_grid,V(:,end,46),a_grid,V(:,end,46)) % j=46
-title('Value fn at age j=46 (first year of retirement)')
-subplot(5,1,5); plot(a_grid,V(:,1,81),a_grid,V(:,zind,81),a_grid,V(:,end,81)) % j=81
-title('Value fn at age j=81')
-xlabel('Assets (a)')
-
-% Convert the policy function to values (rather than indexes).
-% Note that there is one policy for hours worked (h), and another for next period assets (aprime). 
-% Policy(1,:,:,:) is h, Policy(2,:,:,:) is aprime [as function of (a,z,j)]
-% Plot both as a 3d plot, again I arbitrarily choose the median value of z
-figure(3)
-PolicyVals=PolicyInd2Val_FHorz_Case1(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid);
-subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,zind,:),[n_a,Params.J]))
-title('Policy function: fraction of time worked (h), median z')
-xlabel('Age j')
-ylabel('Assets (a)')
-zlabel('Fraction of Time Worked (h)')
-subplot(2,1,2); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(2,:,zind,:),[n_a,Params.J]))
-title('Policy function: next period assets (aprime), median z')
-xlabel('Age j')
-ylabel('Assets (a)')
-zlabel('Next period assets (aprime)')
-
-% Again, plot both policies (h and aprime), this time as a function (of assets) for a given age  (I do a few for different ages)
-figure(4)
-subplot(5,2,1); plot(a_grid,PolicyVals(1,:,1,1),a_grid,PolicyVals(1,:,zind,1),a_grid,PolicyVals(1,:,end,1)) % j=1
-title('Policy for h at age j=1')
-subplot(5,2,3); plot(a_grid,PolicyVals(1,:,1,20),a_grid,PolicyVals(1,:,zind,20),a_grid,PolicyVals(1,:,end,20)) % j=20
-title('Policy for h at age j=20')
-subplot(5,2,5); plot(a_grid,PolicyVals(1,:,1,45),a_grid,PolicyVals(1,:,zind,45),a_grid,PolicyVals(1,:,end,45)) % j=45
-title('Policy for h at age j=45')
-subplot(5,2,7); plot(a_grid,PolicyVals(1,:,1,46),a_grid,PolicyVals(1,:,zind,46),a_grid,PolicyVals(1,:,end,46)) % j=46
-title('Policy for h at age j=46 (first year of retirement)')
-subplot(5,2,9); plot(a_grid,PolicyVals(1,:,1,81),a_grid,PolicyVals(1,:,zind,81),a_grid,PolicyVals(1,:,end,81)) % j=81
-title('Policy for h at age j=81')
-xlabel('Assets (a)')
-subplot(5,2,2); plot(a_grid,PolicyVals(2,:,1,1),a_grid,PolicyVals(2,:,zind,1),a_grid,PolicyVals(2,:,end,1)) % j=1
-title('Policy for aprime at age j=1')
-legend('min z','median z','max z') % Just include the legend once in the top-right subplot
-subplot(5,2,4); plot(a_grid,PolicyVals(2,:,1,20),a_grid,PolicyVals(2,:,zind,20),a_grid,PolicyVals(2,:,end,20)) % j=20
-title('Policy for aprime at age j=20')
-subplot(5,2,6); plot(a_grid,PolicyVals(2,:,1,45),a_grid,PolicyVals(2,:,zind,45),a_grid,PolicyVals(2,:,end,45)) % j=45
-title('Policy for aprime at age j=45')
-subplot(5,2,8); plot(a_grid,PolicyVals(2,:,1,46),a_grid,PolicyVals(2,:,zind,46),a_grid,PolicyVals(2,:,end,46)) % j=46
-title('Policy for aprime at age j=46 (first year of retirement)')
-subplot(5,2,10); plot(a_grid,PolicyVals(2,:,1,81),a_grid,PolicyVals(2,:,zind,81),a_grid,PolicyVals(2,:,end,81)) % j=81
-title('Policy for aprime at age j=81')
-xlabel('Assets (a)')
-
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
@@ -262,6 +188,7 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
+simoptions=struct();
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z_J,Params,simoptions);
 % Again, we will explain in a later model what the stationary distribution
 % is, it is not important for our current goal of graphing the life-cycle profile
@@ -301,7 +228,7 @@ title('Life Cycle Profile: Assets (a)')
 FnsToEvaluate.consumption=@(h,aprime,a,z,agej,Jr,w,kappa_j,r,pension) (agej<Jr)*(w*kappa_j*z*h+(1+r)*a-aprime) + (agej>=Jr)*(pension+(1+r)*a-aprime);
 
 % Calculate the AgeCondtionalStats again
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid_J,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid_J,simoptions);
 
 figure(6)
 subplot(4,1,1); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)

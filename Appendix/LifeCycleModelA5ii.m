@@ -1,30 +1,55 @@
-%% Life-Cycle Model A6: Idiosyncratic shocks again: persistent and transitroy
-% This is Life-Cycle Model 11B, extended so that both the persistent AR(1)
-% shock z and the transitory i.i.d. shock e can depend on age.
+%% Life-Cycle Model A5ii: Two markov (z) shocks, joint-grids
+% We make zero changes to the model in Life-Cycle model A5i.
+% All we do is look at a different way to set up z_grid, as a 'joint-grid'
+% rather than a 'stacked column vector'.
+% 
+% To be able to use some more advanced approches to creating grids on z1
+% and z2, we need to move away from the 'stacked column vector' that we
+% used for z_grid in Life-Cycle model A5i.
 %
-% We use the extended Farmer-Toda method to discretize z (getting a z_grid that depends on age, 
-% which we call z_grid_J, and a pi_z that depends on age, which we call pi_z_J).
-% We use the extended Farmer-Toda method to discretize e (getting a e_grid that depends on age, 
-% which we call e_grid_J, and a pi_e that depends on age, which we call pi_e_J).
+% Remember in Life-Cycle model A5i that pi_z was size(pi_z)=prod(n_z)-by-prod(n_z)
+% And that the interpretation of the index of rows and columns was 
+% [z1a, z2a;
+%  z1b, z2a;
+%  z1c, z2a;
+%  z1a, z2b;
+%  z1b, z2b;
+%  z1c, z2b]
 %
-% To implement this the only changes we need to make are the parameters
-% that determine rho (which is now a vector), and similarly the parameters for the 
-% standard deviations of e and of innovations to z (which are now vectors). And also to the
-% codes that create z_grid and pi_z (and e_grid and pi_e). The codes then know that we are using
-% age-dependent exogenous states, and deal with them appropriately because
-% we put them into vfoptions and simoptions.
+% But in this case, why not just pass this as the grid? That is, we can set
+% z_grid=[z1a, z2a;
+%  z1b, z2a;
+%  z1c, z2a;
+%  z1a, z2b;
+%  z1b, z2b;
+%  z1c, z2b]
 %
-% Comparing the code to Life-Cycle Model 11A, the only changes are the
-% parameters for z and e (which are now vectors), the discretization
-% commands for z and e. And that we need to put both discretizations in
-% vfoptions and simoptions. There is no change to anything else, e.g., no
-% change to ReturnFn or FnsToEvaluate.
+% This is what we call a joint-grid for z (the grid for z1 is joint with
+% the grid for z2). Notice that the first column of the joint-grid version
+% of z_grid are the value for z1, and that the second column of the
+% joint-grid version of z_grid are the values of z2. This joint-grid is
+% just the cross-product (all possible cominations) of the grids on z1 and z2.
+%
+% We can just leave pi_z as is, and now we use the joint-grid version of
+% z_grid, which will be size(z_grid)=prod(n_z)-by-length(n_z).
+%
+% VFI Toolkit internally looks at size(n_z), and based on this it
+% understands whether you used z_grid as a stacked column vector or as a
+% joint-grid and actss appropriately.,
+%
+% The only change in the following code from Life-Cycle Model A5i is the
+% lines creating z_grid from z1_grid and z2_grid.
+%
+% Note: The above explains z_grid and pi_z with 3 points on z1 and 2 points
+% on z2. The code below uses 5 points on z1 and 3 points on z2. Take a look
+% at z_grid and pi_z, see if they make sense to you (what size they are,
+% and how to interpret them).
 
 %% How does VFI Toolkit think about this?
 %
 % One decision variable: h, labour hours worked
 % One endogenous state variable: a, assets (total household savings)
-% Two stochastic exogenous state variables: z and e, persistent and transitory shocks to labor efficiency units, respectively
+% Two stochastic exogenous state variables: z1 and z2, both are shocks to labor efficiency units
 % Age: j
 
 %% Begin setting up to use VFI Toolkit to solve
@@ -36,8 +61,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=201; % Endogenous asset holdings
-n_z=21; % Exogenous labor productivity units shocks, persistent and transitiory
-n_e=3;
+n_z=[5,3]; % Exogenous labor productivity units shock, two of them
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Parameters
@@ -62,11 +86,14 @@ Params.pension=0.3;
 
 % Age-dependent labor productivity units
 Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-Params.Jr+1)];
-% persistent AR(1) process on idiosyncratic labor productivity units
-Params.rho_z=linspace(0.8,0.9,Params.J); % The autocorrelation increases from 0.8 to 0.9 with age.
-Params.sigma_epsilon_z=linspace(0.05,0.01,Params.J); % The standard deviation of the innovations to z decreases from 0.05 to 0.01 with age
-% transitiory iid normal process on idiosyncratic labor productivity units
-Params.sigma_epsilon_e=linspace(0.3,0.1,Params.J); % The standard deviation of the innovations to z decreases from 0.3 to 0.1 with age
+% Age-dependent labor productivity units
+Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-Params.Jr+1)];
+% Exogenous shock process, z1: AR1 on labor productivity units
+Params.rho_z1=0.9;
+Params.sigma_epsilon_z1=0.03;
+% Exogenous shock process, z2: AR1 on labor productivity units
+Params.rho_z2=0.3;
+Params.sigma_epsilon_z2=0.01;
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
 % Most countries have calculations of these (as they are used by the government departments that oversee pensions)
@@ -93,42 +120,41 @@ Params.warmglow3=Params.sigma; % By using the same curvature as the utility of c
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
-% First, the AR(1) process z
-if Params.rho_z<0.99
-    [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
-elseif Params.rho_z>=0.99 % Rouwenhourst performs better than Farmer-Toda when the autocorrelation is very high
-    [z_grid,pi_z]=discretizeAR1_Rouwenhorst(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
-end
-z_grid=exp(z_grid); % Take exponential of the grid
-[mean_z,~,~,~]=MarkovChainMoments(z_grid,pi_z); % Calculate the mean of the grid so as can normalise it
-z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is 1)
-% Now the iid normal process e
-[e_grid,pi_e]=discretizeAR1_FarmerToda(0,0,Params.sigma_epsilon_e,n_e);
-e_grid=exp(e_grid); % Take exponential of the grid
-pi_e=pi_e(1,:)'; % Because it is iid, the distribution is just the first row (all rows are identical). We use pi_e as a column vector for VFI Toolkit to handle iid variables.
-mean_e=pi_e'*e_grid; % Because it is iid, pi_e is the stationary distribution (you could just use MarkovChainMoments(), I just wanted to demonstate a handy trick)
-e_grid=e_grid./mean_e; % Normalise the grid on z (so that the mean of e is 1)
-% To use e variables we have to put them into the vfoptions and simoptions
-vfoptions.n_e=n_e;
-vfoptions.e_grid=e_grid;
-vfoptions.pi_e=pi_e;
-simoptions.n_e=vfoptions.n_e;
-simoptions.e_grid=vfoptions.e_grid;
-simoptions.pi_e=vfoptions.pi_e;
-
-
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
 % Switch into toolkit notation
 d_grid=h_grid;
 
+%% Dealing with two markovs: grid and transition matrix, z_grid and pi_z
+% First, just discretize each of our two AR(1) processes
+% Discretize the AR(1) process z1
+[z1_grid,pi_z1]=discretizeAR1_FarmerToda(0,Params.rho_z1,Params.sigma_epsilon_z1,n_z(1));
+z1_grid=exp(z1_grid); % Take exponential of the grid
+[mean_z1,~,~,~]=MarkovChainMoments(z1_grid,pi_z1); % Calculate the mean of the grid so as can normalise it
+z1_grid=z1_grid./mean_z1; % Normalise the grid on z1 (so that the mean of z1 is exactly 1)
+
+% Discretize the AR(1) process z2
+[z2_grid,pi_z2]=discretizeAR1_FarmerToda(0,Params.rho_z2,Params.sigma_epsilon_z2,n_z(2));
+z2_grid=exp(z2_grid); % Take exponential of the grid
+[mean_z2,~,~,~]=MarkovChainMoments(z2_grid,pi_z2); % Calculate the mean of the grid so as can normalise it
+z2_grid=z2_grid./mean_z2; % Normalise the grid on z2 (so that the mean of z2 is exactly 1)
+
+% Now, we put together the two grids, as a joint-grid
+z_grid=[repmat(z1_grid,n_z(2),1), repelem(z2_grid,n_z(1),1)];
+% THIS LINE IS THE ONLY CHANGE FROM A5i
+% Note: the joint-grid used here is just the cross-product of the two grids on
+% z1 and z2.
+
+% Next, we put together pi_z
+pi_z=kron(pi_z2,pi_z1); % note reverse order
+
+
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
 
-% Notice change to 'LifeCycleModel11_ReturnFn', and now input z and e (note
-% that inside 'LifeCycleModel11_ReturnFn' it still says z1 and z2, but that
-% doesn't matter as those names are only internal to that function).
-ReturnFn=@(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel11_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+% Use 'LifeCycleModelA5_ReturnFn', which has two markov exogenous states
+ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)... 
+    LifeCycleModelA5_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
@@ -137,20 +163,19 @@ tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
 
-% V is now (a,z,e,j). One dimension for each state variable.
+% V is now (a,z1,z2,j). One dimension for each state variable.
 % Compare
 size(V)
 % with
-[n_a,n_z,n_e,N_j]
+[n_a,n_z(1),n_z(2),N_j]
 % there are the same.
 % Policy is
 size(Policy)
 % which is the same as
-[length(n_d)+length(n_a),n_a,n_z,n_e,N_j]
-% The n_a,n_z,n_e,N_j represent the state on which the decisions/policys
+[length(n_d)+length(n_a),n_a,n_z(1),n_z(2),N_j]
+% The n_a,n_z(1),n_z(2),N_j represent the state on which the decisions/policys
 % depend, and there is one decision for each decision variable 'd' and each
-% endogenous state variable 'a', and one for the markov exogenous state variable
-% 'z', and one for the markov exogenous state variable 'e'.
+% endogenous state variable 'a', and one for each exogenous state variable 'z'
 
 %% We won't plot the Value and Policy fn, but thinking out how you would might be a good way to check you understand the form of V and Policy
 
@@ -159,8 +184,8 @@ size(Policy)
 %% Initial distribution of agents at birth (j=1)
 % Before we plot the life-cycle profiles we have to define how agents are
 % at age j=1. We will give them all zero assets.
-jequaloneDist=zeros([n_a,n_z,n_e],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,floor((n_z+1)/2),floor((n_e+1)/2))=1; % All agents start with zero assets, and the median value of each shock
+jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
+jequaloneDist(1,floor((n_z(1)+1)/2),floor((n_z(2)+1)/2))=1; % All agents start with zero assets, and the median shock
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -174,15 +199,14 @@ Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
 simoptions=struct(); % Use the default options
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% Again, we will explain in a later model what the stationary distribution
-% is, it is not important for our current goal of graphing the life-cycle profile
+
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (h,aprime,a,z) as first
 % inputs, then just any relevant parameters.
-FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z,e) h; % h is fraction of time worked
-FnsToEvaluate.earnings=@(h,aprime,a,z,e,w,kappa_j) w*kappa_j*h*z*e; % w*kappa_j*h*z*e is the labor earnings
-FnsToEvaluate.assets=@(h,aprime,a,z,e) a; % a is the current asset holdings
+FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z1,z2) h; % h is fraction of time worked
+FnsToEvaluate.earnings=@(h,aprime,a,z1,z2,w,kappa_j) w*kappa_j*h*z1*z2; % w*kappa_j*h*z is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
+FnsToEvaluate.assets=@(h,aprime,a,z1,z2) a; % a is the current asset holdings
 
 % notice that we have called these fractiontimeworked, earnings and assets
 
@@ -203,5 +227,6 @@ subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
 title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
+
 
 

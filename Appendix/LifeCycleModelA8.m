@@ -1,7 +1,7 @@
 %% Life-Cycle Model A8: Two idiosyncratic shocks, that follow a bivariate VAR(1)
 % Use two exogenous shocks: z1 and z2, both are shocks to labor efficiency units
 % Modelled jointly as a bivariate VAR(1).
-% Extends Life-Cycle Model 11, with only change being the shocks themselves.
+% Extends Life-Cycle Model A5, with only change being the shocks themselves.
 % The use of the two shocks is kind of silly, the model is purely to illustrate how to discretize a VAR(1).
 
 %% How does VFI Toolkit think about this?
@@ -20,7 +20,11 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=201; % Endogenous asset holdings
-n_z=[9,9]; % Exogenous labor productivity units shock, two of them
+n_z_FT=[9,9]; % Exogenous labor productivity units shock, two of them
+% But Farmer-Toda method for discretizing the creates a correlated joint grid for the VAR(1)
+% [It uses 9x9, but in a different space, and then moving them back into space of the VAR(1) turns it into a correlated grid]
+% So for VFI Toolkit to handle the correlated grid we have to instead say
+n_z=[81,1]; % See Life-Cycle models A5i-A5iv for an explanation of correlated joint-grids
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Parameters
@@ -46,14 +50,8 @@ Params.pension=0.3;
 % Age-dependent labor productivity units
 Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-Params.Jr+1)];
 % VAR(1) process on idiosyncratic labor productivity units
-Params.rho_z=[0.9,0.3;0.3,0.2];
-Params.sigma_epsilon_z=[0.02; 0.04]; 
-    % The Tauchen method used to discretize the VAR(1) imposes the that variance-covariance ç
-    % matrix is diagonal
-    % The Farmer-Toda method can discretize a VAR(1) with any (postivite
-    % semi-definite) variance-covariance matrix. [But generates jointly
-    % determined grids on the two shocks, so cannot currently be used with
-    % VFI Toolkit.]
+Params.rho_z=[0.6,0.3; 0.3,0.2];
+Params.sigma_epsilon_z=[0.02,0.01; 0.01, 0.04]; % covariance matrix of the idiosyncratic shocks
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
 % Most countries have calculations of these (as they are used by the government departments that oversee pensions)
@@ -81,13 +79,10 @@ Params.warmglow3=Params.sigma; % By using the same curvature as the utility of c
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
 % First, the VAR(1) process on z1 and z2
-% We use the Tauchen method to discretize the VAR(1)
-Tauchen_q=2; % Tauchen method has a hyperparameter that we need to set.
-% Note that for VAR(1), the Tauchen method requires that the variance-covariance matrix be diagonal.
-[z_grid, pi_z]=discretizeVAR1_Tauchen(0,Params.rho_z,Params.sigma_epsilon_z,n_z,Tauchen_q);
-% Codes exist to implement the Farmer-Toda method for the VAR(1), but they
-% result in a 'joint-grid' on z. So they cannot currently be used by VFI Toolkit.
-% [Z_grid,P] = discretizeVAR1_FarmerToda(Mew,Rho,SigmaSq,znum,farmertodaoptions)
+% We use the Farmer-Toda method to discretize the VAR(1)
+farmertodaoptions=struct();
+[z_grid, pi_z]=discretizeVAR1_FarmerToda([0;0],Params.rho_z,Params.sigma_epsilon_z,n_z_FT,farmertodaoptions);
+% Note that we used n_z_FT as input here
 
 z_grid=exp(z_grid);
 % I skip normalizing this to 1 in the current model (would need to do each of z1 and z2 seperately)
@@ -100,8 +95,9 @@ d_grid=h_grid;
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
 
-% Notice change to 'LifeCycleModel11_ReturnFn', and now input z1 and z2
-ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel11_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+% Keep using LifeCycleModelA5_ReturnFn as this is a model with two markov shocks
+ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)...
+    LifeCycleModelA5_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

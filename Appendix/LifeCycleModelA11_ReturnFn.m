@@ -1,4 +1,4 @@
-function F=LifeCycleModel11_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+function F=LifeCycleModelA11_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 % We first use the 'model space', which here is (d,aprime,a,z,e,...)
 % After this everything is a parameter and VFI Toolkit will look for these
 % in the parameter structure

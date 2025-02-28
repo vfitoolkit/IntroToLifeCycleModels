@@ -1,7 +1,21 @@
-%% Life-Cycle Model A5iv: Shocks that depend on each other, 'unemployment' and 'recession'
+%% Life-Cycle Model A5iv: Two markov (z) shocks, probabilities that depend on each other
 % We will have two exogenous shocks, z1 and z2, each of which takes two possible values
 % z2 is our 'macroeconomic' shock, it takes a value of 1 for 'recession' and 0 for 'expansion'
 % z1 is our 'microeconomic' shock, it takes a value of 1 for 'employment' and 0 for 'unemployment'
+%
+% So we will have two markov z shocks, with independent grids, and we can
+% just put these together as a stacked column vector.
+% 
+% Then we have a transition matrix pi_z2 for the macroeconomic shocks.
+% And we want the transition probabilities for z1 to depend on the current
+% z2 value.
+% We create pi_z as being size(pi_z)=prod(n_z)-by-prod(n_z) as always.
+% And we just have to think carefully about how set the probabilities in
+% pi_z, see below for this where pi_z is created.
+
+
+
+% The rest of this commentary is about the economics of this model:
 %
 % The idea is that agents care about the microeconomics shocks (which directly effect them), but 
 % they do not directly care about the macroeconomic shocks (that only effect them indirectly). The
@@ -14,15 +28,11 @@
 % joint transition probability matrix on z=(z1,z2).
 %
 % This modelling technique originates with Imrohoroglu (1989) - "Cost of business cycles with indivisibilities and liquidity constraints"
-% You can use "rational inattention" to provide refinement of this concept so that households do not react to the macroecomic variables. See,
+% More sophisticated versions of this concept would be "rational inattention" so that households do not react (much) to the macroecomic variables. See,
 % MaćkowiakWiederholt (2015) - “Business Cycle Dynamics under Rational Inattention."
 % Or as life-cycle model in Carroll, Crawley, Slacalek, Tokuoka & White (2020) - Sticky Expectations and Consumption Dynamics"
 % (sticky expectations is a reduced-form way to model the concept of rational inattention) 
-%
-% This is essentially an extension of life-cycle model 8, adding
-% macroeconomic shock which will influence the transition of the
-% microeconomic unemployment shock, but is irrelevant to the return fn.
-% (z2 still appears in the return fn inputs as it is a state)
+
 
 %% How does VFI Toolkit think about this?
 %
@@ -91,30 +101,66 @@ Params.warmglow3=Params.sigma; % By using the same curvature as the utility of c
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
-z1_grid=[1;0]; % the first entry is employment and the second is unemployment.
-z2_grid=[1;0]; % the first entry is expansion, the second is recession.
-z_grid=[z1_grid;z2_grid];
-
-pi_z=[0.9141,0.0234,0.0587, 0.0038;...
- 0.5625, 0.3750, 0.0269, 0.0356;...
- 0.0608, 0.0016, 0.8813, 0.0563;...
- 0.0375, 0.0250, 0.4031, 0.5344];
-% Note that if you add up the transition probabilities across z1 you would get the following 
-% transition matrix for z2:
-pi_z2=[sum(sum(pi_z(1:2,1:2))),sum(sum(pi_z(1:2,3:4)));sum(sum(pi_z(3:4,1:2))),sum(sum(pi_z(3:4,1:2)))];
-% We don't use this for anything it is just to show what pi_z2 is.
-% The pi_z matrix is taken directly from Imrohorglu (1989).
-
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
 % Switch into toolkit notation
 d_grid=h_grid;
 
+%% Dealing with two markovs: grid and transition matrix, z_grid and pi_z
+
+% We have two independent grids, so can just go back to using a stacked column vector for z_grid
+z1_grid=[1;0]; % the first entry is employment and the second is unemployment.
+z2_grid=[1;0]; % the first entry is expansion, the second is recession.
+z_grid=[z1_grid;z2_grid];
+
+% We will take a few steps to construct pi_z.
+% The probabilites of transitioning between a expansion and a recession,
+% for z2, are given by
+pi_z2=[0.9375,0.0625; 0.0625,0.9375];
+% Now, in the recession, we want the transition between employment and unemployment to be:
+pi_z1_r=[0.94,0.06; 0.43,0.57];
+% While in an expansion,
+pi_z1_e=[0.975, 0.025; 0.60, 0.40];
+
+% Then we put this together to get pi_z
+% first, just create a matrix of the appropriate size
+pi_z=zeros(prod(n_z),prod(n_z)); 
+% The interpretation of our grid on z is
+% [e,b;
+%  u,b;
+%  e,r;
+%  u,r];
+% where e=employment, u=unemployment, b=boom (expansion), r=recession.
+
+% So the first two rows of pi_z are e,u if we are in a boom today
+% And first two columns are e,u if we are in a boom tomorrow
+pi_z(1:2,1:2)=pi_z1_e*pi_z2(1,1); % employment probabilities given in boom, times probability of transitioning boom-boom
+% And last two columns are e,u if we are in recession tomorrow
+pi_z(1:2,3:4)=pi_z1_e*pi_z2(1,2);% employment probabilities given in boom, times probability of transitioning boom-recession
+
+% And the last two rows of pi_z are e,u if we are in a recession today
+% And first two columns are e,u if we are in a boom tomorrow
+pi_z(3:4,1:2)=pi_z1_r*pi_z2(2,1); % employment probabilities given in recession, times probability of transitioning recession-boom
+% And last two columns are e,u if we are in recession tomorrow
+pi_z(3:4,3:4)=pi_z1_r*pi_z2(2,2);% employment probabilities given in recession, times probability of transitioning recession-recession
+
+% Done, pi_z is now created. We have transition probabilites for z2 which
+% are independent of z1. While the transition probabilities for z1 depend on
+% the current value of z2.
+
+% Now that we have finished creating z_grid and pi_z, note that we just
+% have z_grid as a stacked column vector (as the grids for z1 and z2 are
+% independent of each other) while pi_z is, as ever,
+% size(pi_z)=prod(n_z)-by-prod(n_z). pi_z can contain anything from very
+% independent to very complicated interactions in the transition
+% probabilities for z1 and z2 without ever changing shape.
+
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModelA5_ReturnFn', which has two markov exogenous states
-ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModelA5_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)...
+    LifeCycleModelA5_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
@@ -136,72 +182,6 @@ size(Policy)
 % The n_a,n_z,N_j represent the state on which the decisions/policys
 % depend, and there is one decision for each decision variable 'd' and each endogenous state variable 'a'
 
-%% Let's take a quick look at what we have calculated, namely V and Policy
-
-% The value function V depends on the state, so now it depends on both asset holdings and age.
-% Note that z_grid=[1;0], so the first entry is employment and the second is unemployment.
-
-% We can plot V as a 3d plot (surf is matlab command for 3d plot)
-figure(1)
-subplot(2,2,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(V(:,2,2,:),[n_a,Params.J]))
-title('Value function: minimum value of z (unemployment,recession)')
-xlabel('Assets (a)')
-ylabel('Age j')
-subplot(2,2,2); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(V(:,2,1,:),[n_a,Params.J]))
-title('Value function: minimum value of z (unemployment, expansion)')
-xlabel('Assets (a)')
-ylabel('Age j')
-subplot(2,2,3); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(V(:,1,2,:),[n_a,Params.J]))
-title('Value function: maximum value of z (employment, recession)')
-xlabel('Assets (a)')
-ylabel('Age j')
-subplot(2,2,3); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(V(:,1,1,:),[n_a,Params.J]))
-title('Value function: maximum value of z (employment, expansion)')
-ylabel('Age j')
-ylabel('Age in Years')
-
-% Do another plot of V, this time as a function (of assets) for a given age (I do a few for different ages)
-figure(2)
-subplot(5,1,1); plot(a_grid,V(:,2,2,1),a_grid,V(:,1,2,1),a_grid,V(:,2,1,1),a_grid,V(:,1,1,1)) % j=1
-title('Value fn at age j=1')
-legend('z=unemployment, recession','z=employment, recession, z=unemployment, expansion','z=employment, expansion') % Just include the legend once in the top subplot
-subplot(5,1,2); plot(a_grid,V(:,2,2,20),a_grid,V(:,1,2,20),a_grid,V(:,2,1,20),a_grid,V(:,1,1,20)) % j=20
-title('Value fn at age j=20')
-subplot(5,1,3); plot(a_grid,V(:,2,2,45),a_grid,V(:,1,2,45),a_grid,V(:,2,1,45),a_grid,V(:,1,1,45)) % j=45
-title('Value fn at age j=45')
-subplot(5,1,4); plot(a_grid,V(:,2,2,46),a_grid,V(:,1,2,46),a_grid,V(:,2,1,46),a_grid,V(:,1,1,46)) % j=46
-title('Value fn at age j=46 (first year of retirement)')
-subplot(5,1,5); plot(a_grid,V(:,2,2,81),a_grid,V(:,1,2,81),a_grid,V(:,2,1,81),a_grid,V(:,1,1,81)) % j=81
-title('Value fn at age j=81')
-xlabel('Assets (a)')
-
-PolicyVals=PolicyInd2Val_FHorz_Case1(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid);
-% Again, plot both policies (h and aprime), this time as a function (of assets) for a given age  (I do a few for different ages)
-figure(4)
-subplot(5,2,1); plot(a_grid,PolicyVals(1,:,2,2,1),a_grid,PolicyVals(1,:,1,2,1),a_grid,PolicyVals(1,:,2,1,1),a_grid,PolicyVals(1,:,1,1,1)) % j=1
-title('Policy for h at age j=1')
-subplot(5,2,3); plot(a_grid,PolicyVals(1,:,2,2,20),a_grid,PolicyVals(1,:,1,2,20),a_grid,PolicyVals(1,:,2,1,20),a_grid,PolicyVals(1,:,1,1,20)) % j=20
-title('Policy for h at age j=20')
-subplot(5,2,5); plot(a_grid,PolicyVals(1,:,2,2,45),a_grid,PolicyVals(1,:,1,2,45),a_grid,PolicyVals(1,:,2,1,45),a_grid,PolicyVals(1,:,1,1,45)) % j=45
-title('Policy for h at age j=45')
-subplot(5,2,6); plot(a_grid,PolicyVals(1,:,2,2,46),a_grid,PolicyVals(1,:,1,2,46),a_grid,PolicyVals(1,:,2,1,46),a_grid,PolicyVals(1,:,1,1,46)) % j=46
-title('Policy for h at age j=46 (first year of retirement)')
-subplot(5,2,9); plot(a_grid,PolicyVals(1,:,2,2,81),a_grid,PolicyVals(1,:,1,2,81),a_grid,PolicyVals(1,:,2,1,81),a_grid,PolicyVals(1,:,1,1,81)) % j=81
-title('Policy for h at age j=81')
-xlabel('Assets (a)')
-subplot(5,2,2); plot(a_grid,PolicyVals(2,:,2,2,1),a_grid,PolicyVals(2,:,1,2,1),a_grid,PolicyVals(2,:,2,1,1),a_grid,PolicyVals(2,:,1,1,1)) % j=1
-title('Policy for aprime at age j=1')
-legend('z=unemployment, recession','z=employment, recession','z=unemployment, expansion','z=employment, expansion') % Just include the legend once in the top-right subplot
-subplot(5,2,4); plot(a_grid,PolicyVals(2,:,2,2,20),a_grid,PolicyVals(2,:,1,2,20),a_grid,PolicyVals(2,:,2,1,20),a_grid,PolicyVals(2,:,1,1,20)) % j=20
-title('Policy for aprime at age j=20')
-subplot(5,2,6); plot(a_grid,PolicyVals(2,:,2,2,45),a_grid,PolicyVals(2,:,1,2,45),a_grid,PolicyVals(2,:,2,1,45),a_grid,PolicyVals(2,:,1,1,45)) % j=45
-title('Policy for aprime at age j=45')
-subplot(5,2,8); plot(a_grid,PolicyVals(2,:,2,2,46),a_grid,PolicyVals(2,:,1,2,46),a_grid,PolicyVals(2,:,2,1,46),a_grid,PolicyVals(2,:,1,1,46)) % j=46
-title('Policy for aprime at age j=46 (first year of retirement)')
-subplot(5,2,10); plot(a_grid,PolicyVals(2,:,2,2,81),a_grid,PolicyVals(2,:,1,2,81),a_grid,PolicyVals(2,:,2,1,81),a_grid,PolicyVals(2,:,1,1,81)) % j=81
-title('Policy for aprime at age j=81')
-xlabel('Assets (a)')
-
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
@@ -222,8 +202,6 @@ Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
 simoptions=struct(); % Use the default options
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% Again, we will explain in a later model what the stationary distribution
-% is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (h,aprime,a,z) as first

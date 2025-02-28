@@ -1,11 +1,49 @@
-%% Life-Cycle Model A5iii: Two correlated shocks with a joint-grid
-% Use two exogenous shocks: z1 and z2, both are shocks to labor efficiency units
-% Modelled jointly as a bivariate VAR(1).
-% Use Farmer-Toda which produces a 'joint grid', as opposed to a cross-product (kronecker) grid.
-% Extends Life-Cycle Model 11, with only change being the shocks themselves.
-% The use of the two shocks is kind of silly, the model is purely to illustrate how to handle joint grids.
-% Notice that the grid on z1 and z2 are very small, this is so that we can
-% easily see what 'joint grid' means in this case.
+%% Life-Cycle Model A5iii: Two markov (z) shocks, correlated-grids
+% When we created z_grid as a joint-grid in Life-Cycle model A5ii we had
+% that the first column represents z1 and the second column represents z2.
+% We just created z_grid by first having a z1_grid and a z2_grid,
+% completely independent of each other, and then we took the cross-product
+% of these grids. [If you think of a 2D graph, with z1 as the x-axis and z2
+% as the y-axis, our z_grid would have been all the evenly spaced points in
+% a rectangle].
+% But why not allow the grids for z1 and z2 to depend on each other. For
+% example imagine we know that z1 and z2 are highly positively correlated, 
+% then there is not much point considering the possibility that z1 is very 
+% high while z2 is very low as the probability of this point is essentially
+% zero. So we might use something like
+% z_grid=[z1a, z2a;
+%  z1b, z2a;
+%  z1b, z2b;
+%  z1c, z2b]
+% Notice how I have elimanted the possiblity that (z1c,z2a) [large z1 with
+% small z2] and that (z1a,z2b) [small z1 with large z2].
+% This is still a joint-grid on z, but it is now also a 'correlated grid',
+% and is no longer a cross-product of two independent grids.
+%
+% Notice that we can no longer think of n_z=[3,2], in fact the whole idea 
+% that we can say how many points z1 has and seperately say how many points z2
+% has no longer makes sense. Instead the way VFI Toolkit handles this kind 
+% of correlated grid is to think of it as n_z=[4,1]. The first element is 
+% the total number of grid points on the joint-grid (four rows of z_grid), 
+% and then we need as many columns as there are z variables and we fill in 
+% ones for everything after the first column to get the right number of columns
+% (here we have two z variables, z1 and z2, so we need to have two columns, 
+% the first is already 4 and we just put ones in the rest of the columns).
+%
+% We need to modify pi_z appropriately. Since there are four possible
+% values of z (four combinations of z1,z2), pi_z will be 4-by-4 and will
+% represent the transitions between these. So for example the 4th row 2nd
+% column of pi_z is the probility that tomorrow is (z1b,z2a) given that
+% today is (z1c,z2b).
+%
+% Notice that now we set n_z=[4,1], it is still true that
+% size(z_grid)=prod(n_z)-by-length(n_z) [that it is the size of a
+% joint-grid] and also that size(pi_z)=prod(n_z)-by-prod(n_z).
+%
+% These kinds of correlated grids (joint-grids, which are not just a
+% cross-product of two independent grids) tend to be of most interest when
+% the two shocks are in some way correlated/interrelated.
+
 
 %% How does VFI Toolkit think about this?
 %
@@ -23,7 +61,11 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=201; % Endogenous asset holdings
-n_z=[3,3]; % Exogenous labor productivity units shock, two of them
+n_z=[4,1]; % Exogenous labor productivity units shock, two of them
+% REMEMBER: n_z changes interpretation with correlated grids. 
+% The first element is number of grid points in z (on z1 and z2 jointly),
+% and then we fill in 1s so that the number of columns is the number of z
+% variables.
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Parameters
@@ -80,30 +122,40 @@ Params.warmglow3=Params.sigma; % By using the same curvature as the utility of c
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
-% First, the VAR(1) process on z1 and z2
-% We use the Farmer-Toda method to discretize the VAR(1)
-% Note that for VAR(1), the Farmer-Toda method produces a 'joint grid'
-[z_grid, pi_z]=discretizeVAR1_FarmerToda([0;0],Params.rho_z,Params.sigma_epsilon_z,n_z);
-
-z_grid=exp(z_grid);
-% I skip normalizing this to 1 in the current model (would need to do each of z1 and z2 seperately)
-
-% Take a look at the grid:
-fprintf('The grid for the two exogenous shocks, z1 and z2, is a joint grid, namely \n')
-z_grid
-fprintf('Notice how this is not just three values for z1, cross-product (kronecker-product) with three values for z2 \n')
-fprintf('The values for z1 and z2 are interrelated/joint \n')
-
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
 % Switch into toolkit notation
 d_grid=h_grid;
 
+%% Dealing with two markovs: grid and transition matrix, z_grid and pi_z
+% n_z=[4,1];
+% REMEMBER: n_z changes interpretation with correlated grids. 
+% The first element is number of grid points in z (on z1 and z2 jointly),
+% and then we fill in 1s so that the number of columns is the number of z
+% variables.
+
+z_grid=[1,0.5;...
+    2,0.5;...
+    2,1.5;...
+    3,1.5];
+% The 'correlated grid' takes the form of a joint-grid
+% [size(z_grid)=prod(n_z)-by-length(n_z)], but it cannot be expressed as
+% the cross-product of a grid on z1 and another independent grid on z2.
+
+pi_z=[0.1,0.2,0.3,0.4;...
+    0.3,0.2,0.3,0.2;...
+    0.2,0.3,0.2,0.3;...
+    0.4,0.4,0.1,0.1];
+% pi_z is of size(pi_z)=prod(n_z)-by-prod(n_z), as always
+% This particular pi_z is just some numbers I made up (of course all the
+% rows have to sum to one).
+
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModelA5_ReturnFn', which has two markov exogenous states
-ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModelA5_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)... 
+    LifeCycleModelA5_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
@@ -148,8 +200,7 @@ Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
 simoptions=struct(); % Use the default options
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% Again, we will explain in a later model what the stationary distribution
-% is, it is not important for our current goal of graphing the life-cycle profile
+
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (h,aprime,a,z) as first
