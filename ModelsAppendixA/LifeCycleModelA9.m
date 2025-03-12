@@ -7,7 +7,7 @@
 % 
 % When using two semi-exogenous states, we simply set up 'SemiExoStateFn'
 % to handle both of them. To use two decision variables to influence the
-% semi-exogenous states, we need to set vfoptions.numd_semiz=2 (default is
+% semi-exogenous states, we need to set vfoptions.l_dsemiz=2 (default is
 % 1). VFI Toolkit assumes that these are the 'last two' decision variables.
 
 %% How does VFI Toolkit think about this?
@@ -129,7 +129,7 @@ children_grid=(0:1:(n_semiz(1)-1))';
 work_grid=[0;1];
 
 % Set up the semi-exogneous states
-vfoptions.numd_semiz=2; % use 'last two' decision variables for the semi-exo states
+vfoptions.l_dsemiz=2; % use 'last two' decision variables for the semi-exo states
 vfoptions.n_semiz=n_semiz;
 vfoptions.semiz_grid=[children_grid; work_grid];
 % Define the transition probabilities of the semi-exogenous states
@@ -140,7 +140,7 @@ vfoptions.SemiExoStateFn=@(n,work,nprime,workprime,f,search,probofbirth,probofad
 % The semi-exogenous states must be included in the return fn, fns to evaluate, etc. The ordering must be that semi-exogenous states come after this period endogenous state(s) and before any markov exogenous states, so (...,a,semiz,z,...)
 
 % We also need to tell simoptions about the semi-exogenous states
-simoptions.numd_semiz=vfoptions.numd_semiz;
+simoptions.l_dsemiz=vfoptions.l_dsemiz;
 simoptions.n_semiz=vfoptions.n_semiz;
 simoptions.semiz_grid=vfoptions.semiz_grid;
 simoptions.SemiExoStateFn=vfoptions.SemiExoStateFn; 
