@@ -1,4 +1,4 @@
-function F=LifeCycleModel43_ReturnFn(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,warmglow1,warmglow2,warmglow3,beta,sj)
+function F=LifeCycleModel42_ReturnFn(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,warmglow1,warmglow2,warmglow3,beta,sj)
 
 leisure=1-s-l; % one unit of time, minus time spent studying and working
 

@@ -1,4 +1,4 @@
-%% Life-Cycle Model 43: experienceassetu (Uncertain Human Capital)
+%% Life-Cycle Model 42: experienceassetu (Uncertain Human Capital)
 % 'experienceassetu' is when aprime(d,a,u)  --- when next period endogenous
 % state cannot be chosen directly, but is instead a function of a decision
 % variable, this period endogenous state, and a between-period i.i.d. shock.
@@ -179,9 +179,9 @@ hold off
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
 
-% Use 'LifeCycleModel43_ReturnFn'
+% Use 'LifeCycleModel42_ReturnFn'
 ReturnFn=@(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,warmglow1,warmglow2,warmglow3,beta,sj)...
-    LifeCycleModel43_ReturnFn(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,warmglow1,warmglow2,warmglow3,beta,sj);
+    LifeCycleModel42_ReturnFn(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,warmglow1,warmglow2,warmglow3,beta,sj);
 % Notice how we have (l,aprime,a,h,z,...)
 % Follow same decision-next endo-endo-exo ordering as usual, but because h
 % is an experienceassetu, we do not include hprime as it is not chosen
