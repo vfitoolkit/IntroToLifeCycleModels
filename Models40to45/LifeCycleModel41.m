@@ -1,4 +1,4 @@
-%% Life-Cycle Model 42: experienceasset (Female Labor Force Participation History)
+%% Life-Cycle Model 41: experienceasset (Female Labor Force Participation History)
 % 'experienceasset' is when aprime(d,a)  --- when next period endogenous
 % state cannot be chosen directly, but is instead a function of a decision
 % variable and this period endogenous state.
@@ -138,9 +138,9 @@ simoptions.a_grid=a_grid; % Needed to handle aprimeFn
 %% Now, create the return function 
 DiscountFactorParamNames={'beta','sj'};
 
-% Use 'LifeCycleModel42_ReturnFn'
+% Use 'LifeCycleModel41_ReturnFn'
 ReturnFn=@(p,aprime,a,h,z,w,sigma,psi,y_m,childcarecosts,agej,Jr,pension,r,warmglow1,warmglow2,warmglow3,beta,sj)...
-    LifeCycleModel42_ReturnFn(p,aprime,a,h,z,w,sigma,psi,y_m,childcarecosts,agej,Jr,pension,r,warmglow1,warmglow2,warmglow3,beta,sj);
+    LifeCycleModel41_ReturnFn(p,aprime,a,h,z,w,sigma,psi,y_m,childcarecosts,agej,Jr,pension,r,warmglow1,warmglow2,warmglow3,beta,sj);
 % Notice how we have (p,aprime,a,h,z,...)
 % Follow same decision-next endo-endo-exo ordering as usual, but because h
 % is an experienceasset, we do not include hprime as it is not chosen
