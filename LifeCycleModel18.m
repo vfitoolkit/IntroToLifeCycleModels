@@ -206,7 +206,7 @@ FnsToEvaluate_exo.consumption=@(aprime,a,z,agej,Jr,w,kappa_j,r,pension,meanearni
 
 AgeConditionalStats_exo=LifeCycleProfiles_FHorz_Case1(StationaryDist_exo,Policy_exo,FnsToEvaluate_exo,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
-PolicyVals_exo=PolicyInd2Val_FHorz_Case1(Policy_exo,n_d,n_a,n_z,N_j,d_grid,a_grid);
+PolicyVals_exo=PolicyInd2Val_Case1_FHorz(Policy_exo,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
 AggVars_exo=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist_exo, Policy_exo, FnsToEvaluate_exo, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,[],simoptions);
 
 %% Solve a third time, this time with exogenous labor supply and no shocks (deterministic model)
@@ -220,7 +220,7 @@ StationaryDist_exonoshock=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsPar
 % FnsToEvaluate_exo are unchangecd
 AgeConditionalStats_exonoshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_exonoshock,Policy_exonoshock,FnsToEvaluate_exo,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
-PolicyVals_exonoshock=PolicyInd2Val_FHorz_Case1(Policy_exonoshock,n_d,n_a,n_z,N_j,d_grid,a_grid);
+PolicyVals_exonoshock=PolicyInd2Val_Case1_FHorz(Policy_exonoshock,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
 AggVars_exonoshock=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist_exonoshock, Policy_exonoshock, FnsToEvaluate_exo, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,[],simoptions);
 
 %% Plot the savings policies at low asset levels for the three models to see precautionary spending

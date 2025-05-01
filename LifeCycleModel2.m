@@ -94,7 +94,7 @@ xlabel('Age j')
 
 % There is actually also a command for converting Policy into policy values (rather than policy indexes, which is default)
 figure(3)
-PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
+PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,[]);
 plot(1:1:Params.J,shiftdim(PolicyVals(1,:,:),2))
 title('Policy function: fraction of time worked (h)')
 xlabel('Age j')

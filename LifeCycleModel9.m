@@ -155,7 +155,7 @@ xlabel('Assets (a)')
 % Policy(1,:,:,:) is h, Policy(2,:,:,:) is aprime [as function of (a,z,j)]
 % Plot both as a 3d plot, again I arbitrarily choose the median value of z
 figure(3)
-PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
+PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,[]);
 subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,zind,:),[n_a,Params.J]))
 title('Policy function: fraction of time worked (h), median z')
 xlabel('Age j')
