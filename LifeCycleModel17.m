@@ -238,11 +238,11 @@ title('Life Cycle Profile, shock minus no shock: Assets (a)')
 % This is not something we have looked at before because it does not make a
 % lot of sense in a life-cycle model. It is more for OLG models (combining
 % this household with a 'whole economy' in the form of firms and general equilibrium).
-AggVars=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist, Policy, FnsToEvaluate, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,[],simoptions);
+AggVars=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist, Policy, FnsToEvaluate, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,simoptions);
 % AggVars are 'aggregate variables' and sum up the FnsToEvaluate across the
 % whole stationary distribution (in the theory they are integrals not sums).
 
-AggVars_noshock=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist_noshock, Policy_noshock, FnsToEvaluate, Params, [], n_d, n_a, n_z_noshock,N_j, d_grid, a_grid, z_grid_noshock,[],simoptions);
+AggVars_noshock=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist_noshock, Policy_noshock, FnsToEvaluate, Params, [], n_d, n_a, n_z_noshock,N_j, d_grid, a_grid, z_grid_noshock,simoptions);
 
 % Total assets is the asset holdings of all households summed up across the stationary distribution.
 fprintf('Total assets by all households, with shocks, are equal to %8.4f \n',AggVars.assets.Mean)

@@ -25,7 +25,7 @@ Params.agejshifter=19; % Age 20 minus one. Makes keeping track of actual age eas
 Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
-n_d=[]; % None
+n_d=0; % None
 n_a=201; % Endogenous asset holdings
 n_z=21; % Exogenous labor productivity units shock
 N_j=Params.J; % Number of periods in finite horizon
@@ -142,7 +142,7 @@ simoptions.numbersims=10^3; % 10^3 is the default value
 % starting points will be drawn randomly)
 InitialDist=jequaloneDist;
 
-SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,[],Params,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z, simoptions);
+SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z, simoptions);
 % Simulates a panel based on PolicyIndexes of 'numbersims' agents of length 'simperiods'
 
 % For example

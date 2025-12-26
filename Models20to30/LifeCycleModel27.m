@@ -358,8 +358,10 @@ end
 LifetimeEarningsSample=SimPanelData.earnings(:,logical(KeepIndicator));
 % Now, compute the lifetime earnings
 LifetimeEarningsSample=sum(LifetimeEarningsSample,1)/31; % 31 is years (ages 25 to 55)
-% Now, some inequality measures
-LorenzCurve_LifetimeEarnings=LorenzCurve_FromSampleObs(LifetimeEarningsSample);
+% Now, some inequality measures; the following line commented out because
+% LorenzCurve_FromSampleObs is not defined and LorenzCurve_LifetimeEarnings
+% is not used
+% FIXME: LorenzCurve_LifetimeEarnings=LorenzCurve_FromSampleObs(LifetimeEarningsSample);
 % GKSW2022, Figure 8, provide the std dev of log, and the interquartile range
 stddev_logLifetimeEarnings=std(log(LifetimeEarningsSample));
 LifetimeEarningsPercentiles=prctile(LifetimeEarningsSample,[10,25,50,75,90]);
