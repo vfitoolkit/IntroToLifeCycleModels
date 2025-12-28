@@ -30,10 +30,7 @@ LifeCycleModel9
 clear all
 LifeCycleModel10
 
-% LifeCycleModel11A becomes ModelsAppendixA/LifeCycleModelA11
-clear all
-LifeCycleModelA11
-
+% LifeCycleModel11A becomes ModelsAppendixA/LifeCycleModelA11, further down
 % LifeCycleModel 11B becomes LifeCycleModel11
 clear all
 LifeCycleModel11
