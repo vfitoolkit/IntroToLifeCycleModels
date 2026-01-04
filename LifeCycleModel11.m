@@ -112,6 +112,7 @@ vfoptions.pi_e=pi_e;
 simoptions.n_e=vfoptions.n_e;
 simoptions.e_grid=vfoptions.e_grid;
 simoptions.pi_e=vfoptions.pi_e;
+[vfoptions,simoptions]=SetOptionsDefaults(vfoptions,simoptions); % Just using the defaults.
 
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly

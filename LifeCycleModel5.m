@@ -73,7 +73,8 @@ ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j)...
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
-vfoptions=struct(); % Just using the defaults.
+[vfoptions,simoptions]=SetOptionsDefaults(); % Just using the defaults.
+simoptions.agegroupings=1:1:N_j;
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, [], [], ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -83,7 +84,10 @@ toc
 %% Initial distribution of agents at birth (j=1)
 % Before we plot the life-cycle profiles we have to define how agents are
 % at age j=1. We will give them all zero assets.
-jequaloneDist=zeros(n_a,1,'gpuArray'); % Put no households anywhere on grid
+jequaloneDist=zeros(n_a,1); % Put no households anywhere on grid
+if vfoptions.parallel>1
+    jequaloneDist=gpuArray(jequaloneDist);
+end
 jequaloneDist(1)=1; % Note that 0 is the 1st grid point in the asset grid
 % We have put all the 'new' households (mass of 1) here (zero assets)
 
@@ -94,7 +98,6 @@ jequaloneDist(1)=1; % Note that 0 is the 1st grid point in the asset grid
 % stationary distribution but is actually irrelevant to the life-cycle profiles)
 Params.mewj=ones(1,Params.J)/Params.J; % Put a fraction 1/J at each age
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
-simoptions=struct(); % Use the default options
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,[],Params,simoptions);
 % Again, we will explain in a later model what the stationary distribution
 % is, it is not important for our current goal of graphing the life-cycle profile
@@ -109,7 +112,7 @@ FnsToEvaluate.assets=@(h,aprime,a) a; % a is the current asset holdings
 % notice that we have called these fractiontimeworked, earnings and assets
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,[],simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1_noz(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,N_j,d_grid,a_grid,simoptions);
 
 % For example
 % AgeConditionalStats.earnings.Mean

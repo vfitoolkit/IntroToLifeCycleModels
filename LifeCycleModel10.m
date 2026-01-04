@@ -102,7 +102,8 @@ ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warm
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
-vfoptions=struct(); % Just using the defaults.
+[vfoptions,simoptions]=SetOptionsDefaults(); % Just using the defaults.
+simoptions.agegroupings=1:1:N_j;
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -157,7 +158,6 @@ xlabel('Assets (a)')
 % Policy(1,:,:,:) is is aprime [as function of (a,z,j)]
 % Plot as a 3d plot, again I arbitrarily choose the median value of z
 figure(3)
-simoptions=struct(); % use defaults
 PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
 subplot(1,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,zind,:),[n_a,Params.J]))
 title('Policy function: next period assets (aprime), median z')
@@ -184,8 +184,11 @@ xlabel('Assets (a)')
 %% Initial distribution of agents at birth (j=1)
 % Before we plot the life-cycle profiles we have to define how agents are
 % at age j=1. We will give them all zero assets.
-jequaloneDist=zeros(n_a,n_z,'gpuArray'); % Put no households anywhere on grid
+jequaloneDist=zeros(n_a,n_z); % Put no households anywhere on grid
 jequaloneDist(1,floor((n_z+1)/2))=1; % All agents start with zero assets, and the median shock
+if vfoptions.parallel>1
+    jequaloneDist=gpuArray(jequaloneDist)
+end
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
