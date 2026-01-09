@@ -109,13 +109,11 @@ LifeCycleModel32
 clear all
 LifeCycleModel33
 
-disp("Skipping broken LifeCycleModel34 and LifeCycleModel35")
+clear all
+LifeCycleModel34
 
-% clear all
-% LifeCycleModel34
-
-% clear all
-% LifeCycleModel35
+clear all
+LifeCycleModel35
 
 % We do not yet test the models in subdirectories Models36to39,
 % Models40to45, Models45to50
