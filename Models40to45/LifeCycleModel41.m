@@ -228,7 +228,7 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 % Like with return function, we have to include (p,aprime,a,h,z) as first inputs, then just any relevant parameters.
 FnsToEvaluate.participation=@(p,aprime,a,h,z) p; % h is fraction of time worked
 FnsToEvaluate.femaleearnings=@(p,aprime,a,h,z,w) w*h*z*p; % labor earnings of female (note, p will equal 0 in retirement, so we don't need to treat it separately)
-FnsToEvaluate.maleearnings=@(p,aprime,a,h,z,y_m) y_m; % labor earnings of male
+FnsToEvaluate.maleearnings=@(p,aprime,a,h,z,w,y_m) w*y_m*z; % labor earnings of male
 FnsToEvaluate.assets=@(p,aprime,a,h,z) a; % a is the current asset holdings
 FnsToEvaluate.femaleLFPH=@(p,aprime,a,h,z,w) h; % female labor force participation history
 

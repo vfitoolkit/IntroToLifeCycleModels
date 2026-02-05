@@ -182,7 +182,7 @@ DiscountFactorParamNames={'beta','sj'};
 % Use 'LifeCycleModel42_ReturnFn'
 ReturnFn=@(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,warmglow1,warmglow2,warmglow3,beta,sj)...
     LifeCycleModel42_ReturnFn(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,warmglow1,warmglow2,warmglow3,beta,sj);
-% Notice how we have (l,aprime,a,h,z,...)
+% Notice how we have (l,s,aprime,a,h,z,...)
 % Follow same decision-next endo-endo-exo ordering as usual, but because h
 % is an experienceassetu, we do not include hprime as it is not chosen
 % directly.
