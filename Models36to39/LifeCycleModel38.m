@@ -180,7 +180,6 @@ end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
 
-simoptions.iterate=0;
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 % Again, we will explain in a later model what the stationary distribution
 % is, it is not important for our current goal of graphing the life-cycle profile
