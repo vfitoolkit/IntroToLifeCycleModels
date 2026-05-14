@@ -1,0 +1,146 @@
+% \section{Epstein-Zin preferences}
+\label{app:EpsteinZin}
+This appendix covers some details and options when using Epstein-Zin preferences. The main concepts are that you can do Epstein-Zin in consumption units (here called 'traditional') or in utility utils, and that the way in which bequests are handled when using Epstein-Zin preferences has to be done with care.
+
+The point of Epstein-Zin preferences is that under standard recursive vonNeumann-Morgenstern expected utility there is just one parameter that is determining both the risk aversion and the elasticity of intertemporal substitution, which are importantly distinct concepts. See section \ref{app:EZbasicidea} for an explanation of these concepts.
+
+Using Epstein-Zin preferences with a utility function is as simple as setting \textit{vfoptions.exoticpreferences='EpsteinZin'}, and specifying the name of the parameter that influences the risk aversion, \textit{vfoptions.EZriskaversion}. Then saying whether the utility function is positive valued ($u\geq0$) or negative valued ($u<0$); negative valued is \textit{vfoptions.EZpositiveutility=0}. Note that the interpretation of the risk aversion parameter depends on whether the utility function is positive or negative valued.
+
+When using Epstein-Zin preferences the conditional survival probabilities can no longer just be treated like discount factors. You therefore need to specify them using \textit{vfoptions.survivalprobability}.
+
+If you plan to use warm-glow of bequests these have to be treated specially. This is explained in Appendix \ref{app:EZbequests}.
+
+Notice that once you have solved the value function problem to get the optimal policy function everything else about a heterogeneous agent model depends only on the optimal policy and so we don't need to take account of Epstein-Zin preferences for things like simulating the model. The exception is any kind of welfare evaluation.
+
+There are two alternatives for how to set up Epstein-Zin preferences. Epstein-Zin in utility units, and the traditional Epstein-Zin in consumption units.
+
+\subsubsection{Epstein-Zin with Utility function}
+We start with the utility function version. With standard recursive vonNeumann-Morgenstern expected utility we have a value function problem,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{d,aprime} u(d,aprime,a,z) + \beta E[V(aprime,zprime,j+1)|z]
+\end{eqnarray*}
+with some constraints that I omit here as they are not relevant to the concepts around Epstein-Zin preferences.
+
+Epstein-Zin preferences modify this to,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{d,aprime} u(d,aprime,a,z) + \beta E[V(aprime,zprime,j+1)^{1-\phi}|z]^{\frac{1}{1-\phi}}
+\end{eqnarray*}
+where $\phi$ is any real number. Notice that this is the same as the standard case, except that the value function is now 'twisted' and 'untwisted' by the coefficient $1-\phi$. When $\phi=0$ this just reduces to the standard case.
+
+This formulation works for $u > 0$. If instead $u<0$, then we need to formulate the Epstein-Zin preferences slightly differently as,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{d,aprime} u(d,aprime,a,z) - \beta E[ -V(aprime,zprime,j+1)^{1+\phi}|z]^{\frac{1}{1+\phi}}
+\end{eqnarray*}
+where again $\phi$ is any real number, and $\phi=0$ reduces to the standard case.\footnote{Because of how the codes work it is not possible to let $u=0$. To fit with standard ways in which the return function is used in VFI Toolkit in both cases you can also set the return function to $-\infty$, for example to rule out certain possibilities.}
+
+A higher $\phi$ corresponds to a greater degree of risk aversion ($\phi>0$ means that the preferences are more risk averse that vonNeumann-Morgenstern preferences would be).\footnote{This is why we use $1-\phi$ when $u>0$ and $1+\phi$ when $u<0$. This way the interpretation of $\phi$ is the same in both cases.}
+
+When using \textit{vfoptions.exoticpreferences='EpsteinZin'} by default the codes assume \textit{vfoptions.EZutils=1}, which is that the Epstein-Zin preferences are in utility units. You do still need to specifty \textit{vfoptions.EZpositiveutility}.
+
+\subsubsection{'Traditional' Epstein-Zin with consumption units}
+If you set \textit{vfoptions.EZutils=0} you get the 'traditional' Epstein-Zin preferences used by \cite*{EpsteinZin1989} and many others. These measure the value function in terms of consumption streams rather than utils, and so are also refered to as Epstein-Zin preferences in consumption units.
+
+The 'traditional' setup when using Epstein-Zin preferences in VFI Toolkit is to solve the value function problem,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime} \left[ u^{1-1/\psi} + \beta  (E[V(aprime,zprime,j+1)^{1-\gamma}|z])^{\frac{1-1/\psi}{1-\gamma}}\right]^{\frac{1}{1-1/\psi}}
+\end{eqnarray*}
+with some constraints that I omit here as they are not relevant to the concepts around Epstein-Zin preferences. The return function for a model with exogenous labor is just $u=c$. If we have endogenous labor it will be different, namely $c^{1-\chi} (1-h)^{\chi}$.
+
+In the traditional formulation of Epstein-Zin preferences we have $\gamma$ which determines the risk aversion, and a seperate parameter $\psi$ which is the elasticity of intertemporal substitution.\footnote{The original paper of \cite*{EpsteinZin1989} uses $\rho$ and $\alpha$ as the parameters. Relating to the present formulation, $\rho=1-1/\psi$ and $\alpha=1-\gamma$. The nicety of the formulation here is that $\psi$ and $\gamma$ relate directly to the elasticity of intertemporal substitution and risk aversion, and that we need both parameters to be greater than zero (whereas the original EZ parameters have to be less than one).} Epstein-Zin preferences imply that the agents have preferences for early or later resolution of uncertainty. If $\gamma>1/\psi$ they prefer an early resolution of uncertainty, and if $\gamma<1/\psi$, they prefer a later resolution of uncertainty.
+
+This formulation of Epstein-Zin preferences is known as Epstein-Zin in 'consumption units' (as $u=c$). It is probably the most common formulation. But it lacks one nice property, namely it does not really nest standard vonNeumann-Morgenstern preferences with CRRA utility ($u(c)=\frac{c^{1-\gamma}}{1-\gamma}$) as it is missing the $1/(1-\gamma)$.\footnote{The traditional EZ preferences do nest vonNeumann-Morgenstern preferences when $\psi=1/\gamma$, but the resulting utility function is an oddly written one. You instead get $V=\max_{c} \{ c^{1-\gamma} + \beta E[V'^{1-\gamma}]\}^{1-\gamma}$, to see that this is CRRA imagine starting in the last period, you get $c^{1-\gamma}$ and then put this to the inverse power, when you put it into the previous period value function you get the power back from the $V'^{1-\gamma}$. So this is CRRA, but the same value of $\gamma$ is not going to deliver the same preferences as if we put the CRRA utility into a standard value function with vonNeumann-Morgenstern risk preferences.} This is why we also have the utility units formulation of Epstein-Zin preferences described previously.
+
+If you want to use Epstein-Zin preferences with consumption units just set \textit{vfoptions.EZutils=0} and \textit{vfoptions.exoticpreferences='EpsteinZin'}. Then you need to specify the names of the risk aversion and elasticity of intertemporal substition parameters, $\gamma$ and $\psi$ in the above equations, using  \textit{vfoptions.EZriskaversion} and  \textit{vfoptions.EZeis}.
+
+Sometimes people want a $(1-\beta)$ term multiplying the period-return.\footnote{They want $(1-\beta) u^{1-1/\psi}$ instead of $u^{1-1/\psi}$. I am not sure why people do this, but I have seen it in papers. If you know why please let me know and I will add explanation here.} You can do this by setting \textit{vfoptions.EZoneminusbeta=1}, which will use the discount factor to add the appropriate term here.
+
+
+\subsubsection{Epstein-Zin preferences: risk aversion and elasticity of intertemporal substitution} \label{app:EZbasicidea}
+In standard economic models agents expectations about the future are based on 'von-Neumann-Morgenstern' expected utility. This involves two main aspects, preferences are time-seperable, and the future utilities matter in terms of their expectation. An unintentional side-effect of this is that both risk aversion and the intertemporal elasticity of consumption get determined by the same parameter. So for example in a standard two-period model of consumption-savings decision the 'value' in the first period is\footnote{To keep the notation easier I will only describe the utility functions, and skip over the budget constraints and the like.}
+\begin{equation}
+ u(c_1)+\beta E[u(c_2)] \label{eqn:vNM}
+\end{equation}
+or if we were to use the constant-elasticity-of-substitution (CES) utility function,
+\begin{equation}
+ \frac{c_1^{1-\gamma}}{1-\gamma}+\beta E\left[\frac{c_2^{1-\gamma}}{1-\gamma}\right] \label{eqn:CES}
+\end{equation}
+where $\gamma$ will determine both the risk aversion and the intertemporal elasticity of substitution. $\frac{-cu''(c)}{u'(c)}=\gamma$ is the relative risk aversion (RRA), the CES utility function displays constant RRA, called CRRA.\footnote{Actually this is not really the correct way to measure risk-aversion in models with many time periods and/or many goods, see \cite*{Swanson2012}, and it becomes more subtle again when using Epstein-Zin preferences \citep*{Swanson2018}.} $ln\left(\frac{u'(c_{t+1})}{u'(c_t)}\right)=1/\gamma$ is intertemporal elasticity of substitution. Notice how just one parameter $\gamma$ determines both the risk aversion and the intertemporal elasticity of substitution.
+
+
+(Traditional) Epstein-Zin preferences \citep*{EpsteinZin1989} seperate the risk aversion from the intertemporal elasticity of substitution, using a different parameter to determine each of these. In our simple two-period model using Epstein-Zin preferences the 'value' in the first period becomes
+\begin{equation*}
+ \left[c_1^{1-1/\psi} + \beta \big(E\big[(c_2^{1-1/\psi})^{1-\gamma}\big])^{\frac{1-1/\psi}{1-\gamma}}\right] ^{\frac{1}{1-1/\psi}}
+\end{equation*}
+where now $\gamma$ is the CRRA and $\psi$ is the intertemporal elasticity of substitution. It is important to note that we cannot write this in the form of von-Neumann-Morgenstern expected utility preferences as in ($\ref{eqn:vNM}$). Except for the case when $1/\psi=\gamma$, in which case both play the role of $\gamma$ in equation (\ref{eqn:CES}); note that with $1/\psi=\gamma$ the Epstein-Zin preferences will be vNM preferences, but they do not just reduce to CES with vNM.
+
+Epstein-Zin preferences with a utility function have a stardard setup in terms of the intertemporal elasticity of substitution (which will depend on what utility function you use), and then makes risk aversion different to this by increasing/reducing the amount of risk aversion using the parameter $\phi$ in the earlier formulation.
+
+Both the utility units and the (traditional) consumption units formulations of Epstein-Zin preferences nest von-Neumann Morgernstern as a special case. Specifically, if we use the utility units Epstein-Zin preferences with $\phi=0$ then it simplifies to being a CES utility with von-Neumann Morgenstern. If we use the (traditional) consumption units Epstein-Zin preferences with $\gamma=1/\phi$ then we get the same preferences as a CES utility with von-Neumann Morgernstern preferences, except that the units are consumption units instead of utils.\footnote{Utility is only unique up to an affine transformation (if you take any utility function, multiply by a positive constant, and then add any constant, you just get the same preferences). So the consumption units give the same policy, but different value function.} This was used to test the implemenations: that Epstein-Zin with utility units, Epstein-Zin with consumption units, and CES utility with von-Neumann Morgenstern all give the same solution for the policy function (both for the case of exogenous labor and for the case of endogenous labor); \href{}{the codes for these six cases are here}.
+
+\subsubsection{Conditional Survival Probabilities with Epstein-Zin preferences}
+Conditional survival probabilities are a risk, while the discount factor is about time-preference. Since Epstein-Zin is about seperating risk from intertemporal substition unsurprisingly we now also need to treat conditional survival probabilities differently from the discount factor. We simply specify name of the parameter for the conditional survival probabilities using \textit{vfoptions.survivalprobability} (e.g., \textit{vfoptions.survivalprobability='sj'}).
+
+The conditional survival probabilities appear multiplying next period value function inside the expectation operator. So for example in Epstein-Zin in utility units with positive-valued utility function it will be,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{d,aprime} u(d,aprime,a,z) + \beta E[ s_j V(aprime,zprime,j+1)^{1-\phi}|z]^{\frac{1}{1-\phi}}
+\end{eqnarray*}
+for Epstein-Zin in utility units with negative-valued utility function it will be,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{d,aprime} u(d,aprime,a,z) - \beta E[ - s_j V(aprime,zprime,j+1)^{1+\phi}|z]^{\frac{1}{1+\phi}}
+\end{eqnarray*}
+while for Epstein-Zin in consumption units it will be
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime} \left[ u^{1-1/\psi} + \beta  (E[ s_j V(aprime,zprime,j+1)^{1-\gamma}|z])^{\frac{1-1/\psi}{1-\gamma}}\right]^{\frac{1}{1-1/\psi}}
+\end{eqnarray*}
+Notice how in all three of these cases it is not possible to simply pull $s_j$ out of the expectation next to $\beta$ (which can be done with standard vonNeumann-Morgenstern risk preferences).
+
+Using Epstein-Zin preferences instead of standard preferences has important advantages around the 'value of life' in life-cycle models \citep*{CordobaRipoll2017}. Note that if you are looking at the value of life, then if death is associated with zero utility you clearly want to use a positive-valued utility function with the Epstein-Zin preferences so that life is preferred to death.
+
+Note, how exactly survival probabilities should be treated in Epstein-Zin preferences remains controversial. If you do want the conditional surivival probability to be treated as just another discount factor, you can do this by just not specifying \textit{vfoptions.survivalprobability}, and instead including it in the \textit{DiscountFactorParamNames}.
+
+For this reason the codes also allow another possible formulation, suggested by \cite*{CordobaRipoll2017}, which essentially uses Epstein-Zin twice, once for the uncertainty, and once for the conditional survival probabilities, with a different parameter for each. Epstein-Zin in utility units with positive-valued utility function it will be,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{d,aprime} u(d,aprime,a,z) + \\
+ && \beta [ s_j \left( E[ V(aprime,zprime,j+1)^{1-\phi}|z]^{\frac{1}{1-\phi}} \right)^{1-\phi_m} + (1-s_j) W(aprime)^{1-\phi_m} ]^{\frac{1}{1-\phi_m}}
+\end{eqnarray*}
+for Epstein-Zin in utility units with negative-valued utility function it will be,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{d,aprime} u(d,aprime,a,z) \\
+ && - \beta [- s_j (-1) \left( E[ - V(aprime,zprime,j+1)^{1+\phi}|z]^{\frac{1}{1+\phi}} \right)^{1+\phi_m} - (1-s_j) W(prime)^{1+\phi_m} ]^{\frac{1}{1+\phi_m}}
+\end{eqnarray*}
+while for Epstein-Zin in consumption units it will be
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime} \big[ u^{1-1/\psi} +  \\
+ && \beta [ s_j \big( E[ V(aprime,zprime,j+1)^{1-\gamma}|z]^{\frac{1}{1-\gamma}} \big)^{1-\gamma_m} + (1-s_j)W(aprime)^{1-\gamma_m}  ]^{\frac{1-1/\psi}{1-\gamma_m}} \big]^{\frac{1}{1-1/\psi}}
+\end{eqnarray*}
+and this can be implemented by setting \textit{vfoptions.EZmortalityriskaversion} to specify the name of the parameter here denoted $\phi_m$. $W(aprime)$ is the utility on death (so is just the same as using the warm-glow of bequests as explained in the next section); if you do not decare it then by default the codes will use $W(aprime)=0$. Importantly, people display a preference for early resolution of financial risk, and delayed resolution of survival risk, and this formulation permits both of these to occur (under certain paramterizations).
+
+\subsubsection{Bequests with Epstein-Zin preferences} \label{app:EZbequests}
+Bequests with Epstein-Zin preferences are subtle, and so VFI Toolkit has been coded to deal with this for you. \cite*{KraftMunkWeiss2022} show that if you naively use warm-glow of bequests in a model with Epstein-Zin preferences then it just leads to garbage (the parameters are not related to the strength of the bequest motive).
+
+The key to seeing why and how bequests have to be treated carefully in Epstein-Zin preferences is the expectations term, $\beta E[V(aprime,zprime,j+1)^{\alpha}|z]^{\frac{1}{\alpha}}$, where I have made the powers a generic $\alpha$ and $1\alpha$ so that it is clearer that this covers both the utility-units and consumption-units cases. Notice that adding in bequests, which occur next period, cannot simply be added after the end of this term, as they would be in standard von-Neumann Morgenstern risk preferences. This is because the next period warm-glow is going to need to be raised to the power of $\alpha$, then added into next period expectation, and then all raised to $1/\alpha$. That is, the next period term will be $\beta E[ s_j V(aprime,zprime,j+1)^{\alpha} + (1-s_j)W(aprime)^{\alpha}|z]^{\frac{1}{\alpha}}$, where $W(aprime)$ is the warm-glow of bequests.
+
+Implementing this in the codes therefore requires to things, first we have to specify the conditional survival probability, \textit{vfoptions.survivalprobability='sj'}, where 'sj' is the name of a (likely age dependent) parameter stored in the standard structure of parameters (called Params in most examples). Second, we need to specify the warm-glow function $W(aprime)$. We do this by setting up \textit{vfoptions.WarmGlowBequestsFn} which depends on next-period endogenous state (on \textit{aprime}). This just leaves the question of what warm-glow function is appropriate? The key is just to use the same function as our regular utility function. So if our utility of consumption is $\frac{c^{1-\sigma}}{1-\sigma}$, then we use the warm-glow of bequests function $\frac{aprime^{1-\sigma}}{1-\sigma}$. We multiply this by a constant $wg$ to determine the importance of bequests. Hence our final warm-glow of bequest function is $wg\frac{aprime^{1-\sigma}}{1-\sigma}$.\footnote{An alternative would be to use $W(aprime)=\frac{(aprime/wg)^{1-\sigma}}{1-\sigma}$. This just changes the interpretation of $wg$ and exactly how it relates to bequests (in both cases the size of the bequest will be monotone in $wg$. This ---different specifications lead to subtly different interpretations of $wg$--- is the focus of \cite*{KraftMunkWeiss2022} who have a very specific interpretation in mind.} If by contrast we use Epstein-Zin preferences in consumption-units with exogenous labor, then we had the return function being $u=c$, and so our warm-glow of bequests function would be $c/wg$, where again $wg$ is a constant that determines the strength of the bequest motive (notice that once this is raised to $1-1\psi$, dividing by $wg$ is moving us to the region of the utility function where marginal utility of consumption is high, and changes fast).
+
+$wg$ controls the strength of the bequest motive, which is monotone in $wg$. Note that this is not the precise specification of \cite*{KraftMunkWeiss2022} who wish to impose a precise interpretation on the parameter $wg$; you can get their specification by setting \textit{vfoptions.WarmGlowBequestsFn} appropriately.\footnote{To implement the \cite*{KraftMunkWeiss2022} specification set the warm-glow of bequest function when using consumption units to $wg^{\frac{1}{\psi-1}} aprime$. In the \cite*{KraftMunkWeiss2022} specification for the warm-glow of bequests, $wg$ (they denote it epsilon) can be interpreted as the target ratio of terminal wealth to terminal consumption (terminal as in end of the final period $J$). This is precisely true in simple settings and an accurate approximation in more advanced settings. In simple settings the ratio of bequest wealth to total lifetime consumption will equal $(wg+J)/J$. This remains roughly true but only as a mediocre approximation in more advanced settings. They also show that if you want to use a CES warm-glow of bequests in a regular setting with CES preferences (no Epstein-Zin) then you should use $warmglow=\frac{1}{1-\gamma} wg^{1-\gamma} aprime^{1-\gamma}$ to get their precise interpretation of $wg$ as measuring the relative weight on bequests (most papers would use $wg$ instead of $wg^{1-\gamma}$).} Note that while this is the warm-glow of bequest because it is 'next period' you have to use Epstein-Zin to bring it into the final period which is what the VFI Toolkit is doing when you use \textit{vfoptions.WarmGlowBequestsFn}.
+
+Note that because we specify the conditional survival probability seperately, you do not include it in DiscountFactorParamNames (if you do it will just be used in the same way as $\beta$ in the Epstein-Zin codes).
+
+If you using the utility utils formulation of Epstein-Zin preferences with a positive utility function then the warm-glow-of-bequests works like,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{d,aprime} u(d,aprime,a,z) + \beta E[s_j V(aprime,zprime,j+1)^{1-\phi}+(1-s_j)W(aprime)^{1-\phi}|z]^{\frac{1}{1-\phi}}
+\end{eqnarray*}
+If instead $u<0$, then warm-glow of bequests with Epstein-Zin preferences is,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{d,aprime} u(d,aprime,a,z) - \beta E[ (-s_jV(aprime,zprime,j+1))^{1-\phi}-(1-s_j)W(aprime)^{1-\phi}|z]^{\frac{1}{1-\phi}}
+\end{eqnarray*}
+
+If you have Epstein-Zin in consumption-units when using warm-glow-of-bequests the problem being solved is,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime} \left[ u^{1-1/\psi} + \beta E[ s_j V(aprime,zprime,j+1)^{1-\gamma}+(1-s_j) W(aprime)^{1-\gamma}|z] ^{\frac{1-1/\psi}{1-\gamma}}\right]^{\frac{1}{1-1/\psi}}\\
+\end{eqnarray*}
+So with consumption-units and exogenous labor you want \textit{vfoptions.WarmGlowBequestsFn}$=wg aprime^{1-1/\psi}$, and with consumption-units and endogenous labor you want \textit{vfoptions.WarmGlowBequestsFn}$=wg (aprime^{1-\chi}(1-\bar{h})^{\chi})^{1-1/\psi}$, where $\bar{h}$ is a constant that denotes the 'typical/reference' hours worked (if no-one works in retirement, you will way $\bar{h}=0$).
+
+Note that if you use a setup where $aprime$ is uncertain, like using \textit{Case3} to solve portfolio-choice models, then this just involves changing $warmglow^{\alpha}$ to $E_u[warmglow^{\alpha}]$ in the general formulation at the beginning of this section on bequests, and this is automatically done by the codes.
+
+Summing up, using warm-glow-of-bequests in a life-cycle model with Epstein-Zin preferences is as simple as correctly declaring \textit{vfoptions.WarmGlowBequestsFn}.

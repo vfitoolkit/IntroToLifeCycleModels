@@ -1,0 +1,147 @@
+Now that we understand how to set-up and solve Life-Cycle Models, an obvious question is how to choose the parameters. The most common approach is calibration, which is necessarily a somewhat ad-hoc process. The alternative is to use formal statistical estimators. The two most common statistical estimators used for life-cycle models are Generalized Method of Moments (GMM) and Maximum Likelihood Estimation (MLE); other options are Indirect Inference and Bayesian Likelihood Estimation. We now show how to perform GMM estimation of life-cycle models.\footnote{VFI Toolkit cannot presently do any other type of statistical estimator. That calibration is somewhat ad-hoc does not mean I dislike/avoid calibration. Calibration is a good option. It is simply an observation that there are no agreed formal rules on how calibration should be performed.}
+
+The core idea of GMM estimation of Life-Cycle models that we will choose the model parameters, $\theta$, to get moments of the model $M^m(\theta)$ as close as possible to the moments of the data $M^d$, based on minimizing the sum-of-squares difference and using a weighting matrix $W$. That is, we estimate $\theta$ as,
+\begin{equation*}
+ \theta^*= \argmax_{\theta} (M^d-M^m(\theta))' W (M^d-M^m(\theta))
+\end{equation*}
+and under certain assumptions the estimate is asymptotically normal
+\begin{equation*}
+ \sqrt(N) (\hat{\theta}-\theta_0) \to N(0,\Sigma)
+\end{equation*}
+where $\Sigma=(J'WJ)^{-1} J'W'\Omega W J (J'WJ)^{-1}$ is the covariance matrix of the estimated parameter vector (so the standard deviation of the parameter estimates is the square root of the diagonal elements of $\Sigma$). $J$ is the Jacobian matrix of the derivatives of the model moments with respect to the estimated parameter vector, and $\Omega$ is the covariance matrix of the data moments.
+
+GMM estimation in VFI Toolkit is implemented by the command \textit{EstimateLifeCycleModel\_{}MethodOfMoments} (and \textit{EstimateLifeCycleModel\_{}PType\_{}MethodOfMoments}). Life-Cycle Models 45-50 provide examples covering various aspects of GMM estimation. Before estimating a Life-Cycle model you will need to work with real-world data to get estimates of the target moments, $M^d$, and their variance-covariance matrix $\Omega$; Life-Cycle Model 47 provides an example of how to do this in Matlab, but some people will prefer to do this in other applications like Stata or R.
+
+The first four examples, Life-Cycle Models 45, 46, 47 and 48, are all based on GMM estimating Life-Cycle Model 9 (endogenous labour, and an exogenous markov shock), and the fifth and sixth examples shows how to GMM estimate the extension of this model to permanent types. Life-Cycle Model 45 just does a baseline GMM estimation, to illustrate the core concepts and commands. Life-Cycle Model 46 shows how we can include parameters that determine exogenous shocks and the initial agent distribution among the parameters to be estimated, and also show how to restrict parameters to be, e.g., positive, or valued between 0 and 1. Life-Cycle Model 47 is about how to use the data to create the data moments and the covariance matrix of the data moments, and also about how we choose the weighting matrix used in GMM, describing both a simple/robust way to avoid scale dependence, and also how to implement efficient GMM. Life-Cycle Model 48 is just a repeat of 46, but this time showing various options and going through the different outputs to explain what they are. Life-Cycle Model 49 shows how to handle permanent types by GMM estimating a minor extension of Life-Cycle Model 9 to include a fixed-effect in potential hourly-earnings, this example uses permanent types to estimate unobserved heterogeneity. Life-Cycle Model 50 is also permanent types with GMM, but this time we will have targets that are conditional on permanent type (some model parameters differ by type, some are common across type).
+
+
+To be able to GMM estimate any model we must provide the target data moments, $M^d$, the weighting matrix $W$, and the covariance matrix of the data moments $\Omega$. Life-Cycle Model 47 shows an example of how to get these three from the data. The rest of the examples skip the data work and just include values for these three, so as to focus on how the estimation is done in VFI Toolkit. This is done as there are plenty of explanations out there about how to do the data work, and this document is about how to do the computation and estimation of the model.
+
+Appendix \ref{app:GMMestimation} gives a brief formal explanation of GMM and how it is applied to Life-Cycle Models.
+
+The GMM Estimation of Life-Cycle Models is based around the same value function and agent distribution commands as all the examples in this Intro to Life-Cycle Models. This means that every model we have seen ---from Epstein-Zin preferences, to semi-exogenous shocks, to 'riskyasset', to 'experienceasset'--- can be GMM estimated in exactly the same way.\footnote{VFI Toolkit can GMM estimate any model that uses \textit{ValueFnIter\_{}Case1\_{}FHorz()} with \textit{EstimateLifeCycleModel\_{}MethodOfMoments}, and any model that uses \textit{ValueFnIter\_{}Case1\_{}FHorz\_{}PType()} with \textit{EstimateLifeCycleModel\_{}PType\_{}MethodOfMoments'}.}
+
+
+\subsection{Life-Cycle model 45: GMM Estimation, the basics}
+We will GMM estimate Life-Cycle model 9. We make one change, namely to the initial age $j=1$ agent distribution; previously it was singular, which is not good for doing statistical estimation. We instead use a joint-normal distribution on $(a,z)$ as the initial age $j=1$ distribution. The model to be estimated is the household value function,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)    \\
+ && \quad \quad \quad \quad \quad \quad  + s_j \beta E[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z h\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+with initial agent distribution joint-normally distributed over assets and exogenous shocks, $\lambda_1(a,z)=N([\mu_{1,a};\mu_{1,z}],\Sigma)$, with variance-covariance matrix $\Sigma$.
+
+GMM estimation requires us to decide which parameters to estimate ---we will estimate the preference parameters $\sigma$, $\eta$ and $\psi$--- and which moments to target ---we will target the age-conditional mean earnings (for working ages). We also need to pick a weighting matrix ---we will use the identity matrix--- and we need to include the variance-covariance matrix of the data moments so that we can compute standard deviations and confidence intervals for the estimated parameters. We discuss how to actually estimate the target data moments, their covariance matrix, and how to choose a weighting matrix in Life-Cycle Model 47; for now they are just given in the codes.
+
+
+\subsection{Life-Cycle model 46: GMM Estimation, parameter restrictions, estimating shocks and initial dist}
+We repeat the GMM estimation exercise from Life-Cycle Model 45, but with some changes. First, we show how by setting up exogenous shock processes and initial agent distributions as parametrized functions we can estimate these as part of the GMM estimation. Second, we show how a parameter to be estimated can be restricted, e.g., to be positive valued.
+
+There are three types of parameter restrictions: (i) we can restrict a parameter to be positive, (ii) we can restrict a parameter to be between 0 and 1, (iii) we can restrict a parameter to be between any to constants, A and B.\footnote{Say the parameter is $\theta$. VFI Toolkit imposes restrictions by reformulating the problem as an unconstrained problem. So if we restrict parameter $\theta$ to be positive, then internally we instead work with estimating $\mu=log(\theta)$, which can take any value, and the model is passed $exp(\mu)$. If we restrict a parameter $\theta$ to be zero to one, then internally we instead work with estimatiing $\mu=log(\theta/(1-\theta))$, which can take any value, and the model is passed $1/(1+exp(-\mu))$. If we restrict a parameter $\theta$ to be A to B, we do the same as for 0 to 1, but with additional step before of $(\theta-A)/(B-A)$, and after of $A+\theta*(B-A)$ to convert between A-to-B and 0-to-1, and back again.} All of these are trivial to implement using \textit{estimoptions}. To restrict parameters to be positive, we set \textit{estimoptions.constrainpositive} to contain the names of the parameters we wish to restrict to be positive. To restrict parameters to be between 0 and 1, we set \textit{estimoptions.contrain0to1} to contain the names of the parameters we wish to restrict to be positive. To restrict parameters to be between A and B, we set \textit{estimoptions.contrainAtoB} to contain the names of the parameters we wish to restrict to be between A and B, and then use \textit{estimoptions.contrainAtoBlimits} to set the values of A and B.
+
+To estimate the exogenous shock process we set up \textit{vfoptions.ExogShockFn} (and set
+\\ \noindent \textit{simoptions.ExogShockFn=vfoptions.ExogShockFn}) to take in parameter values, and output [z\_{}grid,pi\_{}z].\footnote{This can handle age-dependent shocks. If you use and i.i.d. 'e' variable, you can similarly set \textit{vfoptions.EiidShockFn} (and set \textit{simoptions.EiidShockFn=vfoptions.EiidShockFn}).}
+
+To estimate the initial agent distribution we set up \textit{jequaloneDistFn} to take inputs \textit{(a\_{}grid,z\_{}grid,n\_{}a,n\_{}z,...)}, where the $\dots$ are any parameters. We can then pass this \textit{jequaloneDistFn} to anywhere we would normally pass \textit{jequaloneDist}.
+
+We set up the initial distribution as being joint log-normal on assets and the markov shock. We include the parameters of the covariance matrix as part of the parameters to be estimated. Because covariance matrices have to be positive semi-definite doing this in a naive way would generate lots of errors. So we follow a method to parameterize covariance matrices that ensures they are always positive semi-definite. This is included as covariance matrices are often something people want to estimate in practice so it is good to see how to do this (the covariance matrix is parametrized with three parameters, but only two will be estimated because the third is not identified by the target moments used in this example).
+
+Our estimation is of the same three preference parameters as previously ---$\sigma$, $\eta$ and $\psi$--- as well as the two parameters of the Markov shocks ---$\rho_z$ and $\sigma_{\epsilon,z}$--- and two parameters for the covariance matrix of initial distribution of agents (see code for explanation of how we parameterize the covariance matrix of the initial distribution).
+
+To make it more likely that we can identify so many parameters, we still target the age-conditional mean earnings, but add further targets for the age-conditional labor supply. We continue to use the identity matrix as a weighting matrix, and the covariance matrix of the data moments is also adjusted. We discuss how to actually estimate the target data moments, their covariance matrix, and how to choose a weighting matrix in Life-Cycle Model 47; for now they are just given in the codes.
+
+
+
+\subsection{Life-Cycle model 47: GMM Estimation, using data and how to choose Weighting Matrix}
+We now reestimate the same model as in Life-Cycle Model 45, we again target age-conditional mean earnings but the parameters to be estimated is $\kappa_j$, the deterministic age-dependent component of earnings. The big difference will be that this time we use real-world data. We show how to use panel data to get the data moments and the covariance matrix of the data moments. Specifically, we use the PSID panel data to estimate the age-conditional mean earnings, and the covariance matrix of these. We also consider three different choice for the weighting matrix and discuss the pros and cons of these in terms of robustness, statistical efficiency, and scale-independence.
+
+Once we have a Life-Cycle Model that we want to estimate, and have decided what data moments we want to target (by getting the model moments to match them) there are two main things we need to calculate from the data. The first is the data moments themselves. The second is the covariance matrix of the data moments.
+
+For some simple examples of how to perform GMM estimation without the complication of the Life-Cycle Model, so based on OLS and AR(1), see
+\\ \href{https://github.com/robertdkirkby/GMMSeparableMoments/blob/main/GMMexamples.pdf}{github.com/robertdkirkby/GMMSeparableMoments/blob/main/GMMexamples.pdf}
+\\ Because there is a lot less going on in these examples it is much easier to seen how to calculate the data moments, and then how to calculate the covariance matrix of the data moments.
+
+We have observable data $\{x_i\}_{i=1}^N$; so $N$ data observations. Say we have $m$ target moments, so $M^d=\frac{1}{N}\sum_{i=1}^n f(x_i)$, where $f(x_i)$ is a vector of size $m-by-1$ (and is a function of a single data observations $x_i$). For our present application, our target moments are the age-conditional mean earnings, and any observation can be thought of as earnings and age, so $x_i=(y_i,j_i)$, where $y_i$ is the earnings and $j_i$ is the age. So for us $f(x_i)=f(y_i,j_i)=[y_i \mathbb{1}_{(j_i==j)}]_{j=1}^{j=J}$, where $[]_{j=1}^{j=J}$ indicates that it is a $J-by-1$ vector, with each element corresponding to a specific age (our application has $m=J$). So we have $M^d=\frac{1}{N}\sum_{i=1}^n [y_i \mathbb{1}_{(j_i==j)}]_{j=1}^{j=J}$, and which is a ($m=$) $J$-valued vector. That is the data moments, how about the covariance of the data moments, $\Omega$. We can estimate this as $\hat{\Omega}=\frac{1}{N}\sum_{i=1}^n f(x_i) f(x_i)'$, which is a $m-by-m$ matrix ($f(x_i)$ is $m-by-1$ so $f(x_i) f(x_i)'$ is $m-by-m$); we already saw what $f(x_i)$ is in our application.\footnote{This is all based on GMM theory for i.i.d data. Hence the resulting $\hat{\Omega}$ ends up with zeros on the off-diagonal because the rows/columns are for different ages. Really, this is incorrect because the data is not i.i.d., it is panel data, but it is standard practice for estimating life-cycle models. We are not aware of theory for how to calculate $\hat{\Omega}$ for panel data (with cross-section going to infinity, while time-horizon is fixed); there is GMM theory for time series, and then $\hat{\Omega}$ should account for autocorrelation (e.g., use Newey-West estimator of covariance matrix).}
+
+In the code, we start by downloading and importing PSID data.\footnote{Using \href{https://www.robertdkirkby.com/codes-toolkits/importpsiddata/}{ImportPSIDdata()}, which is part of VFI Toolkit.} We then impose some sample restrictions. In the data, there are age-cohort-time effects and it is only possible to control for any two of these (you can see this as if I tell you any two of a person's current age, the current year (time), and the person's year of birth (cohort), then you can tell me the third). We therefore first estimate the mean age-conditional earnings based on cohort fixed-effects, and calculate the corresponding covariance matrix. This is what we then use in our GMM estimation of the Life-Cycle Model 48. We also calculate the mean age-conditional earnings based on time fixed-effects, just to show how they differ (they are not used in estimation of the model).
+
+We now have the data moments and the covariance matrix of the data moments. Next, we need to sort out what parameter we want to estimate.
+
+The parameter we want to estimate is $\kappa_j$, the deterministic age-dependent component of earnings (earnings is $w \kappa_j z h$). Note that as there are 45 working-age periods we are estimating 45 values for $\kappa_j$. The code contains a variable 'parametrizeKappaj' which is equal to one by default: when it equals one we will parametrize (the log of) $\kappa_j$ as a fifth-order polynomial and estimate the coefficients of this polynomial, when it equals zero we just estimate the vector $\kappa_j$ itself. Parametrizing (log) $\kappa_j$ as a polynomial  is common in practice, but the codes show both alternatives. To parameterize a parameter we use 'ParametrizeParamsFn', which is simply a function that takes the parameter structure as an input and returns the parameter structure as an output. Note that we want $\kappa_j$ to be positive, hence it is $log(\kappa_j)$ which we parametrize with a fifth-order polynomial.\footnote{The fifth-order polynomial is in age/100, rather than in age, the /100 is just that otherwise small changes in the co-efficients lead $exp(age^5)$, which is essentially one of the terms of the polynomial, to blow up to infinity.}
+
+We now have the data moments and the covariance matrix of the data moments. And we have the parameters to be estimated set up. So we are ready to GMM estimate Life-Cycle Model 47. We just need to choose a weighting matrix.
+
+\noindent \textbf{Choosing the Weighting Matrix}
+As long as we use a positive-semidefinite weighting matrix $W$, GMM estimation will be consistent and asymptotically normal. Until now we just used $W=\mathbb{I}$ for simplicity, but this is a poor choice.
+
+The size of the confidence intervals on our estimated parameters depends on $W$. As Appendix \ref{app:GMMestimation} explains, the optimal weighting matrix ---the weighting matrix that minimizes the size of the variance-covariance matrix of the estimated parameters--- is given by $W=\Omega^{-1}$. Choosing $W=\Omega^{-1}$ is called efficient GMM. We show how to implement this.
+
+In small samples the optimal weighting matrix $W=\Omega^{-1}$ can sometimes lead to a biased estimator. And so we might want something simplier, in which case $W=diag(\Omega)^{-1}$ (the inverses of the diagonal elements of $\Omega$, with zeros on the off-diagonals) is a popular choice as it is scale independent. Notice that if we calculate the difference between data mean income and model mean income, square it, and multiply by one (with the identity matrix as our weighting matrix) then the resulting answer is very different if we use dollars or thousands of dollars; this is scale dependence, if we use different units for different moments then the scales of these units changes our estimated parameter vector. By using $W=diag(\Omega)^{-1}$ we eliminate scale dependence; notice that the weight for each moment is going to divide by the square of the units, thus eliminating the units.
+
+In the codes we first estimate $\hat{\Omega}$, and we then do the estimation three times, once using $W=\mathbb{I}$ once using $W=diag(\hat{\Omega})^{-1}$, and once performing efficient GMM using $W=\hat{\Omega}^{-1}$.
+
+Note that regardless of which weighting matrix we use, we need to estimate $\Omega$ in any case as it is needed as an input to the estimation command because it appears in the formula for calculating $\Sigma$, the covariance matrix of the estimated parameters.
+
+\subsection{Life-Cycle model 48: GMM Estimation, various extras}
+We largely just reperform the estimation from Life-Cycle model 45, but this time looking at various \textit{estimoptions} and some of the other outputs.
+
+First, instead of targeting the same moments, for half of them we target the log of the moment. To do this we set \textit{estimoptions.logmoments} to be a column vector zeros of the length of the vector of moments to be estimated, but with ones in the elements that correspond to the moments we wish to restrict to be positive.
+
+Second, rather than targeting (log) age-conditional mean earnings we instead target just the even ages, this just involves putting NaN in the target moments for any that we want to ignore (in our case all the odd ages). This particular example is rather stupid, and is just to illustrate how you can use NaN to omit any moments you don't want.
+
+Third, the default is reporting 90-percent confidence intervals for the estimated parameters. We can change this using, e.g., \textit{estimoptions.confidenceintervals=95} to get the 95-percent confidence intervals. If we are interested in standard deviations of the estimated parameters, these can be found in \textit{estsummary.EstimParamsStdDev}.
+
+Fourth, we look at whether the model parameters are locally-identified. A standard approach is to look at the rank of $J$, and is reported in \textit{estsummary.localidentification}.
+
+Fifth, we are interested in which moments are determining which parameters. \textit{estsummary.sensitivitymatrix} reports a sensitivity matrix; rows index the parameters, column index the moments, and a large number (relative to parameter value) indicates that this parameter is sensitive to this moment.
+
+Sixth, we might be interested in how sensitive our estimated parameters are to any pre-calibrated parameters. Setting \textit{estimoptions.CalibParamsNames} to, e.g., \textit{estimoptions.CalibParamsNames=\{'w'\} }, means there will be a \textit{estsummary.sensitivitytocalibrationmatrix} which reports the sensitivity of estimated parameters (rows) to the pre-calibrated parameters (columns).
+
+Seventh, we might be interested in the derivatives of various model moments at given parameter values and the command 'EstimateLifeCycleModel\_{}MomentDerivativess' calculates these. For example, these derivatives are important to identification, and for the width of the confidence intervals. Massively oversimplifying, the width of the confidence intervals of the estimated parameter will be the variance of the target moment divided by the derivative of the moment with respect to the estimated parameter. So if we want to estimate a parameter then, conditional on the variance of the moments, we want to target moments where these derivatives are large. In principle we are interested in these derivatives evaluated at the estimated parameter values, but since we won't know these before estimation we just evaluate them as some initial guesses for the parameters. Note, this command is essentially calculating $J$, but for lot's of moments, and at some initial parameter values rather than the estimated parameters. These derivatives can help guide decisions on what to target, in particular, moments with big derivatives for a given parameter are going to be better at identifing and giving small confidence intervals, conditional on the variances of the moments.
+
+Finally, just a few \textit{estimoptions} we don't use. \textit{estimoptions.verbose} is set to one by default, if you set it to zero you will get less feedback on the estimation. \textit{estimoptions.skipestimation} can be set to one, this keeps the same parameter vector as is normally input as an initial guess, but recomputes all the outputs (other that the parameter vector); can be used to add sensitivity analysis for calibrated parameters later on, or just to recompute standard errors using a more accurate version of the model (using larger grids). \textit{estimoptions.fminalgo} by default equals 4, which uses CMA-ES algorithm, which is very robust but not so fast; setting to 1 uses fminsearch() but in my experience this often failed to converge (GMM estimation can be a difficult optimization problem). \textit{estimoptions.toleranceparams} and \textit{\textit{estimoptions}.toleranceobjective} can be used to set the tolerance used to decide when a solution has been found.
+
+Note that Appendix \ref{app:GMMestimation} has formulae and explanations of many of these concepts: The formula for the covariance matrix of the estimated parameter vector. How to calculate standard deviations of the estimated parameters from the covariance matrix of the estimated parameter vector. How to calculate confidence intervals from the standard deviations. How to evaluate local identification. How to calculate local sensitivity of the estimated parameters to the target moments. How to calculate local sensitivity of the estimated parameters to the pre-calibrated parameters.
+
+
+\subsection{Life-Cycle model 49: GMM Estimation, permanent types as unobserved heterogeneity}
+We modify Life-Cycle model 9 to have permanent types, specifically a fixed-effect in hourly-earnings. This requires a minorly different GMM Estimation command to be used (as is standard in VFI Toolkit when using permanent types).
+
+When doing GMM Estimation of Life-Cycle Models with permanent types, you can choose to just use moments that are across all permanent types, or choose to use moments that are conditional on permanent type, or a mixture of the two. In this model we will use a moments that do not depend on permanent type (they are an average across permanent types) and we will see how to use permanent types for unobserved heterogeneity. In Life-Cycle Model 50 we will show how to use targets that are conditional on permanent type.
+
+Since the model is new we now describe it in full.
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)    \\
+ && \quad \quad \quad \quad \quad \quad  + s_j \beta E[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j \alpha_i z h\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+&& log(\alpha_i) \sim N(\bar{\alpha}, \sigma_{\alpha}^2)
+\end{eqnarray*}
+with initial agent distribution joint-normally distributed over assets and exogenous shocks, $\lambda_1(a,z)=N([\mu_{1,a};\mu_{1,z}],\Sigma)$, with variance-covariance matrix $\Sigma$.
+
+The change from Life-Cycle Model 9 (as used in Life-Cycle Model 45) is the addition of $\alpha_i$. We will use $N\_{}i=5$ permanent types. Normally what we would do is discretize (using Farmer-Toda) method the normal distribution on (log) $\alpha_i$ into five points with associated probabilities, and then store these in the parameter structure. We will parametrize the distribution, as $\bar{\alpha}$ and $\sigma_{\alpha}$, and then estimate these two parametrize.
+
+Our target moments will be the mean of age-conditional earnings, and the variance of age-conditional earnings (roughly, the mean should help for $\bar{\alpha}$ and the variance for $\sigma_{\alpha}$).
+
+To be able to estimate unobserved heterogeneity we need to be estimating the distribution of the permanent types as part of the GMM estimation. Note that the distribution of permanent types is typically kept in the parameters structure, and we are parametrizing it by $\bar{\alpha}$ and $\sigma_{\alpha}$ which are also being kept in the parameters structure. To do this we use 'ParametrizeParamsFn', which is simply a function that takes the parameter structure as an input and returns the parameter structure as an output; so inside the function we will use $\bar{\alpha}$ and $\sigma_{\alpha}$ in the Farmer-Toda method to discretize $\alpha_i$ into values (a grid) and probabilities, both of which we store in the parameter structure for output. Essentially, 'ParametrizeParamsFn' is used to update our permanent types based on the current values of the parametrization (of $\bar{\alpha}$ and $\sigma_{\alpha}$).
+
+Note, an alternative approach (but more complicated) is to include the permanent type masses/probabilities as part of the initial agent distribution, in which case we would have to parametrize and estimate the initial agent distribution like we saw in Life-Cycle Model 46. You would need to do this if, e.g., the permanent types were correlated with inital asset holdings.
+
+Two comments on the estimation itself. First, normally you would not be able to tell the mean of $\alpha_i$ appart from adding a constant to $\kappa_j$, so you would probably just be normalizing $\alpha_i$ to be mean zero rather than estimating it. Second, the results show that while $\bar{\alpha}$ is fairly well estimated, $\sigma_{\alpha}$ is not. Notice that while $\sigma_{\alpha}$ does matter for the variance of earnings, $z$ plays a much larger role in the variance of earnings (given the parametrization of our model) and so the estimation struggles to pin down $\sigma_{\alpha}$. This is deliberately left here to remind you about the importance of thinking about parameter identification.
+
+
+\subsection{Life-Cycle model 50: GMM Estimation, permanent types 2}
+We will have two permanent types, call them 'funtimes' and 'worktimes'. This example shows two things. First, how to have estimation parameters, some of which are the same across permanent types and some of which are different across permanent types (we kind of already saw this). Second, how to have estimation target moments some of which are the same across permanent types (we saw this already) and some of which are specific to certain permanent types.
+
+Our model is identical to that used in Life-Cycle Model 45, except that we allow the parameter $\psi$ (the weight on leisure in the utility function) to differ across permanent types, specifically it will be larger for 'funtimes' and smaller for 'worktimes'.
+
+We then target the age-conditional mean of earnings (across all permanent types) as well as the age-conditional mean of earnings for 'funtimes' agents and the age-conditional mean of earnings for 'worktimes' agents.
+
+
+
+

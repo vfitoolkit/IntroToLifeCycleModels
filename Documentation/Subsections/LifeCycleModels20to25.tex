@@ -1,0 +1,225 @@
+\subsection{Life-Cycle model 20: Idiosyncratic shocks that depend on age}
+We will now look at how to set up shock that depend on age: both the grid points and the transition matrix can change with age. There are two ways to do this, either by creating matices $z\_{}grid\_{}J$ and $pi\_{}z\_{}J$ which contain $z\_{}grid$ and $pi\_{}z$ for each age, or by using a function that takes (age dependent) parameters as inputs and returns the grid and transition matrix for that age, called \textit{ExogShockFn} in the codes. Life-Cycle Model A5 shows how to create $z\_{}grid\_{}J$ and $pi\_{}z\_{}J$ for an AR(1) process whose parameters depend on age. Here will will demonstrate how to use $ExogShockFn$.
+
+We will use Life-Cycle Model 8, modifying it so that the transiton matrix for shocks depends on age (but the grid does not). That model has an exogenous shock $z$ that takes two values, representing employment and unemployment, respectively. Empirically the unemployment rate is higher for the young, and job turnover is also higher for the young. We will therefore change the transition matrix so that the probability of remaining in the employment state increases in age; I have not attempted to calibrate the numbers seriously, they are purely illustrative.
+
+We create an 'ExogShockFn' which takes in some parameters and returns $z\_{}grid$ and $pi\_{}z$; the dependence on age comes because the parameters themselves (can) depend on age. If you look at the contents of ExogShockFn you can see how the transition matrix is created to depend on age.
+
+The codes start all households at age $j=1$ in the stationary distribution for the transition matrix on $z$ at age $j=1$. So if the transition matrix did not change with age then nor would the distribution of agents over $z$ (the distribution of agents over $a$ could change, but not over $z$). We plot the life-cycle profile showing the fraction of the population in the 'unemployment' state, and can see how it changes with age because the transition matrix on $z$ is changing with age.
+
+Note that the number of grid points on $z$ must remain unchanged in age. Of course by making the probability of transitioning into some of them equal to zero you can effectively remove some.
+
+\subsection{Life-Cycle model 21: Idiosyncratic medical shocks in retirement}
+We just saw how to allow exogenous shock grids and transition path to depend on age. When doing this we can easily also reinterpret these exogenous shocks to have different meanings at different ages. Notice how we give significance to the values of $z$ via the return function and the FnsToEvaluate. So if we change the return function and FnsToEvaluate to interpret $z$ (or any other state) in a different way at different ages then the meaning of $z$ is different for different ages. We have already seen in Life-Cycle Model 20 (and A5) how to change the grid values and transition matrix for $z$ for different ages, so this makes it easy to completely repurpose $z$ at different ages.
+
+We will modify Life-Cycle Model 8, which had a shock $z$ that takes two values representing employment and unemployment, respectively. Notice that in that model retirees never work, and so the shock was irrelevant/ignored for all retirees. So let's repurpose the shock during retirement. We know retirees often do not run down their savings as a basic life-cycle model would predict. We have already seen one possible reason, that they want to leave bequests.\footnote{We modelled warm-glow bequests, but there were more a simply way to capture something like wanting to leave model for descendents (or to charity), and should be understood as a simple way to capture a complex behaviour, rather than the 'warm glow' being taken too seriously.} Another possible reason that the elderly do not run down savings is that they want substantial savings to pay for potentially large medical expenses. We will repurpose the shock $z$ to be a medical expense shock during retirement, to create precisely this motive.\footnote{Obviously the importance of medical expense shocks is likely to be much larger in countries with private health systems vs public health systems. The literature also points to the potentially large costs of elderly-care in nursing homes and the like as important to the savings of the elderly.}
+
+The household value fn problem is,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta   \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)   \\
+ && \quad \quad \quad \quad \quad \quad + s_j \beta E[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a -z +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& zprime=\pi_z(z), \text{  is a two-state markov}
+\end{eqnarray*}
+where now $z$ also appears in the retired ($j>=Jr$) budget constraint (interpreted as substracting a medical expense).
+
+So we are going to have the exogenous shock $z$ represent employment/unemployment during working age, and then medical expenses during retirement. We use ExogShockFn to do this, and will just set one grid for working age and another grid for retirement; likewise we set one transition matrix for working age and another for retirement.\footnote{We could of course set these to change with age ---e.g., medical shocks become more likely as households get older--- but to keep things easy to follow we will just keep the same grids and transition matrices except for the change from working age to retirement.}
+
+Note that the number of grid points on $z$ must remain unchanged in age. Of course by making the probability of transitioning into some of them equal to zero you can effectively remove some.
+
+If you run this model and Life-Cycle Model 8, the only difference between the two is the medical shocks, and you will be able to see their impact in increased savings by the elderly in the life-cycle profiles.
+
+\subsection{Life-Cycle model 22: Deterministic Economic/productivity growth}
+The economy grows over time, as do incomes, as productivity rises. We will add a deterministic rate of growth of producitivity, $g$, at which incomes rise. The way to solve a model with deterministic growth is to look for a balanced growth path by converting the model into 'per technology unit' terms, which makes the model stationary. Then solve the stationary model, and then if wanted we can add growth back into the simulations of the stationary model.\footnote{Notice that this is exactly the same thing as when solving the neoclassical growth model (a.k.a. Solow or Solow-Swan model); solve the balanced growth path by dividing by the technology level (and population), and then solving for the steady-state. Note that the difference between stationary equilibrium and steady-state is minor, they are often used interchangably in conversation.} Solving the stationary model can be done in the usual manner.
+
+To be able to do this we need to use a non-seperable utility function.\footnote{Non-seperable utility was discussed Assignment 2 (just after Life-Cycle model 10).} Conceptually the reason is simple enough. If incomes grow (which is the point of our deterministic productivity growth $g$) then people will consume more and so the marginal utility of consumption falls. Then seperable utility implies that equating marginal utilities therefore requires a falling marginal utility of leisure, which means ever increasing leisure. So seperable utility together with growing incomes drives hours worked to decrease towards zero. With non-seperable utility the marginal utility of leisure is increasing in consumption (this is meaning of non-seperable) and so (optimal) leisure does not continually increase as consumption increases, and so hours worked to not tend to zero.
+
+For the renormalization to work we need to be careful about what exactly grows. When using a model with exogenous labor we would have the endowment income grow at rate $g$, whereas when using a model with endogenous labor we need it to be the wage (per unit of labor supply/per hour worked) that grows at rate $g$.
+
+A brief further discussion of what kinds of utility functions can be used with models that have growth is appropriate. You are probably familiar with the neoclassical growth model (a.k.a. Solow or Solow-Swan model). The general characterization of prefererences consistent with the existence of a steady-state in a model with deterministic producitivity growth are 'Uzawa prefereces'. Two extensions may also be of interest. The first is the extension of Uzawa preferences to models with endogneous human capital, by \cite*{GrossmanHelpmanOberfieldSampson2017}. The second is \cite*{BoppartKrusell2020} which provides preferences consistent with the combination of both income growth and moderate decrease in hours worked in high income countries over the 20th century.
+
+We will first do two models without idiosyncratic shocks. Let's start with the exogenous labor case, as it is slightly simpler, and then do the endogenous labor case. After these we solve the endogenous labor case with idiosyncratic shocks. For Assignment 4 you are provided with just the model set up for exogenous labor supply with idiosyncratic shocks and deterministic income growth; solving the equations to renormalize the  the exogenous labor case is left as Assignment 4 (a code 'solution' is provided).
+
+\subsubsection{Deterministic income growth with exogenous labor supply}
+I will explain the method using a very simple life-cycle model to make clear the concepts, and then simply write out what Life-Cycle Model 10 becomes with deterministic growth.
+
+Consider the following household problem,
+\begin{eqnarray*}
+    \sum_{j=1}^J \frac{c_j^{1-\sigma}}{1-\sigma} \\
+    c_j+a_{j+1}=(1+r)a_j + y_j \\
+    y_j=(1+g)y_{j-1}, \quad y_1\text{ given}
+\end{eqnarray*}
+Notice that $y_j$ is growing at rate $g$; the deterministic income growth.
+
+Trying to compute the solution to this problem in it's current form is possible (because there is a final period, there is a maximum amount that income will end up being)\footnote{This would not be true in an infinite horizon model, nor if we extended this to an OLG model.}, but we would require very large grids as we would need to deal with the smallest income in period 1 and the largest income in period $J$, as well as the wide range of asset holdings that would result. We will therefore rewrite everything in such a way as to 'remove' the growth. The intuition is that $y_j=(1+g)^{j-1} y_1$, and so if we can just divide everything by $(1+g)^{j-1}$ then the growth would 'disappear'.
+
+First, rewrite $y_j$, to get
+\begin{eqnarray*}
+    \sum_{j=1}^J \beta^{j-1} \frac{c_j^{1-\sigma}}{1-\sigma} \\
+    c_j+a_{j+1}=(1+r)a_j + (1+g)^{j-1}y_1 \\
+\end{eqnarray*}
+and now divide the budget constraint through by $(1+g)^{j-1}$ to get
+\begin{eqnarray*}
+    \sum_{j=1}^J \beta^{j-1}  \frac{c_j^{1-\sigma}}{1-\sigma} \\
+    \frac{c_j}{(1+g)^{j-1}}+\frac{a_{j+1}}{(1+g)^{j-1}}=(1+r)\frac{a_j}{(1+g)^{j-1}} + y_1 \\
+\end{eqnarray*}
+We want this to be simpler, notice that we could 'get rid' of the denominator on $c_j$ by defining a 'renormalized' variable $\hat{c}_j \equiv \frac{c_j}{(1+g)^{j-1}}$. We could do the same with $a_j$, defining $\hat{a}_j \equiv \frac{a_j}{(1+g)^{j-1}}$. We would then get
+\begin{eqnarray*}
+    \sum_{j=1}^J \beta^{j-1}  \frac{(\hat{c}_j (1+g)^{j-1})^{1-\sigma}}{1-\sigma} \\
+    \hat{c}_j+(1+g)\hat{a}_{j+1}=(1+r)\hat{a}_j + y_1 \\
+\end{eqnarray*}
+notice both that we made the substitution in the utility function as well, notice also how we could substitute $\frac{a_{j+1}}{(1+g)^{j-1}}$ with $(1+g)\hat{a}_{j+1}$.
+
+We have one more step, and for this step the functional form of the utility function becomes important (especially in the model with endogenous labor). Right now the utility function 'changes' every period (there is a $j$ inside it), but we can pull the $(1+g)^{j-1}$ out in front to get
+\begin{eqnarray*}
+    \sum_{j=1}^J \beta^{j-1} ((1+g)^{j-1})^{1-\sigma} \frac{(\hat{c}_j )^{1-\sigma}}{1-\sigma} \\
+    \hat{c}_j+(1+g)\hat{a}_{j+1}=(1+r)\hat{a}_j + y_1 \\
+\end{eqnarray*}
+and with a little bit of rewriting the powers, we get
+\begin{eqnarray*}
+    \sum_{j=1}^J \beta^{j-1} ((1+g)^{1-\sigma})^{j-1} \frac{(\hat{c}_j )^{1-\sigma}}{1-\sigma} \\
+    \hat{c}_j+(1+g)\hat{a}_{j+1}=(1+r)\hat{a}_j + y_1 \\
+\end{eqnarray*}
+The important thing here is that now neither the utility function, $\frac{(\hat{c}_j )^{1-\sigma}}{1-\sigma}$, nor the budget constraint $\hat{c}_j+(1+g)\hat{a}_{j+1}=(1+r)\hat{a}_j + y_1$ has parameters that change with the period $j$ (when we started $y_j$ changed with $j$). In fact the deterministic growth now just appears as an additional discount factor, note that we could group the discounts factors to get, $(\beta (1+g)^{1-\sigma})^{j-1}$. So solving the model with deterministic growth, after renormalizing, just looks like a model with a different discount factor, and that is easy enough to solve.
+
+Note that if the model had retirement and pensions, then you would either end up with the renormalized pension decreasing in $j$, or you could consider pensions which are indexed to the growth (if you are looking at a specific country you should follow the pension legislation).
+
+Note, no code is provided to solve this model, you can hopefully figure it out based on the code for the model with deterministic wage growth and endogenous labor supply and idiosyncratic shocks that follows shortly.
+
+\subsubsection{Deterministic income growth with endogenous labor supply}
+Consider the following household problem,
+\begin{eqnarray*}
+    \sum_{j=1}^J \beta^{j-1} \frac{c_j^{\sigma_1} l_j^{1-\sigma_1})^{1-\sigma_2}}{1-\sigma_2} \\
+    c_j+a_{j+1}=(1+r)a_j + w_j (1-l_j) \\
+    w_j=(1+g)w_{j-1}, \quad w_1\text{ given}
+\end{eqnarray*}
+Notice that $w_j$ is growing at rate $g$; the deterministic wage growth.
+
+There are two key differences with endogenous labor. The first is the utility function which must be non-seperable. We already discussed the intuition for this and we will see mathematically that the non-seperability is needed to be able to get the $(1+g)^{j-1}$ term out of the (renormalized) utility function so that it just becomes an additional discount factor. The second is that now we have the deterministic growth in the wage, $w_j$ and not in the labor income $w_j(1-l_j)$\footnote{The reason for this is more obvious in an OLG model where things will fail to add up at the aggregate (whole economy) level unless we put the deterministic growth in the wage. In the present life-cycle it is, roughly speaking, because labor supply is a decision variable that gets determined endogenously and so is not something that we can renormalize in terms of.}
+
+From here the steps are almost exactly the same as with exogenous labor supply, first we can divide the whole budget constraint by $(1+g)^{j-1}$ and define $\hat{c}_j \equiv \frac{c_j}{(1+g)^{j-1}}$ and $\hat{a}_j \equiv \frac{a_j}{(1+g)^{j-1}}$; note that we do not change $l_j$, because it multiplies the $w_j$. Substituting we get
+\begin{eqnarray*}
+    \sum_{j=1}^J \beta^{j-1} \frac{(\hat{c_j} (1+g)^{j-1})^{\sigma_1} l_j^{1-\sigma_1})^{1-\sigma_2}}{1-\sigma_2} \\
+    \hat{c}_j+\hat{a}_{j+1}=(1+r)\hat{a}_j + w_1 (1-l_j) \\
+    w_j=(1+g)w_{j-1}, \quad w_1\text{ given}
+\end{eqnarray*}
+note the $l_j$ and $w_1$. We can now do exactly the same step of taking the growth term out of the utility function and making it appear as just an extra discount factor,
+\begin{eqnarray*}
+    \sum_{j=1}^J (\beta (1+g)^{\sigma_1(1-\sigma_2)})^{j-1} \frac{(\hat{c_j})^{\sigma_1} l_j^{1-\sigma_1})^{1-\sigma_2}}{1-\sigma_2} \\
+    \hat{c}_j+\hat{a}_{j+1}=(1+r)\hat{a}_j + w_1 (1-l_j) \\
+    w_j=(1+g)w_{j-1}, \quad w_1\text{ given}
+\end{eqnarray*}
+where the discount factor is now $\beta (1+g)^{\sigma_1(1-\sigma_2)}$.
+
+Note, no code is provided to solve this model, you can hopefully figure it out based on the code for the model with deterministic wage growth and endogenous labor supply and idiosyncratic shocks that follows shortly.
+
+\subsubsection{Deterministic income growth with endogenous labor supply and exogenous shocks}
+Let's extend Life-Cycle Model 9 to include deterministic income growth, as part of which we will have to switch to a non-seperable utility function. To make things simple I am going to index pensions to the growth of wages.\footnote{This is not necessary, just makes the renormalized model a bit simpler.} So we start with the household problem,
+\begin{eqnarray*}
+ V(a_j,z_j,j)&=& \max_{c_j,a_{j+1},h_j} \frac{c_j^{\sigma_1} (1-h_j)^{1-\sigma_1})^{1-\sigma_2}}{1-\sigma_2} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(a_{j+1})   \\
+ && \quad \quad  \quad \quad  + s_j \beta E[V(a_{j+1},z_{j+1]},j+1)|z] \\
+&& \text{if }j<Jr: \; c_j+a_{j+1}=(1+r)a_j+w_j \kappa_j z_j h_j\\
+&& \text{if }j>=Jr: \; c_j+a_{j+1}=(1+r)a_j +pension_j\\
+&& 0\leq h \leq 1, a_{j+1} \geq 0 \\
+&& log(z_j)=\rho_z log(z_{j-1}) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+&& w_j=(1+g)w_{j-1}, \quad w_1\text{ given} \\
+&& pension_j=(1+g)pension_{j-1}, \quad pension_{Jr}\text{ given} \\
+\end{eqnarray*}
+notice that both wage, $w_j$, and pension, $pension_j$ grow at deterministic rate $g$ (from $w_1$ and $pension_{Jr}$, respectively). Note that I have had to change notation slightly from Life-Cycle Model 9, in the sense that we use $c_j$ rather than $c$, and similarly for the other variables, purely because it makes the renormalization look more like those we have already seen.
+
+We can do the same renormalization as before, defining $\hat{c}_j \equiv \frac{c_j}{(1+g)^{j-1}}$ and $\hat{a}_j \equiv \frac{a_j}{(1+g)^{j-1}}$, and leaving $h_j$ and $z_j$ unchanged. We can substitute these in and then extract the term on the utility function to be an additional discount factor to get,
+\begin{eqnarray*}
+ V(\hat{a}_j,z_j,j)&=& \max_{\hat{c}_j,\hat{a}_{j+1},h_j} \frac{\hat{c}_j^{\sigma_1} (1-h_j)^{1-\sigma_1})^{1-\sigma_2}}{1-\sigma_2} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(\hat{a}_{j+1} (1+g)^j)    \\
+ && \quad \quad  \quad \quad  + s_j \beta E[V(\hat{a}_{j+1},z_{j+1]},j+1)|z] \\
+&& \text{if }j<Jr: \; \hat{c}_j+(1+g)\hat{a}_{j+1}=(1+r)\hat{a}_j+w_1 \kappa_j z_j h_j\\
+&& \text{if }j>=Jr: \; \hat{c}_j+(1+g)\hat{a}_{j+1}=(1+r)\hat{a}_j +pension_{Jr}\\
+&& 0\leq h \leq 1, \hat{a}_{j+1} \geq 0 \\
+&& log(z_j)=\rho_z log(z_{j-1}) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+\end{eqnarray*}
+note that we now just have $w_1$ and $pension_{Jr}$. Notice also the $warmglow(\hat{a}_{j+1} (1+g)^j)$; we could just take the $(1+g)^j$ out of the warmglow function as really it is just equivalent changing two of the warm-glow parameters, $warmglow1$ and $warmglow2$. When coding we will take advantage of this to rewrite the warm-glow as $(1-s_j)\beta (1+g)^{-1}  \mathbb{I}_{(j>=Jr+10)} warmglow(\hat{a}_{j+1} (1+g))$, as mentioned this is really just reparametrizing, not changing anything of substance.
+
+We will solve this model in the standard way, and simulate some panel data with it. Note that what we simulate will be $\hat{a}$, $w_1 \kappa_j z_j h$, and $h$. We will then create panel data for the original model, by changing these to $a$, $w_j \kappa_j z_j h$ and $h$; this requires multiplying the first two by $(1+g)^{j-1}$ but leaving the third unchanged (we need to modify to get $a$ and $w_j$).
+
+\subsubsection{Assignment 4: Deterministic income growth with exogenous labor supply and exogenous shocks}
+Life-Cycle Model 10, with deterministic growth in the stochastic endowment is given by,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime} \frac{c^{1-\sigma}}{1-\sigma}+ (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)    \\
+ && \quad \quad  \quad \quad  + s_j \beta E[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w_j kappa_j z\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension_j \\
+&& aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+&& w_j=(1+g) w_{j-1}, \quad w_1\text{ given} \\
+&& pension_j=(1+g)pension_{j-1}, \quad pension_{Jr}\text{ given}
+\end{eqnarray*}
+for Assignment 4 you first need to convert this model into one where there is a stationary equilibrium (by normalizing by the income growth), and then solve the model with code. Then use the solution to the stationary model to simulate some panel data, and then put the deterministic income growth back into the panel data.
+
+We mentioned previously that with exogenous labor supply it is income that grows, while with endogenous labor it is important that it is the wage that grows. So how come we have the growth in the 'wage' in this exogenous growth model? Because a 'wage' is somewhat meaningless for exogenous labor, and notice that there is no difference between $w_j kappa_j z$ growing and $w_j$ growing if they are all constants (or stationary stochastic processes).
+
+A solution code for Assignment 4 is provided, but try to solve without looking at it.
+
+% COMMENTED OUT
+% Renormalized model equations are
+% \begin{eqnarray}
+%  V(\hat{a},z,j)&=& \max_{\hat{c},\hat{a}prime} \frac{\hat{c}^{1-\sigma}}{1-\sigma}+ (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(\hat{a}prime (1+g)^j)  + s_j \beta ((1+g)^{1-\sigma})^{j-1} E[V(\hat{a}prime,zprime,j+1)|z] \\
+% && \text{if }j<Jr: \; \hat{c}+(1+g)\hat{a}prime=(1+r)\hat{a}+w_1 kappa_j z\\
+% && \text{if }j>=Jr: \; \hat{c}+(1+g)\hat{a}prime=(1+r)\hat{a} +pension_{Jr} \\
+% && \hat{a}prime\geq 0 \\
+% && log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+% \end{eqnarray}
+
+% \subsection{Life-Cycle model 23:}
+
+
+\subsection{Life-Cycle model 24: Permanent Types: Solving fixed-types}
+We will use permanent types, which is a way to solve $N\_{}i$ household models at once. Our first model is just that of Life-Cycle model 11, with endogenous labor and both persistant and transitory shocks to labor efficiency units. In this model we add a 'fixed effect' to the labor efficiency units, denoted $\alpha_i$, something common in the literature. This is the only change to the model. Permanent types, or PTypes, is how VFI Toolkit handles different types of agents, it is much more general than just fixed-types as will be seen in later Life-Cycle models, but for now we simply use it for this purpose.
+
+We add a parameter, $\alpha_i$, which depends on the permanent types indexed by $i$. We will use $N\_{}i$ different permanent types of agents, and simply by setting the parameter $\alpha_i$ to have $N\_{}i$ different values the toolkit will automatically recognise that this parameter depends on the permanent type and respond appropriately.
+
+Our household value function now includes a fixed-effect $\alpha_i$ to determine idiosyncratic producitivity units,
+\begin{eqnarray*}
+ V_i(a,z,e,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)    \\
+ && \quad \quad  \quad \quad  + s_j \beta E[V_i(aprime,zprime,eprime,j+1)|zprime] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j \alpha_i z e h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& log(zprime)=\rho_{z} log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+&& log(e) \sim N(0,\sigma_{e}^2)
+\end{eqnarray*}
+Notice that $z$ is AR(1) and $e$ is i.i.d. normal. Note that the codes use 'e' variables for i.i.d. shocks, see Life-Cycle model 11 if you have not previously seen this feature. 
+
+Notice that the value function now depends on $i$: $V_i$. So we are now essentially solving $N\_{}i$ seperate problems.
+
+In the codes we will use $N\_{}i=5$. We just set parameter $\alpha_i$ to be a vector of length $N\_{}i$ and the toolkit will automatically realise that this parameter depends on the permanent type and act appropriately. The other noteworthy change is that we have to switch all the commands to $\_{}PType$, e.g., \textit{ValueFnIter\_{}Case1\_{}FHorz\_{}PType} instead of \textit{ValueFnIter\_{}Case1\_{}FHorz}, and similarly for all commands around the agent distribution, function evaluation, etc. Of course the 'shape' of the results changes: $V$ now becomes a structure, with $V.ptype001$,..., $V.ptype005$ being the value functions for each of the five permanent types.\footnote{$ptype001$, etc., are the default 'names' given to the fixed-types, as later Life-Cycle model examples using permanent types will make clear we can actually choose our own names.} Similarly thinks like the agent distribution will now have one distribution for each permanent type. When we calculate something like life-cycle profiles the output now provides both a result conditional on each permanent type, and a grouped result.
+
+While it is not necessary for solving the value function problem we do need to state the weights of each of the different permanent types to solve the stationary distribution. This is a vector-parameter which we will call $alphadist$, and we need to put the name of this in $PTypeDistParamNames$, which we then pass to the stationary distribution commands. This information gets encoded into the StationaryDist, and so we do not need to include it seperately later when doing things like life-cycle profiles.
+
+This example plots life-cycle profiles for $\alpha_i$, both for each permanent type, and grouped across the permanent types. This provides a nice example to show how the toolkit has interpreted $\alpha_i$ is a parameter that differs by permanent type, and how the grouped value is simply the values of $\alpha_i$ summed according to their weights in $alphadist$.
+
+
+\subsection{Life-Cycle model 25: Using Names for Permanent Types: patient and impatient}
+We consider a model with two agents who differ by the value of their discount factor parameter, $\beta$. We can use names for the agents, and so call them 'patient' and 'impatient'. The model is just that of Life-Cycle Model 11, except that there are now two agents with different values of $\beta_i$, indexed by $i$. The main purpose of this example is to show how we can use names for permanent types of agents in codes.
+
+Our household value function now includes two permanent types that differ by their value of $\beta_i$, the discount factor parameter.
+\begin{eqnarray*}
+ V_i(a,z,e,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta_i  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)     \\
+ && \quad \quad  \quad \quad + s_j \beta E[V_i(aprime,zprime,eprime,j+1)|zprime] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z e h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& log(zprime)=\rho_{z} log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+&& log(e) \sim N(0,\sigma_{e}^2)
+\end{eqnarray*}
+Notice that $z$ is AR(1) and $e$ is i.i.d. normal. Note that the codes use 'e' variables for i.i.d. shocks, see Life-Cycle model 11 if you have not previously seen this feature.
+
+Rather than use $N\_{}i=2$, like we did in Life-Cycle model 24, we can instead give the agents names using $Names\_{}i=\{'patient','impatient'\}$. The PType commands will automatically use these names for all outputs. We set the different parameter values as $Params.beta.patient=0.96$ and $Params.beta.impatient=0.9$. After this, other than using $Names\_{}i$ everywhere we had $N\_{}i$ in Life-Cycle model 24, there is no other change we need to make.
+
+The names we give the permanent types are automatically used for output, hence we get $V.patient$ and $V.impatient$ as the two value functions for the agent types. Commands for things like life-cycle profiles give us both the two life-cycle profiles conditional on each agent type (e.g., $AgeConditionalStats.earnings.patient.Mean$ and $AgeConditionalStats.earnings.impatient.Mean$) and the life-cycle profiles for the whole population (e.g., $AgeConditionalStats.earnings.Mean$).
+
+
+
+
+
+

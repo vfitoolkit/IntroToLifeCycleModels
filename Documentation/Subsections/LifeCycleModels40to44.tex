@@ -1,0 +1,80 @@
+All of our examples thus far have had one endogenous state. We now turn to examples with more than one endogenous state, and also to other kinds of endogenous states.
+% We start with Life-Cycle Model 40, which has two standard endogenous states, used for assets and housing.
+Life-Cycle Models 41-42 demonstrate two other types of endogenous state, which the toolkit calls experienceasset, experienceassetu.
+% Life-Cycle Model 43: experienceassetz
+% Life-Cycle Model 43: experienceasset as illiquid asset
+We actually already saw two other types of endogenous state, the riskyasset in the portfolio-choice models of Life-Cycle Models 31-35, as well as residualasset in Life-Cycle Model 38. Some of these two endogenous state models are quite large and may throw out-of-memory errors on smaller gpus; many use $vfoptions.divideandconquer=1$ (see Life-Cycle Model 30) which makes them faster and requires less memory, it requires the the problem is monotone.
+
+A standard endogenous asset in VFI Toolkit has a current endogenous state $a$, and next period endogenous state $aprime$ can be chosen directly (and as a result, $aprime$ and $a$ both appear in the ReturnFn and the FnsToEvaluate). For other endogenous asset types we again have the current endogenous state $a$, but next periods endogenous state $aprime$ cannot be chosen directly (and as a result, only $a$ appears in the ReturnFn and the FnsToEvaluate).
+
+We already saw the example of 'riskyasset' in the portfolio-choice problems in Life-Cycle Models 31-35, where $aprime(d,u)$, that is next period endogenous state is a function of decision variable $d$ and i.i.d. between-period shock $u$.
+
+'experienceasset' models $aprime(d,a)$, that is next period endogenous state is a function of the current endogenous state $a$ and a decision variable $d$. This can be used for anything that cumuluates based on current decisions, and in Life-Cycle Model 41 we will use it for 'female labor force partipation history'. 'experienceassetu' models $aprime(d,a,u)$, that is next period endogenous state is a function of the current endogenous state $a$ a decision variable $d$ and an i.i.d. between-period shock $u$. This can be used for anything that cumuluates with uncertainty and based on current decisions, and in Life-Cycle Model 42 we will use it for uncertain human capital. While the main uses of 'experienceasset' and 'experienceassetu' are modelling human capital and uncertain human capital, the can of course be used for anything where $aprime(d,a)$ and $aprime(d,a,u)$ are relevant, respectively.
+
+When using any alternative endogenous state together with a standard endogenous state, the ordering is that the standard endogenous state, call it $a1$, is first and the alternative endogenous state, call it $a2$ is second. So in the ReturnFn and FnsToEvaluate we will have $a1prime,a1,a2$ (recall alternative states mean we cannot choose $a2prime$ directly); with decision variables before these and exogenous states after these. If the model has multiple decision variables, the 'last' decision variables will be understood as those that determine the evolution of the alternative endogenous state.
+
+
+Summarizing, we have
+\begin{itemize}
+ \item riskyasset: $aprime(d,u)$
+ \item experienceasset: $aprime(d,a)$
+ \item experienceassetu: $aprime(d,a,u)$
+%  \item experienceassetz: $aprime(d,a,z)$
+ \item residualasset: $a2prime(d,a1prime,a1)$
+\end{itemize}
+
+For two standard endogenous states, the codes restrict all choices onto the grid, and so you need lots of points (as in the earlier one endogenous state models; you can use divide-and-conquer for the first of the two assets, and this is done in the example). For experienceasset and experienceassetu, while the decision variable is chosen on the grid, the value for $aprime$ is evaluated using linear interpolation, and so you can use way less points on experienceasset and experienceassetu than you would on a standard endogenous state.
+
+
+% \subsection{Life-Cycle model 40: Two Endogenous States (Housing)}
+
+
+\subsection{Life-Cycle model 41: Female Labor Force Participation History (experienceasset)}
+The household will have two endogenous states, the first is a standard endogenous state $a$, and the second is female-labor-force-participation-history $h$ which is an 'experienceasset'. Each period the household will decide whether the female works or not (a binary decision variable, $p$), and the female-labor-force-participation-history will evolve based on this decision, $hprime(p,h)$.
+
+The household represents a couple. For simplicity the male always works (for earnings $y_m$). The household can save assets $a$, and the female gets earnings $y_f=p h z$ where $p$ is the labor-force-participation decision (1 is working, 0 if not working), $h$ is female-labor-force-participation-history, and $z$ is a markov process on female productivity (per unit of human capital).
+
+Empirically, perhaps the most important difference between male and female labor force participation comes around the birth of children. The parameter $childcarecosts_j$ is zero at most ages, but we make in non-zero during ages 27-31, representing having infants/young children during these ages. Females decision on whether to work will depend on their potential earnings, the disutility of working, $\varphi p$, and childcare costs (if relevant given age).
+
+The rest of the household problem is as close as possible to earlier examples, and is,
+\begin{eqnarray*}
+ V(a,h,z,j) &=& \max_{c,aprime,p} \frac{c^{1-\sigma}}{1-\sigma} - \varphi p + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)    \\
+ && \quad \quad \quad \quad \quad \quad  + s_j \beta E[V(aprime,hprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+ y_{m,j} + y_f - childcarecosts_j p\\
+&& \phantom{\text{if }j<Jr:} \; y_f=p h z \\
+&& \phantom{\text{if }j<Jr:} \; hprime=exp(log(h)+h_{accum}*p-\delta_h*(1-p)) \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension \\
+&& p \in \{0,1\}, aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+note that the female-labor-force-participation history (human capital, modelled as an experienceasset) evolves according to $hprime=exp(log(h)+h_{accum}*p-\delta_h*(1-p))$, which is saying that if the female works then $h$ increases by $h_{accum}$ and if she does not work then $h$ decreases by $\delta_h$. This is $aprime(d,a)$ for the experienceasset, and we will set it up in \textit{vfoptions.aprimeFn}.
+
+This kind of model is used to understand decision around female labor-force participation. Here children were exogenous, but you can make decisions around having children endogenous as a semi-exogenous state as seen in Life-Cycle Model 29. These models will also often include a time cost of young children (not just the monetary cost of childcare), which is omitted here to keep the model as simple as possible.
+
+More generally, experienceasset will be useful for any kind of model where you want next period endogenous state to be a function of this period endogenous state and a decision variable, so $aprime(d,a)$. Note that it is important when setting up $n\_{}a$ that the endogenous state is the second asset, and for the grids you create $a\_{}grid$ as a stacked column vector of the grids for each of the two assets. And that if you have multiple decision variables, when setting up $n\_{}d$ the decision that matters for the experienceasset must be the last one, and for the grids you create $d\_{}grid$ as a stacked column vector of the grids for each decision variable. You can also use an experienceasset in a one endogenous state model (as the only endogenous state).
+
+\subsection{Life-Cycle model 42: Uncertain Human Capital (experienceassetu)}
+The household will have two endogenous states, the first is a standard endogenous state $a$, and the second is human capital $h$ which is accumulated with uncertainty, and hence an 'experienceassetu'. Each period the household will decide what fraction of time to spend studying (a decision variable, $s$) and the human capital will evolve based on this decision $hprime(d,h,u)$ with uncertainty due to a between-period i.i.d shock, $u$. We also have two decision variables, $l$, the labor supply, and $s$ the time spent studying. When using experienceassetu with multiple decision variables, the last decision variable will be the one that influences the experienceassetu.
+
+The household problem is,
+\begin{eqnarray*}
+ V(a,h,z,j) &=& \max_{c,aprime,s,l} \frac{c^{1-\sigma}}{1-\sigma} + \varphi \frac{leisure^{1-\eta}}{1-\eta} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)    \\
+ && \quad \quad \quad \quad \quad \quad  + s_j \beta E[V(aprime,hprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+ w h l z \\
+&& \phantom{\text{if }j<Jr:} \; hprime=u (ability (s h)^{\alpha_h} + (1-\delta_h) h) \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension \\
+&& leisure+s+l=1, aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+&& log(u) \sim N(0,\sigma_{\epsilon,u}^2)
+\end{eqnarray*}
+where $l$ is labor supply and $s$ is time spent studying.
+
+The human capital production function is $hprime=u (ability (s h)^{\alpha_h} + (1-\delta_h) h)$, and it is this that we set up as \textit{vfoptions.aprimeFn} for $aprime(d,a,u)$.
+
+More generally, experienceassetu will be useful for any kind of model where you want next period endogenous state to be a function of this period endogenous state, a decision variable, and a between-period iid shock, so $aprime(d,a,u)$. Note that it is important when setting up $n\_{}a$ that the endogenous state is the second asset, and for the grids you create $a\_{}grid$ as a stacked column vector of the grids for each of the two assets. And that if you have multiple decision variables, when setting up $n\_{}d$ the decision that matters for the experienceassetu must be the last one, and for the grids you create $d\_{}grid$ as a stacked column vector of the grids for each decision variable. You can also use an experienceassetu in a one endogenous state model (as the only endogenous state).
+
+
+% \subsection{Life-Cycle model 43: Pensions based on Lifetime Earnings (experienceassetz)}
+
+% \subsection{Life-Cycle model 44: Liquid and Illiquid Assets}
+% We are going to use experienceasset, which was originally developed for human capital and which we saw in Life-Cycle Model 42, and now reuse it by noticing that it is actually useful for any asset in which we can think about choosing the 'change in assets', and where the magnitudes of these changes are substantially smaller than the magnitudes of the assets. We can therefore use experienceasset to model such assets, putting less points on d than we do on a, and taking advantage of the fact that the changes in assets are smaller than the asset holdings. Specifically, we will use experienceasset to model 'illiquid assets'.

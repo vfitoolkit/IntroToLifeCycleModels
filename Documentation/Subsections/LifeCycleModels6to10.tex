@@ -1,0 +1,114 @@
+
+\subsection{Life-Cycle model 6: Chance of dying}
+Currently everyone in the model lives to age 100 (period $j$=81). In reality of course some people die at age 70, and others at age 93, and we would like to add this possibility of dying to our model.\footnote{Partly because uncertainty about how long they will live means people save more assets for old age in a manner that is more realistic (relative to just dying earlier, not relative to dying later which is how it will look in our codes relative to the previous life-cycle model), partly because if we want to later turn this model into a model of the economy as a whole, rather than just of a household, then we want a more realistic age distribution (you have probable seen '\href{https://en.wikipedia.org/wiki/Population_pyramid}{demographic pyramid}'s).}
+
+From the perspective of the household we do this by introducing a 'conditional survival probability', $s_j$, that is the probability of surviving to age $j+1$ given you are age $j$ (or equivalently, it is $1-d_j$, where $d_j$ is the conditional probability of death, the probability of dying this year given you are of age $j$. We can get these from real world data (many countries calculate them), and we use those for the US from 2010.\footnote{We are calling our agents 'households', but the data is for individuals. We will ignore this distinction here and deal with it in later models where we can think about individuals as distinct from households within the model.}
+
+To put the conditional survival probability into the model we assume that households only care about next period if they are alive next period. So they only care about next period with probability $s_j$. We do this by including $s_j$ as an additional discount factor (that depends on age).
+
+The households problem thus becomes,
+\begin{eqnarray*}
+ V(a,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta}  + s_j \beta V(aprime,j+1) \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0
+\end{eqnarray*}
+notice that $s_j$ appears alongside $\beta$ as an additional discount factor.
+
+We need to add the parameter $s_j$ to the codes (it will be $J$-by-1 as it depend on age). We also need to tell the codes that $s_j$ should be used as an additional discount factor. Note that there is no change to the return function.
+
+If you compare the asset profiles you will see that people have changed the amount of assets they keep for retirement because there is a chance they will die before getting to consume them.
+
+\subsection{Life-Cycle model 7: Warm-glow of bequests}
+Households in our model currently aim to die with zero assets; this was possible to acheive exactly until we introduced the conditional survival probabilities, you can see it in the life-cycle profiles of assets. In reality many people leave assets behind when they die, and not just people leaving bequests/inheritances to their children, even people without children leave assets, often to charities. One way to deal with this would be to model children explicitly, such 'dynastic OLG' models exists, but are more complex. We will instead model a 'warm glow of bequests': households get utility from leaving assets behind when they die. As a result households with aim to die with non-zero assets, which is realistic.
+
+The warm glow of bequests from leaving behind assets $a$ is, $warmglow(a)=warmglow1 \frac{(a-warmglow2)^{1-warmglow3}}{1-warmglow3}$; where $warmglow2$ is the 'bliss point', which can be thought of as the ideal/target amount of assets to leave behind when dying, and $warmglow1$ determines the importance of the warm glow of bequests (relative to, e.g., consumption or leisure). Notice how the functional form is almost exactly the same as the utility of consumption, and $warmglow3$ acts like the curvature parameter. By using the same functional form it is much easier to choose an appropriate calibration of the parameters for the warm-glow of bequests.
+
+We want agents to only receive the warm glow of bequests when they die. The easiest way to do this would be to only given the warm glow of bequests with assets left at the end of the last period ($j=J$). In this case we would just add a term $\mathbb{I}_{j=J} warmglow(aprime)$ to the return function.\footnote{$\mathbb{I}_{j=J}$ is the 'indicator function' for $j=J$: it takes a value of 1 when $j=J$ and a value of zero otherwise.} Alternatively we could give the warm glow of bequests whenever agents die ---note that the conditional survival probabilities mean they could die at 'any' time--- in which case we could add a term $(1-s_j) warmglow(aprime)$ (to all ages), with $(1-sj)$ being the probability of dying and therefore receiving the warm glow of bequest from the assets left at the end of the period, $aprime$. We will in fact use $\beta (1-s_j) warmglow(aprime)$ as households don't die until the end of the period, but notice that this is really just changing the precise interpretation/value of $warmglow$, nothing meaningful changes when introducing $\beta$ here. Because agents of all ages have a risk of dying the warm glow would impact asset choices rather directly at all ages, so we will just restrict it to when agents are 75 years or older (retirement age plus 10), which we do by using  $\beta (1-s_j) \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)$
+
+So our households problem is now
+\begin{eqnarray*}
+ V(a,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta \mathbb{I}_{(j>=Jr+10)} warmglow(aprime) \\
+ && \quad \quad \quad \quad \quad \quad + s_j \beta V(aprime,j+1) \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0
+\end{eqnarray*}
+notice that the $(1-s_j)\beta warmglow(aprime)$ term is going into the return function.
+
+Implementing this requires us to create the warm glow parameters and then pass these (and $\beta$ and $s_j$) into the return function which needs to be modified to include the warm glow of bequests. The warm glow is only given when age j is at years into retirement, this is just done for convenience as otherwise it distorts assets decisions at young ages too much because the risk of dying is non-zero at yound ages; it is close to zero, but not zero.
+
+We will set $warmglow2=3$, so the target assets when dying are 3. You can see the impact this has on assets when old by looking at the life-cycle profile of assets.
+
+\subsection{Life-Cycle model 8: Idiosyncratic shocks and heterogeneity}
+Until now the only way households could differ is if they started with different assets at 'birth' ($j=1$). Everything about the model is deterministic, and people in the same state always make the same decisions. We will add 'idiosyncratic shocks', which essentially means that each household will be hit with a shock that affects just them (rather than the economy as a whole; since we do not yet model the economy as a whole the distinction is not yet important, but will be later). We will start with the simplest thing we can, an unemployment shock. The unemployment shock will take two possible values, employed and unemployed. If a household currently has the employed value then they can choose to work just as before. If a household currently has the unemployed value then they are unable to earning income by working (their labor supply, $h$, must equal zero).\footnote{Note that for the retired households these unemployment shocks are irrelevant; we will still model them as that is easier to set up, but we will see in a later model how to change the shocks depending on age (in this case get rid of them when age is of retirement age).}
+
+We will assume that the value of the unemployment shocks next period depend on the value of the unemployment shock today; that the unemployment shocks are a (first-order) markov process.\footnote{A (first-order) Markov process is one in which $Pr(y_{t+1}|y_t,y_{t-1},y_{t-2},...)=Pr(y_{t+1}|y_t)$, that is, to predict the value of the markov process next period, $y_{t+1}$, the only useful information is $y_t$ (if we didn't know the value of $y_t$ other things would be useful, but as long as we know $y_t$ that is all that matters).} Let $z$ be the unemployment shock. Let $z=1$ be employment state and $z=0$ be the unemployment state. So we could think of the possible values of z as $[1,0]$. We can define the 'markov transition function' as the matrix
+\begin{eqnarray*}
+\pi_z &=& \begin{bmatrix}p_{ee} \; p_{eu} \\
+                   p_{ue} \; p_{uu} \end{bmatrix}
+\end{eqnarray*}
+where $p_{ee}$ is the probability of employment state next period given employment state this period; that is, the probability of \textit{transitioning} from employment this period to employment next period. $p_{eu}$ is the probability of transitioning from employment this period to unemployment next period. Notice then that the first row is the probabilities of the possible outcomes next period, and so the first row must add to one (because tomorrow happens with probability one).\footnote{This is true of any markov transition matrix: for each row, the sum of the elements in that row much sum to one.} The bottom row is the transition probabilities from unemployment this period to employment next period and unemployment next period, respectively.
+
+Because the unemployment shocks are markov the expectations about tomorrow depend on the state today, and as a result the value function will depend on the value of the unemployment shocks.
+
+The household value fn problem is,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta   \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)   \\
+ && \quad \quad \quad \quad \quad \quad + s_j \beta E[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& zprime=\pi_z(z), \text{  is a two-state markov}
+\end{eqnarray*}
+Notice that $z$ is now a state, and also notice that next period value function is now calculated in expectation, the $E[]$ in $E[V(aprime,zprime,j+1)|z]$, because the future is uncertain (it depends on the idiosyncratic shock).
+
+In the codes we will need to let the code know that there is an exogenous state, $z$, which takes two values, and give the grid and the transition probabilities for $z$. We also need to modify the return function. Almost everything else is unchanged, the codes recognise the exogenous shock and treat it appropriately when solving the value function, stationary distribution, and life-cycle profiles. We need to make a minor change to $jequaloneDist$ as we need to specify whether 'newborns' start in the employed or unemployed state; we will make it 0.7 employed and 0.3 unemployed (remember the total mass of newborns should be 1).
+
+Notice that while both $a$ and $z$ are states, the household can choose $a$, which is therefore an \textit{endogenous} state. While $z$ cannot be chosen by the household, so it is an \textit{exogenous} state. For exogenous states we have to say how they change over time, which is the role of $\pi_z$.
+
+Because adding an idiosyncratic shock $z$ changes the 'size' of the value function and policy function the codes repeat our earlier exercises of plotting these.
+
+\subsection{Life-Cycle model 9: Idiosyncratic shocks again, AR(1)}
+We introduced a shock $z$ that takes two possible values: employed or unemployed. Now let's change $z$ to being about labor productivity. We already have $\kappa_j$ as deterministic labor productivity depending on age. We will make $z$ an AR(1) process on labor productivity units.\footnote{AR(1) means 'autoregressive process of order 1'. An AR(1) process $y_t$ follows $y_t=(1-\rho)c+\rho+\epsilon_t$, $\epsilon_t \sim N(0,\sigma_{\epsilon}^2)$. It is a standard model in time-series econometrics. Note that by making the constant $(1-\rho)c$ it follows that $E[y_t]=c$, which gives a nice easy way to interpret $c$ and $\rho$.} The code allows for exogenous shock variables to be any discrete markov process, so we have to convert the AR(1) process $z$ into a markov process. There are many ways to do this, we will use Farmer-Toda; if you are interested in the alternatives like Rouwenhorst, Tauchen and Tauchen-Hussey, see Life-Cycle model A1.
+
+Our household value function is essentially unchanged,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)    \\
+ && \quad \quad \quad \quad \quad \quad  + s_j \beta E[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z h\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+with the only difference being the definition of $z$ (and implicitly $\pi_z$). We could rewrite $log(zprime)=\rho_z log(z) + \epsilon$ as $log(zprime)=\pi_{log(z)}(log(z))$, which is how we can see that an AR(1) is just a specific kind of markov process.
+
+We need a way to discretize $log(z)$, approximating it as a discrete markov process with a grid and transition matrix. When we come to code this we will use the Farmer-Toda method to discretize $log(z)$ and $\pi_{log(z)}(log(z))$. We can then set $z=exp(log(z))$ to get a grid on $z$, and notice that because we now (after Farmer-Toda method) have $log(z)$ as discrete if follows that $\pi_z=\pi_{log(z)}$; that is we need to take the exponential of the grid, but can just use the transition matrix.\footnote{Why the log? Because the AR(1) process can be negative, but by taking the exponential of the AR(1) we guarantee that $z$ is positive (which helps interpret it, what would a negative productivity even mean?).}
+
+So in the code we just need to create the parameters $\rho_z$ and $\sigma_{\epsilon,z}$. Then use the Farmer-Toda method to create the grid and transition matrix based on this. Then take exponential of the grid (we will then also normalize the grid to mean of 1, this makes choosing parameter values easier, although it will be irrelevant in our case).\footnote{We discretize the AR(1) and then take the exponential of the grid, and then normalize the grid to have a mean of one. Notice that we could alternatively just discretize the AR(1) and then use $exp(z)$ in the return function (in the budget constraint). This would run fine, but it would not have the mean of $exp(z)$ being one. This would be massively complicate things like trying to calibrate/estimate $\kappa_j$ to the data.} We need to decide how many states to use when discretizing the AR(1) process: the more states the more accurate the discretization, but more states will make the code slower. There is no 'correct' number of states, and you should probably check your results for their sensitivity to how you discretize shocks. We will use $n\_{}z=21$, which is substantially more than the standard in the literature.
+
+The Farmer-Toda method that we use here is recommended for discretizing AR(1) processes, which the sole exception of those AR(1) processes with very high persistence, $\rho_z \geq 0.99$, for which the Rouwenhorst method is recommended. The Rouwenhorst method, along with other methods common in the literature like the Tauchen method and the Tauchen-Hussey method can be easily implemented, see Life-Cycle Model A1, but I recommend against using them as they are not as accurate.
+
+A very brief explanation of how Farmer-Toda works: in a first step, a grid for $z$ is set using either evenly-spaced points. The second step is to choose the transition probabilities. For a given grid point today the corresponding row of the transition matrix is a probability distribution for tomorrows state, so Farmer-Toda choose the transition probabilities of this row to target the moments of this probability distribution (by default the first two moments, but code allows up to four). If we have, e.g., five grid points, then this is two restrictions, which would not be enough (there would be a continuum of possible solutions), so Farmer-Toda add the target of maximizing the entropy (relative likelihood) which makes the solution unique. Note that this is done row-by-row for the transition matrix.\footnote{The idea of matching the moments and then using maximum entropy is actually from \cite*{TanakaToda2013} who apply it to i.i.d random variables, \cite*{FarmerToda2017} is about generalizing to a markov process by doing this row-by-row for the transition matrix.}
+
+The main weakness of Farmer-Toda is that it takes about 1 second to run, while the alternatives take more like 1/1000th of a second. For our purposes this is irrelevant but may matter if you want to do, e.g., simulated likelihood estimation or simulated method of moments estimation of the life-cycle model. (Don't worry if you don't understand what these are, they are much more advanced than our current focus.)
+
+\subsection{Life-Cycle model 10: Exogenous labor supply}
+We solve a version of Life-Cycle model 9 in which the labor supply is exogenous, that is there is no choice of hours worked,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime} \frac{c^{1-\sigma}}{1-\sigma}+ (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)   \\
+ && \quad \quad \quad \quad \quad \quad   + s_j \beta E[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+notice that $h$ has disappeared from the 'decision variables', and so has the disutility of hours worked. $z$ is now a 'stochastic endowment' or 'exogenous labor income' or 'exogenous earnings' (more precisely $w \kappa_j z$ is the endowment/labor income endowment); just different ways to describe it.  This problem is often called the '\textit{income flucations}' problem in the literature.
+
+Implementing this first sets $n_d=0$ and is then essentially just setting the 'decision variable grid' to be empty; $d\_{}grid=[]$, and deleting $h$ from all the formulaes (as well as removing the parameters that related to hours worked in either the utility function or the budget constraint). You could do the same by setting $d\_{}grid=0$.
+
+Note that keeping $w$ is slightly odd here, but it makes it easier to compare results to the endogenous labor supply models. In any case $w=1$ so that is irrelevant.
+
+
+
+

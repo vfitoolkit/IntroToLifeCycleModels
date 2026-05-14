@@ -1,0 +1,342 @@
+\section{Alternative exogenous shock processes} \label{app:exogshocks}
+These are a variety of life-cycle models that lightly modify Life-Cycle Models 9 and 11 to illustrate a variety of alternative kinds of exogenous shock processes that you could use. I use the works 'exogenous shock' and 'exogenous state' rather interchangeably in this Appendix.
+
+VFI Toolkit understands three types of exogenous state: semi-exogenous markov, exogenous markov, and exogenous i.i.d., which are denoted $semiz$, $z$ and $e$, respectively. VFI Toolkit always uses the ordering that the shocks come immediately after the endogenous states, and that they follow $semiz$, $z$, $e$. You can have up to four of each of $semiz$, $z$ and $e$, in which case all the shocks of the same type enter in order, so for example if we had a model with one semi-exogenous shock, zero exogenous markovs and three exogenous i.i.d., then the inputs for the ReturnFn and FnsToEvaluate will be (...,$semiz$,$e1$,$e2$,$e3$,...). Note that if if you are not using a type of shock you simply omit it when writing the inputs. All three types of shocks can be made to depend on age (both the grid and transition probabilities can depend on age). When you use $semiz$ and $e$ shocks you tell this to the toolkit by putting them in $vfoptions$ and $simoptions$.
+
+A quick discussion of all of the different shock types/combos that we have seen in the Intro to Life-Cycle models. We saw in Life-Cycle models 8 and 9, an example with a single exogenous markov shock, $z$, first with a simple discrete markov process, and then with an AR(1) process that we discretized with the Farmer-Toda method. We saw in Life-Cycle model 11 an example with both an exogenous markov $z$ and an exogenous i.i.d. $e$. Life-Cycle model 20 was an example using an exogenous markov $z$ that dependend on age, and Life-Cycle model 21 does the same, but interpreting the shock as earnings productivity during working ages, and then reinterpreting as medical shocks during retirement. You can also find examples of discretizing some interesting earnings processes in Life-Cycle models 24 and 27; 24 is the 'standard' of a persistent shock, a transitory shock, and a fixed-effect, while 27 extends this to the 'state-of-the-art' with non-employment shocks and gaussian-mixtures. Life-Cycle model 28 was an example using two markov shocks and two i.i.d shocks, and having the shocks be correlated with each other. We saw in Life-Cycle model 29 an example with a semi-exogenous shock, and that semi-exogenous shock is age-dependent.
+
+In this Appendix, first there are lots of examples that are just different versions of using a single markov exogenous shock $z$. These examples focus on how to turn different stochastic processes ---an AR(1) with gaussian innovations, an AR(1) with gaussian-mixture innovations, a unit-root/random-walk--- into discretized markov processes so that they can be used in the models; models A1, A2, A3. Then an example that show how to do age-dependent shocks, for both markov and i.i.d. exogenous states; model A4. These first four models, A1-A4, are all using the exact same model, just changing the exogenous shock processes.
+
+Next we turn to how to do multiple shocks of a given type. There are four examples that demonstrate two markov shocks, $z1$ and $z2$; they first illustrate two independent shocks, and then show how to handle that the grids and/or transitions can depend on each other or even be correlated. The basic setup in VFI Toolkit is that with two independent markovs you simply stack the columns for the two grids, but we can also switch to 'joint-grids', and these allow the values of the shocks to be correlated; models A5i, A5ii, A5iii, A5iv.\footnote{Internally VFI Toolkit actually turns everthing into joint-grids and works solely with these. But being able to input stack columns is much easier and more intuitive for beginners, so the toolkit lets you work with these, and then just reformats them internally. The reason for this is that anything we can do with stacked columns can be done with joint-grids, but there are plenty of things with joint-grids that cannot be done with stacked columns. Hence joint-grids, while more complicated, are also much more powerful/featured. If you ever look at the internal code 'gridvals' is what the joint-grids get called, e.g. $z\_{}gridvals\_{}J$.} These four models, A5i-A5iv, are all using the exact same model, just changing the exogenous shock processes, and the only meaningful difference of this model from that used in A1-A4 is that there are now two markov exogenous states, rather than one.
+
+Then an example with two i.i.d shocks, $e1$ and $e2$; models A6. To be sure that it is clear how to use lots of shocks, we then do an example with three markov with three i.i.d; model A7. We also show how to do two semi-exogenous shocks that are determined by two decision variables; model A8. Other than changing the number of shocks, and the types of shocks, we keep largely the same model as used in the previous examples
+
+There are a few other types of shocks that might be of interest to discretize. One is VAR(1), vector autoregressions of lag-order 1, and we give an example discretizing a bi-variate VAR(1), which becomes two markov shocks using joint-grids so that the shock values and transitions can all be correlated; model A9. Mostly just out of interest, we also see how you can represent a second-order markov, by rewriting it as two first-order markovs, and we use this to discretize an AR(2); model A10.
+
+The last example is just for understanding/interest. Model A11 shows how you can pretend that an i.i.d. shock is actually markov, and just have a transition matrix that has all the rows identical. This example is about helping you understand what the contents of the markov transition matrix are, it is not something you will ever want to do in practice as it is much faster to treat the i.i.d. shock as an actual i.i.d. shock, $e$.
+
+\subsection{List of Discretization methods in VFI Toolkit}
+Following is a brief list of the discretization methods present in VFI Toolkit. If you open the code for one of these at the top is a description of all the inputs, outputs, options, and it writes out the exact equation for the process being discretized.
+
+These methods use four core approaches to discretize, so this paragraph attempts rough guide to how they set the grids and probabilities: Given a grid (typically evenly spaced points) Tauchen sets probabilities based on the conditional cdf, and Tanaka-Toda sets probabilites based on hitting the first few conditional moments. Tauchen-Hussey jointly chooses grids and probilities based on analytic solutions to hitting moments of an integral with respect to normal distribution. Rouwenhorst, reworks the probabilities to hit unconditional moments.
+
+In all of the following, I recommend the Tanaka-Toda method as it tends to be the best performing these discretization methods.
+
+\smallskip
+To discretize an \textbf{AR(1) process with normally distributed innovations}
+\begin{itemize}
+ \item \textit{discretizeAR1\_{}FarmerToda}: Tanaka-Toda method
+ \item \textit{discretizeAR1\_{}Tauchen}: Tauchen method
+ \item \textit{discretizeAR1\_{}TauchenHussey}: Tauchen-Hussey method
+ \item \textit{discretizeAR1\_{}Rouwenhorst}: Tauchen method
+\end{itemize}
+Note, you can also use these to discretize a i.i.d. normal distribution, setting the autocorrelation to zero (and just use the first row of the transition matrix as your probabilities). 'Farmer-Toda' is the extension of Tanaka-Toda to markov processes (Tanaka-Toda was about i.i.d.).
+
+\smallskip
+To discretize an \textbf{AR(1) process with gaussian-mixture innovations}
+\begin{itemize}
+ \item \textit{discretizeAR1wGM\_{}FarmerToda}: Tanaka-Toda method
+\end{itemize}
+
+\smallskip
+To discretize an \textbf{AR(1) process with stochastic volatility}
+\begin{itemize}
+ \item \textit{discretizeAR1wSV\_{}FarmerToda}: Tanaka-Toda method
+\end{itemize}
+
+\smallskip
+To discretize an \textbf{VAR(1) process with normally distributed innovations}
+\begin{itemize}
+ \item \textit{discretizeVAR1\_{}FarmerToda}: Tanaka-Toda method
+ \item \textit{discretizeVAR1\_{}Tauchen}: Tauchen method
+\end{itemize}
+
+To deal with situations in which we have a life-cycle model where the exogenous shocks differ every period (whether because the parameters of the exogenous process vary with age, or because of a specific initial distiribution).
+
+\smallskip
+To discretize a \textbf{Life-Cycle AR(1) process with normally distributed innovations}
+\begin{itemize}
+ \item \textit{discretizeLifeCycleAR1\_{}KFTT}: Tanaka-Toda method
+ \item \textit{discretizeLifeCycleAR1\_{}FellaGallipoliPanTauchen}: Tauchen method
+ \item \textit{discretizeLifeCycleAR1\_{}FellaGallipoliPan}: Rouwenhorst method
+\end{itemize}
+Note, these processes are sometimes also called 'non-stationary AR(1)' as they 'change' every period. Random-walks/Unit-roots can be discretized by this process, as they are just a specific type of non-stationary AR(1). 'KFTT' is the extension of Tanaka-Toda to life-cycle markov processes (Tanaka-Toda was about i.i.d.).
+
+\smallskip
+To discretize a \textbf{Life-Cycle AR(1) process with gaussian-mixture innovations}
+\begin{itemize}
+ \item \textit{discretizeLifeCycleAR1wGM\_{}KFTT}: Tanaka-Toda method
+\end{itemize}
+
+Note, this is not an exhaustive collection of discretization methods. Others exist in the literature.
+
+Special thanks/credit goes to Guido Fella, Martin Floden, Iskander Karibzhanov, and Alexis-Akira Toda whose codes for discretization many of these commands build on. If you open the code for any of the discretization methods, the first line is often telling you what paper to cite for this method. Please do give citations, as this encourages the development of better discretiation procedures from which we will all benefit :)
+
+
+\subsection{Life-Cycle Model A1: AR(1) process, alternative quadrature methods}
+We revisit Life-Cycle Model 9, which has AR(1) shocks that we discretized using the Farmer-Toda method \citep*{FarmerToda2017}. Methods of discretizing shocks are known as 'quadrature methods'.\footnote{There are two general numerical methods to solve integrals (which we need to calculate expectations) using computers. The one we use is called 'quadrature', which involves evaluating the integral at a number of points (in our case the integrals are stochastic, so it is a number of grids points for the shock). The second is known as Monte Carlo integration and is never used for life-cycle models (you can find it being used for an economic model in \cite*{PalStachurski2013}, but quadrature is better for anything except high-dimensional shocks). There are essentially two aspects to discretizing AR(1) models to a markov process, the quadrature step of choosing grids, and a second step of choosing the transition matrix probabilities. Some quadrature methods treat these as seperate steps, like Farmer-Toda and Tauchen, while others treat them jointly, like Tauchen-Hussey and Rouwenhorst.} The Farmer-Toda quadrature method is just one approach to turning AR(1) processes into a discrete markov process (a grid and a transition matrix). In Life-Cycle Model A1 we show how to implement three alternatives: Rouwenhorst, Tauchen, and Tauchen-Hussey.\footnote{\cite*{Rouwenhorst1995}, \cite*{Tauchen1986} and \cite*{TauchenHussey1991}; see also \cite*{KopeckySuen2010} about the accuracy of Rouwenhorst being better for highly-persisent AR(1) processes.} These alternatives have been widely used in the past, but the Farmer-Toda method performs better so I recommend you always use it, except when the autocorrelation coefficient of your AR(1) is $\geq 0.99$ in which case Rouwenhorst method is recommended.\footnote{The basis for this recommendation are the results reported in \cite*{FarmerToda2017}.}
+
+Since there is no change in the model itself we will not repeat it here, see Life-Cycle Model 9. As a matter of good practice I recommend always checking that your results are not overly sensitive to your discretization (e.g., if you use 5 grid points, makes sure changing to 7 does not massively impact your results), you should also always describe in your paper which method you use to discretize shocks (so that other people can understand what you did; put it in the appendix, but it should be there somewhere).
+
+\subsection{Life-Cycle Model A2: AR(1) with gaussian-mixture innovations}
+The only change we make from Life-Cycle Model 9 is that instead of $z$ being a AR(1) with iid normal innovations, it is an AR(1) with i.i.d. gaussian-mixture innovations; the gaussian distribution is just another work for normal distribution. Much like you can approximate real-valued continuous functions using polynomials, similarly you can approximate a wide range of probability distributions with a 'mixture' of normal distributions. So an AR(1) with gaussian mixture shocks is a way of modeling an AR(1) with complicated non-gaussian shocks, which are approximated with gaussian mixture shocks. We will use the method of \cite*{FarmerToda2017} to discretize it as a markov process. The rest of the model is unchanged so we do not report the whole model here. Instead we just report the equations for the AR(1) with gaussian mixture shocks.
+
+A general AR(1) with non-gaussian shocks is given by,
+\begin{equation*}
+ x_t=(1-\rho)c + \rho x_{t-1} + \epsilon_t, \quad \epsilon_t \sim F
+\end{equation*}
+where the innovations $\epsilon_t$ are i.i.d. and their distribution is given by $F$.
+
+An AR(1) with 'gaussian mixture shocks' is exactly the same just with the addition that $F$ is a gaussian mixture. We can have a gaussian mixture of $n$ different normal distributions, but we will start with an example with a mixture of two normal distributions to get the idea. We have two normal distributions, $N(\mu_1, \sigma_1^2)$, and $N(\mu_2,\sigma_2^2)$, a guassian mixture has probability $p_1$ of being drawn from the first of these, and probability $p_2$ of being drawn from the second (obviously $p_1+p_2=1$, so that the total probability is one). So we can write a guassian mixture of two normal (gaussian) distributions as, $F=p_1 N(\mu_1, \sigma_1^2)+p_2 N(\mu_2,\sigma_2^2)$. A general gaussian mixture of $n$ normal distributions can be written as
+\begin{equation*}
+F= \sum_{i=1}^n p_i N(\mu_i,\sigma_i^2)
+\end{equation*}
+You can estimate a gaussian mixture by standard methods like maximum likelihood or moment matching.
+
+Notice that in the code to implement this we are going to have to provide the vector of $\{p_i\}_{i=1}^n$, the vector of $\{\mu_i\}_{i=1}^n$ and the vector of $\{\sigma_i\}_{i=1}^n$. The way the code works it will also require the 'unconditional mean', which is $c$ in the above formula.\footnote{The code can actually discretize an AR(p) with gaussian mixture shocks, $(x_t-c)=\rho_1 (x_{t-1}-c) + ... +\rho_p (x_{t-p}-c)+  \epsilon_t, \quad \epsilon_t \sim F$, and $F$ is a gaussian mixture, $F= \sum_{i=1}^n p_i N(\mu_i,\sigma_i^2)$. It was originally written by \cite*{FarmerToda2017}, please cite them if you use it.}
+
+We model $F$ as a gaussian mixture. A gaussian mixture is flexible, so it can model a complicated $F$, yet analytically tractable, as all moments and the moment generating function have closed-form expressions. To give some intuition on why gaussian mixtures are useful, try to visualize the following $0.5 N(2,0.5)+0.5 N(0,0.02)$, it will have a 'usual' normal distribution around 2, but also a sharp spike around 0, giving us a distribution with two peaks. To understand why they are convenient computationally the key is that the normal distributions is completely defined by just it's first two moments, the mean and variance; all the higher moments are just combinations of these. So when we add normal distributions together in a gaussian mixture everything just becomes weighted sums of these first two moments of each of the normal distributions we are mixing together.
+
+We use the Farmer-Toda method to discretize the AR(1) with gaussian mixture shocks. The Rouwenhorst and Tauchen-Hussey methods cannot discretize this process as they are designed around just the first two moments. It is possible to extend the Tauchen method to AR(1) with gaussian mixture shocks, see \cite*{CivalesDiezCatalanFazilet2017}, but VFI Toolkit does not presently contain an implementation of the Tauchen method for an AR(1) with gaussian-mixture innovations.\footnote{If anyone knows of code for this please let me know and I will adapt and add it.}
+
+\subsection{Life-Cycle Model A3: Permanent (unit-root/random-walk) shocks}
+The only change we make from Life-Cycle Model 9 is that instead of $z$ being a AR(1) with iid normal innovations, we instead have $z$ follow a random-walk. We won't rewrite the value function problem itself, we just need to change the AR(1) process, $log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)$, to instead be a (bounded) random walk process, $zprime=z+\epsilon_z$. Modelling permanent states typically requires more states for $z$ to remain accurate and we use 101, specifically $z\_{}grid=linspace(0.2,2,101)'$ (101 points equally spaced from 0.2 to 2, inclusive). We just need to set the transition matrix $\pi_z$ to be a (bounded) random walk. We will choose $\epsilon_z$ to be have a probability of 0.5 of staying at the current value of $z$, a probability of 0.25 of going one grid point lower, and a probability of 0.25 of going one grid point higher. At the minimum grid point we will have a probability of 0.5 of staying, and a probability of 0.5 of going one point higher. At the maximum grid point we will have a probability of 0.5 of staying, and a probability of 0.5 of goind one point lower. Notice that this is a random walk, as $E[zprime|z]=z$, everywhere except at the maximum and minimum values, hence it acts as a random walk, except when it runs into the bounds.
+
+The only things we need to change in the code are n\_{}z, z\_{}grid, and pi\_z.
+
+\subsubsection{Special case: Permanent shocks with exogenous labor}
+There is a very nice way to implement permanent random walk shocks in models with exogenous labor that means way fewer grid points are required than if we just took the same naive approach as we did to add permanent shocks with endogenous labor in Life-Cycle Model A3. The key is in how the permanent shock enters the budget constraint. We can use a functional form for the shocks in the budget constraint that allows us to simply renormalize the model endogenous states in terms of the innovations in the permanent shock variable. We therefore only need a grid on $z$ of the innovations, rather than the actual values of the permanent shock itself; e.g., for $y_t=y_{t-1}+\epsilon_t$ we would just need a grid on innovations $\epsilon$, rather than a grid on $y$, and so we can get much higher accuracy from any given grid size.
+
+Implementing this requires a substantial change to the model (no pensions, no labor productivity units as a deterministic function of age, etc.) so we will not attempt to explain the model here, you can find the full model both as a readable code and implementing codes at: \href{http://discourse.vfitoolkit.com/t/permanent-shocks-to-income/127}{discourse.vfitoolkit.com/t/permanent-shocks-to-income/127}
+
+The method and model are explained in full detail in \cite*{Carroll2021}.
+
+Note, the way we have written the code it would be trivial to make the innovations $\epsilon_t$ follow an AR(1) process.
+
+Comment: The empirical evidence is pretty clear that earnings do not follow a unit root, e.g.,  \cite*{GuvenenKarahanOzkanSong2021}. So you probably shouldn't be doing this anyway. It is mainly here for historical/theoretical interest.
+
+
+\subsection{Life-Cycle Model A4: Age-dependent shocks}
+Empirical evidence shows that the (age-conditional) variance of income increases with age. One way to model this is to have shocks that increase in varance as age increases. If the shocks were transitory the age-conditional variance of consumption would not increase, because households would smooth consumption. So we also want these shocks to be persistent (so they imply a change in permanent-income and thus the life-cycle consumption hypothesis means consumption will also shift). How to model persistent shocks with a variance that increases with age? We can model it as a 'non-stationary AR(1)' process, and discretize this using the 'generalized-Rouwenhorst' of \cite*{FellaGallipoliPan2019}. The model is exactly the same as that of Life-Cycle Model 9, except for changes to the exogenous shock process $z$ on labor productivity units. So we will only describe the new $z$ process here; see Life-Cycle Model 9 for the full model.
+
+The 'non-stationary AR(1)' process for $z$ is given by,
+\begin{equation*}
+ z_j=\rho_j z_{j-1} + \epsilon_j, \quad \epsilon_j \sim N(0,\sigma_{\epsilon,z,j})
+\end{equation*}
+notice the difference from a standard AR(1) because $\rho_j$ and $\sigma_{\epsilon,z,j}$ both depend on age. We assume that $\rho_j<1$, for all $j=1,2,...,J$. Let, $\sigma_{z,j}$ be the standard deviation of $z_j$, then it follows that it evolves according to $\sigma_{z,j}^2=\rho_j^2 \sigma_{z,j-1}^2 + \sigma_{\epsilon,z,j}^2$. A full definition requires us to additionally specify $z_0$, which we do below.
+
+Note that we enforce that the constant term is zero, so there is no 'drift' in the 'non-stationary AR(1)' process. In the original paper \citep*{FellaGallipoliPan2019} implementing the discretization also require one further assumption, namely that $z_0=0$ (it has probability 1 of equaling zero). In the codes this is the default setting, but other initial distributions for $z_0$ can be implemented using the 'options' input.
+
+Note that an extended Tauchen method also exists (it is in VFI Toolkit, but not used in any of these examples).
+
+\subsection{Life-Cycle Model A5i: Two markov exogenous states, z}
+We now consider models with two exogenous markov states, which we will call $z1$ and $z2$.
+
+The household problem is,
+\begin{eqnarray*}
+ V(a,z1,z2,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)  \\
+ && \quad \quad \quad \quad+ s_j \beta E[V(aprime,z1prime,z2prime,j+1)|z1,z2] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j  z1 z2 h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& log(z1prime)=\rho_{z2} log(z1) + \epsilon1, \; \epsilon1 \sim N(0,\sigma_{\epsilon,z1}^2) \\
+&& log(z2prime)=\rho_{z2} log(z2) + \epsilon2, \; \epsilon2 \sim N(0,\sigma_{\epsilon,z2}^2)
+\end{eqnarray*}
+Notice that $z1$ and $z2$ are independent of each other.
+
+There are three changes we need to make to the codes to handle our two markov exogenous states, $z1$ and $z2$. First is just putting $(...,z1,z2,...)$ as inputs to the ReturnFn and FnsToEvaluate. Second is to create $z\_{}grid$. Third is to create $pi\_{}z$.
+
+The two shocks are independent, so we can just use the Tanaka-Toda method to discretize and AR(1) for each of $z1$ and $z2$ separately, giving us $z1\_{}grid$, $z2\_{}grid$, $pi\_{}z1$, and $pi\_{}z2$.
+
+We just combine the two grids as a stacked column vector, $z\_{}grid=[z1\_{}grid; z2\_{}grid]$ ($z1\_{}grid$ and $z2\_{}grid$ are both column vectors, and we are just 'stacking' them one on top of the other). Note that $size(z\_{}grid)=sum(n\_{}z)-by-1$, this will always be true for stacked column vectors.
+
+We also combine the two transition matrices, as $pi\_{}z=kron(pi\_{}z2,pi\_{}z1)$, taking the kronecker product, notice that they are in reverse order. Note that $size(pi\_{}z)=prod(n\_{}z)-by-prod(n\_{}z)$, which is always true of transition matrix across all possible setups.
+
+
+\subsection{Life-Cycle Model A5ii: Two markov (z) shocks, joint-grids}
+The model is completely unchanged from A5i. All that we will do is see an alternative way to rewrite $z\_{}grid$, as a joint-grid instead of as a stacked column vector (which is what we did in A5i).
+
+Think about what $pi\_{}z$ represents. Say $n\_{}z=[3,2]$, $z1\_{}grid=[z1a;z1b;z1c]$, and $z2\_{}grid=[z2a; z2b]$. Then the rows and columns correspond the transitions from/to the combinations of $z1$ and $z2$ points given by,
+\\ $\begin{bmatrix}
+ z1a & z2a \\
+ z1b & z2a \\
+ z1c & z2a \\
+ z1a & z2b \\
+ z1b & z2b \\
+ z1c & z2b
+\end{bmatrix}$
+but if this is the 'grid' that $pi\_{}z$ is thinking about, we can just use it directly, and this is what we call a joint-grid for $z$.
+
+So we set $z\_{}grid=[z1a,z2a; z1b,z2a; z1c,z2a; z1a,z2b; z1b,z2b; z1c,z2b]$. The interpretation is that the different rows index the possible combinations of $z1$ and $z2$ values, while the first column is all the $z1$ values and the second column is all the $z2$ values.
+
+VFI Toolkit recognizes based on the size of the $z\_{}grid$, which is now $prod(n\_{}z-by-length(n\_{}z)$ that this is a joint-grid and behaves appropriately.\footnote{Actually, internally VFI Toolkit converts everything into joint-grids and then works exclusively with joint-grids. Joint-grids are much more powerful/flexible in what kinds of things you can represent with joint-grids, as the next A5iii will make clear. But the stacked column vectors are much easier for users to setup and understand, as well as avoiding pointless duplication in the setup when the $z1$ and $z2$ grids are independent and we use the cross-product. So VFI Toolkit accepts the stacked column vectors, and internally just converts them to joint-grids and works with those. Internally the age-dependent joint-grids are referred to as $z\_{}gridvals\_{}J$, I called them gridvals instead of grid so I know they are joint-grids.}
+
+\subsubsection{Age-Dependent Joint-Grids}
+When we saw age-dependent shocks in Life-Cycle model A4, we essentially added an extra dimension to the end of $z\_{}grid$ and $pi\_{}z$ of length $N\_{}j$. The same thing applies for creating age-dependent shocks with joint-grids, we add model period as an extra dimension.
+
+So since a joint-grid was  $size(z\_{}grid)=prod(n\_{}z)-by-length(n\_{}z)$, we can set up an age-depenent joint-grid which will be $size(z\_{}grid\_{}J)=prod(n\_{}z)-by-length(n\_{}z)-by-N\_{}j$. Since $size(pi\_{}z)=prod(n\_{}z)-by-prod(n\_{}z)$ when using joint-grids, the age-dependent process will instead have $size(pi\_{}z\_{}J)=prod(n\_{}z)-by-prod(n\_{}z)-by-N\_{}j$. You just input these into commands as normal and based on their size VFI Toolkit understands to treat them as age-dependent shocks with joint-grids.
+
+\subsection{Life-Cycle Model A5iii: Joint-grids for Correlated Shocks, two markov z}
+The only change to the household problem from Life-Cycle Model A5iii is that we change the two markov processes $z1$ and $z2$, so we will not repeat the setup.
+
+When we have two shocks that are correlated it makes sense to use a correlated joint-grid, as opposed to a cross-product grid (a.k.a. kronecker grid) as we have used until now. In a cross-product grid we choose, e.g., five points for $z1$ and three points for $z2$, and our grid on $(z1,z2)$ will be the cross-product of these, that is the 15 points we get from all combinations of the 5 points on $z1$ with the 3 points on $z2$. But when the shocks are correlated this may not make much sense as a grid. Imagine that the two shocks have a strong positive correlation. Then it is a waste to have a point on the grid which is a small value for $z1$ and a large value for $z2$, as this will essentially never occur; a cross-product grid when the shocks are highly correlated will have many points with essentially zero weight. We can avoid this problem by using a joint-grid, which in our present example would involve 25 points on $(z1,z2)$ chosen to reflect the correlation.
+
+In terms of solving the model there is essentially no change. The shape of $z\_{}grid$ is now $prod(n\_{}z)-by-length(n\_{}z)$, as it standard for a joint-grid (correlated grids always take the form of joint-grids). VFI Toolkit recognises this size and automatically interprets it as a joint-grid and acts appropriately.
+
+Obviously there is nothing stopping you from using jointly-determined grids when shocks are not correlated, just that there is no advantage from doing so. Life-Cycle Model A5ii was purely about helping you undertand what a joint-grid is.
+
+
+\subsection{Life-Cycle Model A5iv: Two markov (z) shocks, probabilities that depend on each other}
+The model is the same as in Life-Cycle model A5i, except that we change the two markov shocks, $z1$ and $z2$.
+
+We will have two shocks each of which can take two values: $z_1$ which is employment/unemployment, and $z_2$ which is recession/expansion. The idea is that agents care about the microeconomics shocks (which directly effect them), but they do not directly care about the macroeconomic shocks (that only effect them indirectly). The macroeconomic shocks influence the microeconomic shocks (a recession makes unemployment more likely) which we model as the transition probabilities of the microeconomic shocks depending on the state of the macroeconomic shock.
+
+So the grids of $z1$ and $z2$ are independent, and we set them up as a stacked column vector.
+
+For the transition probabilities the macroeconomic shock $z_2$ will have 'its own' transition matrix, and then the microeconomic shock $z_1$ will have a transition probability that depends on $z_2$. See the code for how we do this, it is simple as long as you go slowly step-by-step in creating $pi\_{}z$. We end up with a standard $pi\_{}z$ in the sense it has the same size and interpretation as always.
+
+This modelling technique originates with \cite*{Imrohoroglu1989} - "Cost of business cycles with indivisibilities and liquidity constraints". For more 'advanced' versions of this idea you can use "rational inattention" so that households do not react to the macroeconomic variables. See, \cite*{MackowiakWiederholt2015} - “Business Cycle Dynamics under Rational Inattention." Or as life-cycle model in \cite*{CarrollCrawleySlacalekTokuokaWhite2020} - Sticky Expectations and Consumption Dynamics" (sticky expectations is a reduced-form way to model the concept of rational inattention).
+
+\subsection{Life-Cycle Model A6: Two i.i.d. (e) shocks}
+The model is the same as in Life-Cycle model A5i, except that we now use two i.i.d. shocks, $e1$ and $e2$, instead of two markovs.
+
+There are three changes we need to make to the codes to handle our two i.i.d. exogenous states, $e1$ and $e2$. First is just putting $(...,e1,e2,...)$ as inputs to the ReturnFn and FnsToEvaluate. Second is to create $e\_{}grid$. Third is to create $pi\_{}e$. Note the similarities to using two markovs.
+
+The two shocks are independent, we will assume the first i.i.d. shock, $e1$ is normally distributed and use Tanaka-Toda to discretize it to get $e1\_{}grid$ and $pi\_{}e1$. We assume the second i.i.d. shock, $e2$, is uniformally distributed and manually create $e2\_{}grid$ and $pi\_{}e2$
+
+We just combine the two grids as a stacked column vector, $e\_{}grid=[e1\_{}grid; e2\_{}grid]$ Note that $size(e\_{}grid)=sum(n\_{}e)-by-1$, this will always be true for stacked column vectors.
+
+We also combine the two probabilties (they are column vectors), as $pi\_{}e=kron(pi\_{}e2,pi\_{}e1)$, taking the kronecker product, notice that they are in reverse order. Note that $size(pi\_{}e)=prod(n\_{}z)-by-1$, which is always true of probabilities for i.i.d. variables across all possible setups.
+
+Note: we actually just reuse the $ReturnFn$ from Life-Cycle model A5i, since viewed from inside the return function there is no distinction between markov and i.i.d variables.
+
+You can use joint-grids and/or age-dependence for i.i.d. variables, analagously to how it is done for markovs. See Life-Cycle model 27 for an examples with age-dependent i.i.d., and see Life-Cycle model 28 for an example where two i.i.d variables are correlated.
+
+\subsection{Life-Cycle Model A7: Three markov (z) and three iid (e) shocks}
+VFI Toolkit can handle up to four of each shock type, that is, each of $semiz$, $z$ and $e$. Once you understand how to use two of a shock, using three is essentially a matter of combining the first two, and then combining the result of this with the third (in terms of creating grids and transition probabilties). This example is just to spell this out with an example code. This model is a bit silly, is just to clarify how to setup and use lots of shocks.
+
+The household problem is,
+\begin{eqnarray*}
+ V(a,z1,z2,z3,e1,e2,e3,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)  \\
+ && \quad \quad \quad \quad+ s_j \beta E[V(aprime,z1prime,z2prime,z3prime,e1prime,e2prime,e3prime,j+1)|z1,z2,z3] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j  z1 z2 z3 e1 e2 e3 h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& log(z1prime)=\rho_{z2} log(z1) + \epsilon1, \; \epsilon1 \sim N(0,\sigma_{\epsilon,z1}^2) \\
+&& log(z2prime)=\rho_{z2} log(z2) + \epsilon2, \; \epsilon2 \sim N(0,\sigma_{\epsilon,z2}^2) \\
+&& log(z3prime)=\rho_{z3} log(z3) + \epsilon3, \; \epsilon3 \sim N(0,\sigma_{\epsilon,z3}^2) \\
+&& log(e1) \sim N(0,\sigma_{e,1}^2) \\
+&& e2 \sim N(\mu_{e,2},\sigma_{e,2}^2) \\
+&& e3 \sim U(e3_{min},e3_{max})
+\end{eqnarray*}
+Notice that $z1$, $z2$ and $z3$ are independent of each other, and $e1$, $e2$ and $e3$ are similarly independent of each other.
+
+As seen in the examples of Life-Cycle models A5i-A6, there are three keys to coding this. First is just putting $(...,z1,z2,z3,e1,e2,e3,...)$ as inputs to the ReturnFn and FnsToEvaluate. Second is to create $z\_{}grid$ and $e\_{}grid$. Third is to create $pi\_{}z$ and $pi\_{}e$.
+
+With three shocks, we can easily set up the stacked column vector of the grids from each of the three shocks. For the transition matrix, just think of first combining two shocks (say $z1$ and $z2$) to get the transition matrix on these two (call it $pi\_{}z1z2$), and then combine this with $z3$; so it is the same steps as for two shocks, just we repeat them a few times. Similarly for $pi\_{}e$, we can first combine two shocks, and then combine the result of this with the third shock.
+
+Note, you can do all of this with things like joint-grids, correlated shocks, and age-dependence.
+
+\subsection{Life-Cycle Model A8: VAR(1) persistent shocks}
+In Life-Cycle Model 10 we used two idiosyncratic shocks, $z_1$ and $z_2$, modelling one as an AR(1) and the other as i.i.d. Normal. It is possible to model two shocks as a VAR(1) and that is what we do here, discretizing them using the Tauchen method for VAR(1). Since nothing changes in the model except the process on $z_1$ and $z_2$ we will only describe that here.
+
+Let $z=[z_1; z_2]$, then we can write the bivariate VAR(1) as
+\begin{equation*}
+ z_t=\mu+\rho_z z_{t-1} + \epsilon_t, \quad \epsilon_t \sim N(0,\Sigma)
+\end{equation*}
+where $\mu$ is a 2-by-1 vector, $\rho_z$ is a 2-by-2 matrix, $\epsilon_t$ is a 2-by-1 vector, and $\Sigma$ is a 2-by-2 variance-covariance matrix.
+
+We could write the same bivariate VAR(1) as the system of equations,
+\begin{eqnarray*}
+  z_{1,t}=\mu_1+\rho_{z,1,1} z_{1,t-1} +\rho_{z,1,2} z_{2,t-1} + \epsilon_{1,t} \\
+  z_{2,t}=\mu_2+\rho_{z,2,1} z_{1,t-1} +\rho_{z,2,2} z_{2,t-1} + \epsilon_{2,t} \\
+  \left[ \epsilon_{1,t} , \epsilon_{2,t} \right]' \sim N(0,\Sigma)
+\end{eqnarray*}
+there relationship between the two being $\mu=[\mu_1; \mu_2]$ and $\rho_z=[\rho_{z,1,1}, \rho_{z,1,2}; \rho_{z,2,1},\, \rho_{z,2,2}]$.
+
+When using (our implementation of) the Tauchen method to discretize this VAR(1) we must also impose that $\Sigma$ is diagonal, $\Sigma=[\sigma_{\epsilon,z,1}^2,\, 0; \, 0, \, \sigma_{\epsilon,z,2}^2]$.
+
+VAR(1) with three or more variables can be implemented in the obvious manner. For more details see the discretization codes themselves.
+
+In addition to the Tauchen method for discretizing VAR(1) there are also codes that implement the Farmer-Toda method for discretizing VAR(1), but these create 'jointly dependent' grids on $z_1$ and $z_2$ so cannot currently be used by VFI Toolkit.\footnote{We have been using a grid for $z_1$ and a grid for $z_2$, and the get a grid on $z=[z_1, z_2]$ by taking the kronecker product (cross product) of the two grids (the obvious way to create a grid on the two dimensions from two single dimension grids; this is all done internally by the codes so you won't see it). Farmer-Toda create a jointly-dependent grid on $z$, which is not the kronecker product of two seperate grids. Jointly-dependent grids are better, in principle, but require slightly different code to handle them and VFI Toolkit does not currently handle this.}
+
+\subsection{Life-Cycle Model A9: Two age-dependent semi-exogenous (semiz) shocks}
+How to use two semi-exgenous states, $semiz1$ and $semiz2$? This is actually already done in Life-Cycle model 29 so you can just go read that :D Instead this example is actually going to be about how to use more than one decision variable to influence the semi-exogenous states. The model with have two semi-exogenous states, and two decision variables that influence them. Essentially, you just use $vfoptions.l\_{}dsemiz=2$ to say that you want to use two decision variables to determine the semi-exogenous state transitions (default is 1). VFI Toolkit assumes that these are the 'last two' decision variables.
+
+Our household value function is now,
+\begin{eqnarray*}
+ V(a,n,work,z,j)&=& \max_{c,aprime,h,f,search} \frac{(c)^{1-\sigma}}{1-\sigma} + \eta_1 \frac{exp(j-\eta_3)}{(1+exp(j-\eta_3))} (\bar{n} + n)^{\eta_2} - search_c * search \\
+ && \quad \quad \quad \quad \quad \quad (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)    \\
+ && \quad \quad \quad \quad \quad \quad  + s_j \beta E[V(aprime,nprime, workprime, zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+work * w \kappa_j z h-childcarecosts + (1-work) benefits\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension \\
+&& childcarecosts=childcarec (h>0) n  \\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+the idea is that fertility, $f$ determines number of children $n$ (similar to in Life-Cycle Model 29, but with a less detail), and $search$ means you are looking for a job and determines $work$ which is whether or not you have a job (binary 1 for job, 0 for no job). If you don't have any work you just receive benefits.
+
+Note that there are two semi-exogenous states, $n$ and $work$, and these are controlled by two decision variables, $f$ and $search$. VFI Toolkit handles this just using one 'SemiExoStateFn' that determines how the semi-exogenous states evolve given the two decisions. As mentioned earlier we also need to use $vfoptions.l\_{}dsemiz=2$ to specify that it is the 'last two' decision variables that determine the transitions of the semi-exogenous states (by default on the last decision variable would be used).
+
+The setup for the semi-exogenous states is that: If you have work=1, then you lose your job with an exogenous job-seperation probability, and otherwise keep the job. If you have work=0, then you find a job with a probability of 'search' (so your search effort directly determines your probability of finding a job). Children become adults with a certain probability, and if you choose f=1, then you will have a child with a certain probability.
+
+This kind of setup with work being semi-exogenous and depending on the effort expended in job search is called a 'search-labor' model (not to be confused with 'search-and-matching', which is an equilibrium concept).
+
+
+\subsection{Life-Cycle Model A10: Second-Order Markov Processes (implementing an AR(2) persistent shock)}
+The VFI Toolkit can only handle first-order Markov processes, which are typically just referred to as markov processes. But fortunately you can rewrite any second-order Markov process with one state as a first-order Markov process with two states (the original state and the lag of that state). Using second-order Markovs processes is rare in economic models, but let's see how.
+
+Before explaing how to convert the second-order Markov processes into a first-order Markov process we explain the details of how to change a Markov process with two variables into a single (vector valued) variable  Markov process. We have already done this in the Life-Cycle Models that contain two exogenous shocks (such as Life-Cycle Model 11), but it will help to see it formally.
+
+\textit{\textbf{How to turn a Markov process with two variables into a single variable Markov process}}:
+\\ \noindent Say you have a Markov process with two variables, $z$ \& $y$, we can treat them as a single vector-valued markov process $x=(z,y)$. Let $z$ take the states $z_1,...z_n$, and $y$ take the states $y_1,...,y_m$. We start with the simple example of how to combine the two when their transitions are completely independent of each other so as to illustrate the concepts and then treat the general case.
+
+When $z$ and $y$ are independent Markov processs, $Pr(z_{t+1}=z_j)=Pr(z_{t+1}=z_i | z_t=z_j)=\pi^z_{ij}$ $\forall i,j=1,...n$ and $Pr(y_{t+1}=y_j)=Pr(y_{t+1}=y_i | y_t=y_j)=\pi^y_{ij}$ $\forall i,j=1,...m$, then we can define a new single-variable Markov process $x$ simply by taking the Kronecker Product of $z$ and $y$. Thus, $x$ will have $n$ times $m$ states, $[x_1,..,x_{nm}]'=[z_1,...z_n]'\otimes[y_1,...y_m]'$, and it's transition matrix
+will be the Kronecker Product of their transition matrices; $\Pi^x=\Pi^z \otimes \Pi^y$. For the definition of the Kronecker product of two matrices \href{https://en.wikipedia.org/wiki/Kronecker_product}{see wikipedia}. Note that in the codes you only need to combine the transition matrices to create the joint transition matrix; you simply include the grids as a 'stacked' column vector and the rest is done internally by VFI Toolkit.
+
+Note that we can let $z$ and $y$ depend on each other (as in the case that $z$ and $y$ form a bivariate VAR(1), treated in Life-Cycle Model A7), although obviously the transition matrix becomes more complex. Another case of potential interest is when one of $z$ and $y$ is 'microeconomic' and the other is 'macroeconomic', which we capture by allowing the microeconomic to depend on the macroeconomic, but not vice-versa. Thus we assume, without loss of generality, that $z_t$ is the microeconomic variable and evolves according to the transformation matrix defined by $Pr(z_t | z_{t-1},y_t, y_{t-1})$, while $y_t$ has the transformation matrix $Pr(y_t)=Pr(y_t|y_{t-1})$\footnote{Note that here I switch from describing Markov processs as $t+1 |t$ to $t|t-1$, the difference is purely cosmetic.}. The transition matrix however is now more complicated; rather than provide a general formula you are referred to the example in Life-Cycle Model A8.
+
+If you have three or more variables in vector of the first-order Markov process you can reduce this to a scalar first-order Markov process simply by iteratively combining pairs. For example with three variables, $(z^1, z^2, z^3)$, start by first defining $x^1$ as the combination of $z^1$ \& $z^2$ (combining them as described above), and then $x$ as the combination of $x^1$ and $z^3$.
+
+\textit{\textbf{How to turn a second-order Markov process into a first-order Markov process}}:
+\\ \noindent Suppose that $z$, with states $z_1,...z_n$ is a second-order Markov process, that is $Pr(z_{t+1}=z_i)=Pr(z_{t+1}=z_i|z_t=z_j, z_{t-1}=z_k) \neq Pr(z_{t+1}=z_i|z_t=z_j)$. Consider now the vector $(z_{t+1}, z_t)$. It turns out that this vector is in fact a vector first-order Markov process (define this periods state $(z_{t+1}, z_t)$ in terms of last periods state $(z_t,z_{t-1})$ by defining this periods $z_{t+1}$ as a function of last periods $z_t$ \& $z_{t-1}$ following the original second-order Markov process, and define this periods $z_t$ as being last periods $z_{t}$). Now we have a 'vector-valued' first-order Markov process on the vector $(z_t,z_{t-1})$.
+
+Obviously this idea can be trivially extended to turn, e.g., a third-order Markov process into a first-order Markov process with three states.
+
+\textit{\textbf{Life-Cycle Model A4: idiosyncratic shock, AR(2)}}
+We will provide an example that takes Life-Cycle Model 9 and makes the sole change of switching from an AR(1) process for the exogenous shock on (log) labor productivity units $z$ to instead being an AR(2) process.
+\begin{equation*}
+ z_t=\rho_{z,1} z_{t-1} + \rho_{z,2} z_{t-2}
+\end{equation*}
+
+We can use the Farmer-Toda method to discretize this, the command we use is actually for a more general AR(p) process with gaussian mixture innovations, but we will just use an AR(2) with gaussian innovations (we will have to code it as a 'mixture of one normal').
+
+The Farmer-Toda method creates a first-order Markov process on $(z_t,z_{t-1})$, which we will refer to in the codes as $(z_1,z_2)$. Note that while both $z_1$ and $z_2$ are exogenous state variables the return function will only actually use the current value $z_1$ (which represents $z_t$); both have to be passed as inputs to the return function as they are both states, but only one ends up being used in the return function (the other sill matters for things like expectations).
+
+
+\subsection{Life-Cycle model A11: Model an i.i.d. as an markov exogenous state}
+The model is just that of Life-Cycle Model 11. Except that we will model the i.i.d exogenous state 'e' by treating it like a second markov exogenous state, 'z2'. This is a bad idea in the sense it will make all the codes slower and is not something you will ever want to do in practice. It is done here with the hope of helping you better understand how the transition matrix of a markov state works. Specifically, very row of the transition matrix for a markov shock can be though of as the i.i.d distribution of next period values conditional on this period value.\footnote{E.g., think about the AR(1) process $z_t= \rho_z z_{t-1} + \epsilon_t$, and rewrite $z_t-\rho_z z_{t-1}=\epsilon_t$. Notice that the left side is the 'conditional distribution', that is the change in $z$, and the right side is just the i.i.d. innovation. This is what the rows of the markov transition matrix represent, with each different row corresponding to a different value of $z_{t-1}$.}
+
+The persistent shocks, $z_1$, we will model as an AR(1). The transitory shock, $z_2$ we will model as i.i.d.
+
+Our household value function now has $z_1 z_2$ in place of $z$ to determine idiosyncratic producitivity units,
+\begin{eqnarray*}
+ V(a,z_1,z_2,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime) \\
+ && \quad \quad \quad \quad+ s_j \beta E[V(aprime,z_1prime,z_2prime,j+1)|z_1] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j  z_1 z_2 h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& log(z_1prime)=\rho_{z1} log(z_1) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z1}^2) \\
+&& log(z_2) \sim N(0,\sigma_{z2}^2)
+\end{eqnarray*}
+Notice that $z_1$ is AR(1) and $z_2$ is i.i.d. normal (in logs).
+
+Note that to get an exogenous shock (log) $z_2$ which is i.i.d. $N(0,\sigma_{z2}^2)$, we can simply use the same method as we did for the AR(1) process and just set $\rho=0$.\footnote{If we wanted any other i.i.d. distribution we just create the transition matrix for $z_2$, $\pi_{z2}$, so that it has all rows with that same distribution. Recall that a row of the transition matrix represents the probabilities of going from the state that the row represents to each of the other states, so if all the rows are the same it is saying that the current state does not matter, which means it will be i.i.d. So, e.g., we could make $z_2$ a uniformly distributed variable by making the transition matrix a matrix of ones, divided by the number of states of $z_2$ (really we just want to divide each row, but dividing the whole matrix is an easy way of implementing this).}
+
+How do we let the codes know we have two exogenous shocks? First we have to set $n\_{}z$ to be a vector with the number of grid points of the first and second exogenous shocks, so if we use $21$ points for the AR(1) shock and $5$ for the iid shock we will set $n\_{}z=[21,5]$. Second we set $z\_{}grid=[z1\_{}grid; z2\_{}grid];$ (we 'stack' the column grids of the two shocks). Third, we set the joint transition matrix $pi\_{}z=kron(pi\_{}z2, pi\_{}z1);$, by using the kronecker product, notice that when doing this you must put them in reverse order. We also need to modify the inputs to the ReturnFn and FnsToEvaluate so that they include both $z1$ and $z2$.
+
+\subsection{Life-Cycle model A12: Parametrize exogenous shocks - ExogShockFn and EiidShockFn}
+The model is just that of Life-Cycle Model 11. But instead of setting up the markov ($z$) shocks by creating $z\_{}grid$ and $pi\_{}z$ as matrices, we instead set up \textit{vfoptions.ExogShockFn} which is a function that takes parameters as inputs, and outputs $z\_{}grid$ and $pi\_{}z$. The point of this is it means that $z\_{}grid$ and $pi\_{}z$ are now functions of model parameters, which allows us to calibrate/estimate the shock processes (or to determine them in general eqm). We also set up \textit{simoptions.ExogShockFn=vfoptions.ExogShockFn;}, often we will want $n\_{}z$ as an input to \textit{vfoptions.ExogShockFn} which we can do by setting $Params.n\_{}z=n\_{}z$.
+
+We do the same thing for parametrizing an i.i.d. ($e$) shocks, using \textit{vfoptions.EiidShockFn} (and \textit{simoptions.EiidShockFn}).
+

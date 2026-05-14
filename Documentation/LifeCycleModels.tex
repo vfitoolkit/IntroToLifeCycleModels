@@ -1,0 +1,169 @@
+\documentclass[11pt]{article}%
+\usepackage{amsmath}
+%\usepackage{appendix}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{pdflscape}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subfig}
+\usepackage{geometry}
+\usepackage[sidewaysfigure]{rotating}
+\usepackage{natbib}
+\bibpunct{(}{)}{;}{a}{,}{,}
+\usepackage[doublespacing]{setspace}%
+\setcounter{MaxMatrixCols}{30}
+
+\usepackage{amsthm}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\renewcommand{\qedsymbol}{\textit{Q.E.D.}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\providecommand{\U}[1]{\protect\rule{.1in}{.1in}}
+
+\geometry{left=2.1cm,right=2.1cm,top=2.1cm,bottom=2.1cm}
+
+\usepackage{hyperref}
+\hypersetup{
+  pdftitle={Life-Cycle Models},    % title
+  pdfauthor={Robert Kirkby},     % author
+  %hyperfootnotes=false,
+  %hyperindex=true,
+  %hyperfigures=true,
+  colorlinks=true,                % makes links a coloured word, rather than putting coloured boxes around them
+  linkcolor=blue,                % makes internal links black
+  citecolor=blue,                % makes citations black
+  urlcolor=blue,                 % color of external links
+  breaklinks=true                 % allow links to be brocken across multiple lines
+}
+
+\newcommand{\rob}[1]{{\color{red}\bf #1}}
+
+
+\begin{document}
+
+\title{An Introduction to Life-Cycle Models}
+\author{Robert Kirkby \\ Victoria University of Wellington
+\\ \href{https://doi.org/10.5281/zenodo.8136810}{https://doi.org/10.5281/zenodo.8136810}
+}
+\date{\today \\ }
+\maketitle
+
+\vspace{-10mm}
+\begin{abstract}
+Introduces life-cycle models and shows how to solve them and build more realistic versions. Covers most of the main concepts in 'one-asset' life-cycle models with consumption-leisure and consumption-savings decisions. Proceed by a series of models, with the intention that you can read the pdf description of a model, then look through the codes that show how to implement it. By the end you can easily solve one-asset finite-horizon problems, including plotting life-cycle profiles and simulating panel data. A few of the models are dedicated to describing key concepts of borrowing constraints, precautionary savings, and incomplete markets.
+\end{abstract}
+Keywords: Life-cycle model. \\
+JEL\ Classification:  \\
+\small
+
+% \thispagestyle{empty}
+
+% \newpage
+
+\section{Introduction}
+We gradually build up a life-cycle model that can be used to look at income, hours worked, consumption, and assets over the life-cycle. We will start with a deterministic life-cycle model in which people live for $J$ periods and make decisions on how much to work. Our second model will then add a decision about how much to save (assets). Our third model will just use this model to draw a life-cycle profile. We will then step-by-step make additions to the model to understand how these help us create more realistic life-cycle profiles including idiosyncratic shocks. This pdf explains the models one-by-one, and the codes implementing each of them are all on github. We make use of the \href{https://www.vfitoolkit.com/}{VFI Toolkit} (\href{https://www.vfitoolkit.com/}{vfitoolkit.com}). The intention is that you can go through the models one-by-one, first reading the pdf explanation of the model and then running the codes and seeing how to implement it.
+
+By the end we will have a life-cycle model in which people make consumption-savings and consumption-leisure choices, which has working age and retirement, which is capable of capturing that earnings are hump-shaped over age (peaking around ages 45-55), the variance of both income and consumption increase with age, incomes grow in line with deterministic economic growth of the economy as a whole, people have some assets left when they die, people face the risk of substantial medical costs when old, and where borrowing constraints and precautionary savings play an important role. And we will be able to use these to plot life-cycles, including mean, variance, and gini coefficients conditional on age, and even on 5 year age-bins. We will also be easily able to simulate panel data sets from the model on which we could run regressions.
+
+These life-cycle models can be used easily requiring very little knowledge of numerical methods; all you need is Matlab and a gpu.\footnote{The codes make automatic use of the gpu via the VFI Toolkit for Matlab; the gpu must be an NVIDIA gpu. I tested all of these codes on a gpu with 8gb of ram, vast majority of them would work with less gpu memory but no promises :)} They are intended as a simple way to understand and use life-cycle models. Follow-up documents will then build on these to explain how to extend them to general equilibrium OLG (overlapping-generation) models, and how to solve general equilibrium transition paths for OLG models. The codes are an 'introduction' to life-cycle models, not the final word. If you find this interesting and want to start working with models that have two or three assets you will need to learn to write (much faster) code yourself; I recommend looking up the EGM (endogenous grid method) for solving finite-horizon models and starting from there.\footnote{The VFI Toolkit just uses pure discretization (discretize all decision variables, next period endogenous state, this period endogenous state, and the exogenous states), this is simple and robust, but not nearly as good a combination of speed and accuracy and more sophisticated methods.} Obviously from the perspective of the codes there is no need to stick to 'hours worked', 'assets', and 'labor productivity shocks' as the decision variable, endogenous state, and exogenous state, they can be anything you want to call them/interpret them as.
+
+Note that the calibration of the model parameters has not be taken seriously in these example models. If you do any work with life-cycle models it is very important that you take very seriously the question of what the appropriate parameter values are (whether by calibration, method of moments estimation, or anything else). I have not done so as I wish to focus on the concepts around setting up and solving life-cycle models. Near the end, there is Section on estimating life-cycle models by the Generalized Method of Moments that helps you understand how to perform formal statistical estimation of these models.
+
+I have put in enough grids points on assets to make the solutions reasonably accurate, but I recommend you use more to get full accuracy in practice, especially if looking at things like the tails of distributions, inequality, subpopulations, or correlations in panel data. I have erred on the low side while still having enough points to illustrate concepts simply so that the codes can be run on less powerful gpus and therefore be more widely accessible.
+
+If you have any questions about the material, or spot a typo in the codes, or would just like to ask a clarifying question, etc., please use the forum: \href{http://discourse.vfitoolkit.com/}{discourse.vfitoolkit.com}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\newpage
+\section{Building up Life-Cycle Models}
+
+\input{./Subsections/LifeCycleModels1to5.tex}
+
+\input{./Subsections/LifeCycleModels6to10.tex}
+
+\input{./Subsections/LifeCycleModels11to14.tex}
+
+\newpage
+\section{Illustrating some important concepts}
+\input{./Subsections/LifeCycleModels15to19.tex}
+
+\newpage
+\section{Further building up Life-Cycle Models}
+\input{./Subsections/LifeCycleModels20to25.tex}
+
+\input{./Subsections/LifeCycleModels26to30.tex}
+
+\newpage
+\section{Portfolio-Choice in Life-Cycle Models (riskyasset)} \label{sec:portfoliochoice}
+\input{./Subsections/LifeCycleModels31to35.tex}
+
+\newpage
+\section{Behavioural Life-Cycle Models} \label{sec:behavioural}
+\input{./Subsections/LifeCycleModels36to39.tex}
+
+\newpage
+\section{Additional Endogenous States} \label{sec:endostates}
+\input{./Subsections/LifeCycleModels40to44.tex}
+
+\newpage
+\section{Estimating Life-Cycle Models} \label{sec:estimation}
+\input{./Subsections/LifeCycleModels45to50.tex}
+
+
+
+\newpage
+\section{What Next?} \label{sec:whatnext}
+If you want to learn to solve more complex life-cycle models you will need to learn how to code them yourself, and the numerical methods used to do so. There are a lot of materials online,\footnote{I rate the \href{https://www.fatihguvenen.com/phd-computational-methods}{material of Fatih Guvenen}. Check \href{Kenneth Judds lecture notes}{https://github.com/KennethJudd/CompEcon2020} for the underlying theory on computation, there are no end of more applied resources and where you should look depends heavily on what kind of problem you want to solve.} and a fast method like endogenous grid points for solving the value function problem is probably a good place to start. If you just want to use one asset life-cycle models then the VFI Toolkit is good enough for almost everything, with sole exception of 'simulated likelihood estimation' of the models (typically from panel data).\footnote{Simulated likelihood estimation requires solving the model a lot of times, say 1 million times. If you take the run time for the codes here and multiply them by 1 million you will see how long that would take.}
+
+If you are interested in building Macroeconomic models then OLG models are the next obvious step. In life-cycle models we just have individual households. An OLG model combines the life-cycle model of a household with general equilibrium to create a model of the entire economy. Take a look at: \href{https://www.vfitoolkit.com/updates-blog/2022/an-introduction-to-olg-models/}{An Introduction to OLG models}.
+
+If you have any questions about the material, or spot a typo in the codes, or would just like to ask a clarifying question, etc., please use the forum: \href{http://discourse.vfitoolkit.com/}{discourse.vfitoolkit.com}
+
+\newpage
+
+\bibliographystyle{plainnat}
+\bibliography{/home/kmarshallbanana/Dropbox/RDKbiblio.bib}
+
+\appendix
+
+\newpage
+\input{./Appendix/LifeCycleModelAppendix_ExogenousShocks.tex}
+
+
+\newpage
+\section{Behavioural Preferences}
+This appendix provides more explanation both about how some of the non-standard life-cycle models work conceptually, as well as about how they should be used in the codes.
+
+\subsection{Epstein-Zin preferences}
+\input{./Appendix/LifeCycleModelAppendix_EpsteinZin.tex}
+
+\newpage
+\subsection{Quasi-Hyperbolic Discounting}
+\input{./Appendix/LifeCycleModelAppendix_QuasiHyperbolic.tex}
+
+\newpage
+\subsection{Temptation and Self-Control: Gul-Pesendorfer preferences}
+\input{./Appendix/LifeCycleModelAppendix_GulPesendorfer.tex}
+
+\newpage
+\subsection{Ambiguity Aversion}
+\input{./Appendix/LifeCycleModelAppendix_AmbiguityAversion.tex}
+
+\newpage
+\input{./Appendix/LifeCycleModelAppendix_GMMestimation.tex}
+
+
+\end{document}

@@ -1,0 +1,33 @@
+% \section{Ambiguity Aversion}
+\label{app:AmbiguityAversion}
+We can think of two types of uncertainty. \textit{Risk}, the 'known unknowns', represents the standard approach where every possible outcome is assigned a specific probability. An alternative is \textit{ambiguity}, the 'unknown unknowns' captures they idea that we might not be able to assign probabilities to all outcomes. The standard way to model ambiguity is known as multiple priors, and agents act based on the 'worst' prior. We still conceive of a true stochastic process for the shocks, as this is needed for simulating the model.
+
+Let's start by defining risk, and then we will descibe ambiguity. We want to think about a possible state, $\omega$ that occurs next period, and the set of all possible states is $\Omega$. Under standard uncertainty modeled as risk, we have some probabilities $P$ assigned to all $\omega \in \Omega$. In a two-period setting the agent aims to maximize,
+\begin{equation*}
+ \max_{c_1,c_2} u(c_1) + \beta E^P[u(c_2)]
+\end{equation*}
+where $E^P$ indicates that the expectations are taken with respect to the (subjective) belief $P$, which we can think of as a prior belief.
+
+For ambiguity we instead consider as set $\mathcal{P}$ of probabilities, so the agent has 'multiple priors' about the future. We then assume that the agent acts to maximize the worst possible future under their various priors, that is they maximize,
+\begin{equation*}
+ \max_{c_1,c_2} u(c_1) + \beta \min_{\hat{P} \in \mathcal{P}} E^{\hat{P}}[u(c_2)]
+\end{equation*}
+So the agent is evaluating the future under each of their priors (each $P \in \mathcal{P}$), and then will choose actions that maximize the worst outcome across their priors.\footnote{Other implementations known as 'smooth ambiguity' which also use multiple priors, but do something less extreme that taking the minimum across the multiple priors, do exist but we will not discuss them here.} It is worth observing that the prior used to evaluate the future (the argmin) may differ with the value of $c_2$.
+
+The key trick here is taking the minimum over the expection evaluated under multiple priors. We can easily implement this in a standard finite-horizon value function problem as,
+\begin{eqnarray*}
+ V(a,z,j) = \max_{d, a'} F(d,a',a,z)  + \min_{\pi(z) \in \mathcal{P}} E^{\pi(z)}[V(a',z',j+1)]  \\
+\end{eqnarray*}
+as in this setup our 'prior belief' about the future is simply our definition of the markov process $z$. Hence, alongside the 'true' $z$, we simply define a set of 'multiple priors' in the form of alternative markov processes.
+
+So in the code we first say that we want to use ambiguity aversion by setting \\ \textit{vfoptions.exoticprefererences='AmbiguityAversion'}. We then define the true markov process for $z$ in the standard manner, which will involve both a grid and a transition matrix. It is imposed by the code that the grid for the multiple priors is just the same as the grid for the true process (so all of them use the same grid\footnote{The underlying theory imposes something in a similar vein about the supports of the stochastic processes.}). We set the number of the multiple priors as \textit{vfoptions.n\_{}ambiguity}. To set up the multiple priors is about creating numerous different version of the transition matrix, all of which get stored in \textit{vfoptions.ambiguity\_{}pi\_{}z} (or \textit{vfoptions.ambiguity\_{}pi\_{}z\_{}J}), the last dimension of which indexes the multiple priors. That is it, all the trick to using ambiguity aversion is just about setting up an appropriate choice for \textit{vfoptions.ambiguity\_{}pi\_{}z\_{}J}. If you want to use i.i.d. shocks these can be set up with \textit{vfoptions.ambiguity\_{}pi\_{}e} (or \textit{vfoptions.ambiguity\_{}pi\_{}e\_{}J}).
+
+The codes are essentially going to compute $\min_{\pi(z) \in \mathcal{P}} E^{\pi(z)}[V(a',z',j+1)]$ by first using each of the multiple priors in \textit{vfoptions.ambiguity\_{}pi\_{}z\_{}J} to evalute each of the $E^{\pi(z)}[V(a',z',j+1)]$, and then take the minimum across these (in the dimension of the priors).
+
+Notice that the 'true' $z$ is not actually used in the value function problem. The codes still require you to define it and pass it as an input, but it does not get used (you are required to pass it as an input because the value function iteration commands expect the process on $z$ as a standard input). The 'true' $z$ is for simulations (simulations do not depend on the multiple priors, except via their influence on the policy function). Whether or not you include the true $z$ as one of the multiple priors is entirely optional.
+
+You can model a mixture of shocks as risk and shocks as ambiguity. The key is just to make it so that the multiple priors are different for the ambiguous shocks, but that all the multiple priors are identical for the risk shock.\footnote{If you take the minimum across a bunch of identical priors you will of course just get that prior. This is taking advantage of the observation that ambiguity averion nests risk aversion as the case where the set of muliple priors has only a single element. Ambiguity aversion also nests maximin preferences as the case where the set of multiple priors contains each of the $P_{\omega}$ which assign a probability of one to event $\omega$.}
+
+This approach to modelling ambiguity aversion was introduced by \cite*{GilboaSchmeidler1989}, and a review is provided by \cite*{IlutSchneider2023}.
+
+

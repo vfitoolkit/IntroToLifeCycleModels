@@ -1,0 +1,159 @@
+We now turn to various behavioural models. We look at behavioural models for modelling the concepts of impatience (Quasi-Hyperbolic Discounting), loss-aversion (Prospect Theory), temptation and self-control (Gul-Pesendorfer Preferences), unknown unknowns (Ambiguity Aversion). We also already saw Epstein-Zin preferences in Life-Cycle Model 12, which seperate risk aversion from the intertemporal elasticity of substitution.
+Most of these are based off of Life-Cycle Model 10 (exogenous labor and an idiosyncratic markov shock; here without warm-glow of bequests\footnote{We would have to be careful about how the warm-glow of bequests might interact with the various behavioural aspects being modelled here, so I just remove it for simplicity.}), and modify it for a variety of behavioural aspects (the exception is Ambiguity Averion which is based off of Life-Cycle Model 21).
+For impatience and tempation we also have a 'Model B', which has endogenous labor and is based off of Life-Cycle Model 9 (except without warm-glow of bequests).
+
+\subsection{Life-Cycle model 36: Impatience (Quasi-Hyperbolic Discounting)}
+Quasi-Hyperbolic discounting is a way to model 'impatience'. Impatient households are those that take decisions today, which put little weight on the future, and which their future-self would not like. Every model until now has used 'exponential discounting', with every future period discounted by factor $\beta$. The idea of quasi-hyperbolic discounting is that while you still use $\beta$ to discount between any two future periods, you use an additional discount factor $\beta_0$ to discount between the current period and next period; so you take decisions today that put little weight on the future.
+
+There are two types of quasi-hyperbolic discounting, called \textit{sophisticated} and \textit{naive}, based on whether are sophisticated and recognise that your future-self will suffer the same impatience problems as you do, or whether you are naive and simply (incorrectly) assume your future-self will not suffer from the same impatience, respectively.
+
+We will use Life-Cycle Model 10, and simply change to quasi-hyperbolic discounting. This is easy to code as we essentially just tell $vfoptions$ to use quasi-hyperbolic discounting and add the 'additional' discount factor. Near the start of the codes we choose which of naive and sophisticated quasi-hyperbolic discounting to use. Notice that quasi-hyperbolic discounting affects how the household makes decisions are therefore needs to be in $vfoptions$, but it is irrelavant once the policy function is known, and therefore is not in $simoptions$.
+
+We start with the naive quasi-hyperbolic discounting problem. Notice first that the naive quasi-hyperbolic discounter (naively) believes their future self will act like an exponential discounter. So we first define the 'continuation value function' which is just the exponential discounting value function,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime} \frac{c^{1-\sigma}}{1-\sigma}+ s_j \beta E[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+we can then define the naive quasi-hyperbolic discounters value function, which we denote $\tilde{V}$ in terms of this,
+\begin{eqnarray*}
+ \tilde{V}(a,z,j)&=& \max_{c,aprime} \frac{c^{1-\sigma}}{1-\sigma} + s_j \beta_0 \beta E[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+There are a few things worth noting. That on the right-hand side we have the 'continuation' next period value function $V$, while on the left we have the naive quasi-hyperbolic discounters value function $\tilde{V}$. That the discount factor is $\beta_0 \beta$, as we are applying the additional discount factor $\beta_0$ that captures quasi-hyperbolic discounting.\footnote{I also apply $\beta_0$ to discounting the warm-glow.}
+
+Now we can think about the sophisticated quasi-hyperbolic discounter. Again we will need to define a 'continuation' value function, but now it is more complex as the sophisticated quasi-hyperbolic discounter knows that their future self will follow the policy function of a sophisticated quasi-hyperbolic discounter, but discount between future periods based on the exponential discount factor (see document linked below for explantion). We will go the reverse order, first defining the value function of the sophisticated quasi-hyperbolic discounter, $\hat{V}$,
+\begin{eqnarray*}
+ \hat{V}(a,z,j)&=& \max_{\hat{c},\hat{a}prime,} \frac{\hat{c}^{1-\sigma}}{1-\sigma} + s_j \beta_0 \beta E[\underbar{V}(\hat{a}prime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; \hat{c}+\hat{a}prime=(1+r)a+w \kappa_j z\\
+&& \text{if }j>=Jr: \; \hat{c}+\hat{a}prime=(1+r)a +pension\\
+&& \hat{a}prime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+notice that I have denoted the policy variables with hats, $\hat{c}$, $\hat{a}prime$. Note that we have the additional discount factor $\beta_0$. The continuation value function is now $\underbar{V}$ which is the policies of the sophisticated quasi-hyperbolic discounter but evaluated with the exponential discount factor, and is given by
+\begin{eqnarray*}
+ \underbar{V}(k,z,j)&=&\frac{\hat{c}^{1-\sigma}}{1-\sigma} + s_j \beta_0 \beta E[ \underbar{V}(\hat{a}prime,zprime,j+1)|z]
+\end{eqnarray*}
+where in a slight abuse of notation I am now using $\hat{c},\hat{a}prime$ to signify the optimal policies (the argmax) from the value function problem of the sophisticated quasi-hyperbolic discounter.
+
+Quasi-hyperbolic preferences are explained in Appendix \ref{app:QuasiHyperbolic}
+
+\subsubsection{Life-Cycle model 36B: Quasi-Hyperbolic Discounting with Endogenous Labor Supply}
+Adds Quasi-Hyperbolic discounting to Life-Cycle Model 9 (except without warm-glow of bequests).
+
+So for a naive quasi-hyperbolic discounter the continutation value solves,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta}+ s_j \beta E[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z h\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& aprime\geq 0, \quad 0\leq h \leq 1 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+and we can then define the naive quasi-hyperbolic discounters value function, which we denote $\tilde{V}$ in terms of this,
+\begin{eqnarray*}
+ \tilde{V}(a,z,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + s_j \beta_0 \beta E[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z h\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& aprime\geq 0, \quad 0\leq h \leq 1 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+
+
+For a sophisticated quasi-hyperbolic discounter the value function is given by,
+\begin{eqnarray*}
+ \hat{V}(a,z,j)&=& \max_{\hat{c},\hat{a}prime,\hat{h}} \frac{\hat{c}^{1-\sigma}}{1-\sigma} - \psi \frac{\hat{h}^{1+\eta}}{1+\eta} + s_j \beta_0 \beta E[\underbar{V}(\hat{a}prime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; \hat{c}+\hat{a}prime=(1+r)a+w \kappa_j z h\\
+&& \text{if }j>=Jr: \; \hat{c}+\hat{a}prime=(1+r)a +pension\\
+&& \hat{a}prime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+notice that I have denoted the policy variables with hats, $\hat{c}$, $\hat{a}prime$, $\hat{h}$. The continuation value function is now $\underbar{V}$ which is the policies of the sophisticated quasi-hyperbolic discounter but evaluated with the exponential discount factor, and is given by
+\begin{eqnarray*}
+ \underbar{V}(k,z,j)&=&\frac{\hat{c}^{1-\sigma}}{1-\sigma}  - \psi \frac{\hat{h}^{1+\eta}}{1+\eta}+ s_j \beta E[ \underbar{V}(\hat{a}prime,zprime,j+1)|z]
+\end{eqnarray*}
+
+
+\subsection{Life-Cycle model 37: Temptation and Self-Control (Gul-Pesendorfer Preferences)}
+Under standard preferences, more options is always better. Temptation is the idea that having more options can make you worse off, and self-control captures that you can resist that temptation at a cost. We
+
+We will use Life-Cycle Model 10, and simply change to temptation and self-control (Gul-Pesendorfer) preferences.
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime} \frac{c^{1-\sigma}}{1-\sigma} + v(c) -\max_{\hat{c}} v(\hat{c}) \\
+ && \quad \quad \quad \quad \quad \quad   + s_j \beta E[V(aprime,zprime,j+1)|z]\\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+where $v(c)$ is the 'temptation function'. Notice that we add $v(c)$ based on the same choices as for the value function, and at the same time we subtract the $\max_{\hat{c}} v(\hat{c})$ (note $\hat{c}$, which is entirely independent of $c$). The interpretation is that the $-\max_{\hat{c}} v(\hat{c})$ is the cost of the temptation coming from the most tempting alternative, and so $\max_{\hat{c}} v(\hat{c})-v(c)$ is the cost of resisting the temptation.
+
+Implementing this in the codes is just a matter of saying that you are using Gul-Pesendorfer preferences, \textit{vfoptions.exoticpreferences='GulPesendorfer'}, and then defining the temptation function $v(c)$ in the same manner as you would define the return function using \textit{vfoptions.temptationFn}. Note that the return function here remains just the $\frac{c^{1-\sigma}}{1-\sigma}$ (it does not include $v(c)$).
+
+We set the temptation function to be much the same as the return function, namely $v(c)=scaletempt*\frac{c^{1-\sigma_{tempt}}}{1-\sigma_{tempt}}$. You could use any function here, it is just easy to use the same as an example.
+
+For an explanation of how Gul-Pesendorfer preferences conceive of and implement temptation and self-control, see Appendix \ref{app:GulPesendorfer}.
+
+\subsubsection{Life-Cycle model 37B: Gul-Pesendorfer Preferences with Endogenous Labor}
+Adds Gul-Pesendorfer preferences to Life-Cycle Model 9 (except without warm-glow of bequests). Assumes that temptation is in consumption (and not in leisure).
+
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{hc,aprime} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + v(c) -\max_{\hat{c}} v(\hat{c}) \\
+ && \quad \quad \quad \quad \quad \quad   + s_j \beta E[V(aprime,zprime,j+1)|z]\\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z h\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& aprime\geq 0, \quad 0\leq h \leq 1 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+
+
+\subsection{Life-Cycle model 38: Loss Aversion (Prospect Theory)}
+Prospect Theory is a way to model loss aversion. With standard preferences people like gains, and dislike losses. Loss aversion is that people dislike losses more than they like gains. Losses and gains are defined relative to a 'reference point', and in our model the reference point is the lag of consumption. There are two keys to setting up loss-aversion: setting up the reference point as a 'residual asset', and using a specific return function so that there is loss-aversion relative to the reference point.
+
+First, we need to add the lag of consumption as an endogenous state, but it is a 'residual asset' in the sense that once we choose our other decisions and next-period endogenous states we have already residually determined next period consumption lag (which is of course just this period consumption). The codes take advantage of setting it up as a residual asset.
+
+Second, for to implementing prospect theory we need a period-utility which incorporates the loss-aversion relative to the reference point. We use the period-utility $U(c,c_{lag})$. This is built around the CES utility function $u(c)=\frac{c^{1-\sigma}}{1-\sigma}$. We define $\Delta=u(c)-u(c_{lag})$, so $\Delta \geq 0$ is a gain, and $\Delta <0$ is a loss.\footnote{It is important here that $u(c)$ is strictly monotone in $c$.} We then define period-utility as $U(c,c_{lag})=\theta u(c)+ (1-\theta) v(u(c)-u(c_{lag})$, where $v()$ implements the loss-aversion as  $v(\Delta)=(1-\exp{-\mu \Delta})/\mu$ for $\Delta \geq 0$, and $v(\Delta)=-\lambda (1- \exp{(\upsilon/\lambda)\Delta})/\upsilon$ for $\Delta < 0$. The parameter $\theta$ is the (inverse of the) importance of the loss aversion, relative to the standard utility. $\mu$ controls how quickly the sensitivity of gains decreases at the margin with larger gains (similarly for $\upsilon$ and losses). $\lambda$ indexes the degree of loss aversion, effectively determining the importance of losses relative to gains.
+
+\begin{eqnarray*}
+ V(a,c_{lag},z,j)&=& \max_{c,aprime} U(c,c_{lag})+ s_j \beta E[V(aprime,c,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+note that $c$ is equal to $c_{lag}'$, hence why it appears in next-period value function.
+
+Implementing this in the codes we need this second endogenous state, $c_{lag}$, but fortunately it is a 'residual asset'. We therefore set \textit{vfoptions.residualasset=1} and  \textit{simoptions.residualasset=1}. The return function and functions to evaluate take as inputs $(d,aprime,a,r,z,...)$ (omit $d$ if there isn't one). We also need to set up $rprimeFn$, see the codes for how this works, but the generate concept is that it should output the next period value of the residual asset, and that it takes as inputs $(d,aprime,a,z,...)$ (note, it does not depend on it's own present value).
+
+Note that from the perspective of the toolkit, loss-aversion is really just a specific setup for the return function (specically the utility function). Hence why we do not need to tell the toolkit that we are using prospect theory to implement the loss-aversion. We did need to use a residual asset to implement the reference point (that determines what is a loss/gain), but mathematically we could define the reference point however we like (obviously we want something economically reasonable); residual assets are not specific to prospect theory and can be used for various other purposes.
+
+
+\subsection{Life-Cycle model 39: Ambiguity Aversion}
+Risk is 'known unknowns', we know all the possible future states and assign a probability to each of them. Ambiguity aims to capture the idea of 'unknown unknowns', we still know all the possible future states, but we cannot assign a specific probability to each of them.
+
+In practice, ambiguity is modelled as 'multiple priors'. Each prior assigns (different) specific probabilities to each possible future state, and we then behave based on the 'worst case' (minimum) across our multiple priors. Notice that ambiguity aversion is solely about the way we form expectations about the future, the way the present is handled is unchanged.
+
+We will introduce ambiguity aversion to life-cycle model 21. The reason for this choice is that this model has a markov shock which is an earnings shock during working age, and then a medical shock during retirement. We will set it up so that the earnings shock is a risk, while the medical shock is an ambiguity. The trick is that risk is just one prior, and we can implement this by simply having all the multiple priors be identical. We set the number of priors for the ambiguity to three (\textit{vfoptions.n\_{}ambiguity}=3), and these priors differ for the medical shock so that is an ambiguity, but all three priors are identical for the earnings shock so that is a risk (we then show how you can refine this by setting an age-dependent vector for  \textit{vfoptions.n\_{}ambiguity} which speeds the computation).
+
+Our household problem is thus,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta   \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)   \\
+ && \quad \quad \quad \quad \quad \quad + s_j \beta \min_{\pi(z) \in \mathcal{P}} E^{\pi(z)}[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a -z +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& zprime=\pi_z(z), \text{  is a two-state markov}
+\end{eqnarray*}
+Observe how our expecations are now based on the minimum across the multiple priors $\min_{\pi(z) \in \mathcal{P}} E^{\pi(z)}[V(aprime,zprime,j+1)|z]$, where $\mathcal{P}$ is the set of multiple priors (in practice, different transition matrices for $z$). $E^{\pi(z)}$ denotes the expectation taken using the prior (transition matrix) $\pi(z)$. Note that during working age ($j<Jr$) $z$ is an employment/unemployment shock, while in retirement $z$ is a medical shock (at all ages it can take two values).
+
+Implementing this in the codes we first need to say that we are using ambiguity aversion by setting \textit{vfoptions.exoticprefererences='AmbiguityAversion'}. Then define the number of multiple priors as \textit{vfoptions.n\_{}ambiguity}. Lastly define the (different) transition matrices for each of the multiple priors in \textit{vfoptions.ambiguity\_{}pi\_{}z} (or \textit{vfoptions.ambiguity\_{}pi\_{}z\_{}J} if they depend on age). Note that you still need to define the 'true' process for $z$ in the standard manner (it is not used for the value function, but is used for simulation), and it is required by the codes that all of the multiple priors use the same grid as the true process.
+
+For an explanation of how Ambiguity Aversion works, see Appendix \ref{app:AmbiguityAversion}.
+
+
+
+

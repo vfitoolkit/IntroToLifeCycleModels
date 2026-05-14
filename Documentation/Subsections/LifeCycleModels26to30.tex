@@ -1,0 +1,131 @@
+\subsection{Life-Cycle model 26: More Permanent Types}
+There are lots of other things you can do with permanent types: different return functions, different number of periods, different exogenous shock processes, and much much more. Hopefully more examples coming soon :D
+
+If there is a particular thing you think would be good to see, please email or use forum:  \href{http://discourse.vfitoolkit.com/}{discourse.vfitoolkit.com}.
+
+The following Life-Cycle model 27 also uses permanent types, for the same purpose of modelling a fixed-effect as was seen in Life-Cycle model 24.
+
+\subsection{Life-Cycle model 27: Earnings Dynamics (Gaussian-Mixtures)}
+We will now solve an exogenous earnings Life-Cycle Model, but using a more sophisticated earnings process, which the empirical evidence suggests is a better fit for the data. Specifically we will add two features to the persistent AR(1) with a transitory i.i.d. normal that we have seen so far. These two features are: (i) use Gaussian-Mixture distributions instead of normal distributions, for both the i.i.d shocks and also for the innovations to the AR(1) shocks, and (ii) add a non-employment shock, which is a binary shock where one of the two values indicates non-employment.
+
+So this will be an exogenous labor-supply model (as the earnings themselves are exogenous), and will have two markov states ---the AR(1) with Gaussian-Mixture innovations, and the non-employment shock--- and one i.i.d state which has a Gaussian-Mixture distribution. The model additionally has a 'fixed effect' which is modelled as a permanent type, and involves different values of the parameter $\alpha$ which are normally distributed across agents. The parameter values for the process are taken from \cite*{GuvenenKarahanOzkanSong2021}; this is their 'Model 5'. Because their estimates are for ages 25-65, we also change the model to start at $j=1$ representing age 25.
+
+The household problem is,
+\begin{eqnarray*}
+ V(a,z1,\upsilon,e,j;i)&=& \max_{c,aprime} \frac{c^{1-\sigma}}{1-\sigma} + (1-s_j)\beta  \mathbb{I}_{(j>=J)} warmglow(aprime)  \\
+ && \quad \quad \quad \quad+ s_j \beta E[V(aprime,z1prime,\upsilon prime,eprime,j+1;i)|z1,\upsilon] \\
+&& \text{if }j<Jr: \; y=w (1-\upsilon) exp(\kappa_j \alpha_i z1 e) + ra \\
+&& \text{if }j>=Jr: \; y=ra\\
+&& incometax=\tau_1 + \tau_2 log(y) y\\
+&& \text{if }j<Jr: \; c+aprime=min(aftertaxincome,incomefloor) + a \\
+&& \text{if }j>=Jr: \; c+aprime=aftertaxincome + a +pension\\
+&& aprime\geq 0 \\
+&& log(z1prime)=\rho_{z} log(z1) + \epsilon, \; \epsilon \sim F_{z1,\epsilon} \\
+&& \upsilon'=pr(\upsilon'|\upsilon,z1) \\
+&& log(e) \sim F_e \\
+&& \alpha_i \sim N(\mu_{\alpha},\sigma_{\alpha}) \\
+&& warmglow(aprime)=wg1 (1+aprime/wg2)^{1-wg3})/(1-wg3)
+\end{eqnarray*}
+where $y$ is taxable income, $z1$ is an AR(1) with Gaussian-Mixture innovations, $\upsilon$ is a binary-valued non-employment markov shock ($0$ is employed, $1$ is non-employmed), $e$ is an i.i.d. Gaussian-Mixture distribution, $\alpha_i$ is a fixed-effect in (log) earnings. Notice that we make some other small changes, namely have progressive income taxes, and an income floor (which is mostly about income in the non-employment state), and we use a warm-glow of bequest function that results in bequests being an increasing function of wealth (so mean is larger than median; this functional form makes bequests a 'luxury good').
+
+The i.i.d. shocks $e$ are distributed according to $F_e$ which is a gaussian-mixture of two normals with probability $p_e$ of the first normal (and 1-$p_e$ of the second), and the first normal distribution is $N(\mu_{e,1}, \sigma_{e,1})$ and the second normal distribution is $N(\mu_{e,2}, \sigma_{e,2})$. We assume that the mean of the innovations is zero, which imposes that $p_e \mu_{e,1}+ (1-p_e)\mu_{e,2}=0$, which we can rearrange for $\mu_{e,2}$, so the parameters of $F_e$ are four: $p_e$, $\mu_{e,1}$, $\sigma_{e,1}$, and  $\sigma_{e,2}$.
+
+The innovations to the AR(1) process $z1$ are distributed according to $F_{z1,\epsilon}$ which is a gaussian-mixture of two normals with probability $p_{z1}$ of the first normal (and 1-$p_{z1}$ of the second), and the first normal distribution is $N(\mu_{z1,\epsilon,1}, \sigma_{z1,\epsilon,1})$ and the second normal distribution is $N(\mu_{z1,\epsilon,2}, \sigma_{z1,\epsilon,2})$. We assume that the mean of the innovations is zero, which imposes that $p_{z1}\mu_{z1,\epsilon,1}+ (1-p_{z1})\mu_{z1,\epsilon,2}=0$, which we can rearrange for $\mu_{z1,\epsilon,2}$, so the parameters of $F_{z1,\epsilon}$ are four: $p_{z1}$, $\mu_{z1,\epsilon,1}$, $\sigma_{z1,\epsilon,1}$, and  $\sigma_{z1,\epsilon,2}$. It is also assumed that in period 0, $z1$ is distributed as $N(\mu_{z1,0}, \sigma_{z1,0})$.
+
+Notice that the transition probilities for the non-employment shock, $\upsilon$, depend on both age and the current value of the AR(1) with Gaussian-Mixture innovations, $z1$. This is easy enough to do after we first discretize $z1$. The probability that $\upsilon_j$ equals 1 is given by $p_{\upsilon}(j,z_j)$; so $\upsilon_j=0$ with probability $1-p_{\upsilon}(j,z_j)$. This probability $p_{\upsilon}(j,z_j)$ depends both on age, and on the current value of the persistent shock $z_j$. We model the probability that $\upsilon_j$ equals 1 as $p_{\upsilon}(agej,z_j)=\frac{exp(\xi_{agej,z_j})}{1+exp(\xi_{agej,z_j})}$, where $\xi_{agej,z_j}=\xi_0+\xi_1 agej + \xi_2 z_j + \xi_3 agej z_j$. Here, $agej$ is the age that corresponds to the model period $j$, since our model starts in $j=1$ representing age 25, it follows that $agej=j+24$.
+
+After $z_j$ has been discretized this is simply a matter of creating a Markov process on $\upsilon_j$ that takes the values $0$ and $1$ and with the transition probabilities depending on $j$ and $z_j$. Creating this as a joint Markov on $(z_j,\upsilon_j)$ is 'trivial' once $z_j$ has already been created; 'trivial' is of course conditional on a solid understanding of discrete Markov processes. For more on how to handle models with multiple shocks, and allowing for things like shocks to be correlated, see Appendix \ref{app:exogshocks}.
+
+Summarizing, we can discretize the fixed-effect $\alpha_i$ using the Farmer-Toda method, discretize i.i.d. gaussian-mixture $e$ with the Farmer-Toda method, and discretize the AR(1) with gaussian-mixtures (and an initial normal distribution in period 0) $z1$ using $KFTT$ ($KFTT$ is, like Farmer-Toda, an extension of the Tanaka-Toda method). Once we discretize $z1$ the discretization of $\upsilon$ is 'trivial' (it is a bit of a complicated process, but in principle every step is trivial). Other than the earnings process, the rest of this model is just a simple exogenous labor supply life-cycle model.
+
+
+\subsection{Life-Cycle model 28: Two decision variables (dual-earner household)}
+We solve a model of a household in which there are two people (e.g., a married household). They make a joint decision about how much each will work. This involves two decisions variables for the two labor supply choices. We will set up each household member to have effective hours shocks that are a combination of one AR(1) persistent shock and one i.i.d. shock (as in Life-Cycle model 11), for each person (so two of each for the household). We will also allow for correlation between the persistent shocks of the two household members, and for correlation between the transitory shocks of the two household members. We will also allow different deterministic age-dependent labor efficiency units, $\kappa_j$, for each spouse.
+
+Our household value function now has $z1$ and $e1$ for the first spouse, and $z2$ and $e2$ for the second spouse. We also have $\kappa_{j,1}$ and  $\kappa_{j,2}$. We add a disutility term for each spouses labor supply, but the household has joint consumption.
+\begin{eqnarray*}
+ V(a,z_1,z_2,e_1,e_2,j)&=& \max_{c,aprime,h_1,h_2} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h_1^{1+\eta}}{1+\eta}- \psi \frac{h_2^{1+\eta}}{1+\eta} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime) \\
+ && \quad \quad \quad \quad+ s_j \beta E[V(aprime,z_1prime,z_2prime,e_1prime,e_2prime,j+1)|z_1,z_2] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_{j,1}  z_1 e_1 h_1+w \kappa_{j,2}  z_2 e_2 h_2 \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& log([z_1prime; z_2prime])=\rho_{z} log([z_1; z_2]) + \epsilon, \; \epsilon \sim N(0,\Sigma_{\epsilon,z}^2) \\
+&& log([e_1,e_2) \sim N(0,\Sigma_{e}^2)
+\end{eqnarray*}
+Notice that $[z_1,z_2]$ is VAR(1) (in logs) and $[e_1,e_2]$ is i.i.d. normal (in logs).
+
+We are allowing for $z_1$ and $z_2$ to follow a VAR(1) (so both $\rho_z$ and $\Sigma_{\epsilon,z}$ are 2-by-2 matrices). We do not require that $\Sigma_{\epsilon,z}$ be diagonal, so the innovations themselves can be correlated. We similarly allow for $e_1$ and $e_2$ to be correlated (so $\Sigma_{e}$ is not diagonal).
+
+Correlated shocks, which use jointly-determined grids, are explained in Life-Cycle model A9.
+
+This model demonstrates how to use two decision variables, you need to put them as the first two entries to the ReturnFn and also to all FnsToEvaluate. The model output includes calculating the life-cycle labor supply for each spouse seperately, as well as the total household labor supply.
+
+A common variation of the model used in practice would add a fixed cost of working (e.g., $-\mathbb{I}_{h_2>0}*fc$, where $fc$ is a constant) to capture that the second spouse in many households will sometimes supply zero labor.\footnote{Because we have $0\leq h_2 \leq 1$ together with the shape of the utility function it would never be optimal to set $h_2=0$ in the absence of a fixed cost of working non-zero hours.} Note that implementing this is just a simple modification of the ReturnFn.
+
+Because the household has two labor supply decisions the two spouses are able to insure each other against poor labor market outcomes. This is known as 'intra-household' insurance. If you are interested in this kind of model, see \cite*{OrtigueiraSiassi2013}.
+
+
+\subsection{Life-Cycle model 29: Semi-exogenous state (fertility and children)}
+We will modify Life-Cycle model 9 to include a fertility decision and children. This involves adding one decision variable, the fertility, and two semi-exogenous states, the number of infants and the number of children. A semi-exogenous state is an exogenous state the transition probabilities of which depend on a decision variable.\footnote{Not to be confused with a semi-endogenous state, which is an exogenous state the transitions of which depend on an endogenous state. The difference is dependence on an endogenous state versus dependence on a decision variable.} In our case, the transitions around how many infants the household has will depend on the fertility decision.
+
+The modifications to the state variables from Life-cycle model 9 are thus to add a fertility decision, $f$, which takes the values of zero or one. A semi-exogenous state $n_1$, which is the number of infants and takes the values of zero or one. A second semi-exogenous state $n_2$, which is the number of children and can take the values 0,1,2,3.\footnote{This could go higher than 3. When we define the actual transition probabilities you will see that $n_2$ is actually exogenous, but because it will depend on $n_1$ and because $n_1$ is semi-exogenous it 'inherits' this semi-exogeneity from the perspective of the codes.} Let's see the household problem, and after that we will discuss the semi-exogeneity.
+
+Households have children because they like them, that is they get utility directly from the presence of children. We use the functional form $\eta_1 \frac{exp(j-\eta_3)}{(1+exp(j-\eta_3))} (\bar{n} + n)^{\eta_2}$, notice that this depends on age and $\bar{n}$ acts as the desired number of children. Models of this kind often include things about the time required to look after the infant and the cost of childcare if working, and these just involve small changes to the return function.
+
+Our household value function is now,
+\begin{eqnarray*}
+ V(a,n_1,n_2,z,j)&=& \max_{c,aprime,h,f} \frac{(c/equiv)^{1-\sigma}}{1-\sigma} - \psi \frac{(h+infantcaretime)^{1+\eta}}{1+\eta} + \eta_1 \frac{exp(j-\eta_3)}{(1+exp(j-\eta_3))} (\bar{n} + n)^{\eta_2} + \\
+ && \quad \quad \quad \quad \quad \quad (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)    \\
+ && \quad \quad \quad \quad \quad \quad  + s_j \beta E[V(aprime,n_1 prime, n_2 prime, zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z h-childcarecosts \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension \\
+&& equiv=equiv_1 n_1+equiv_2 n_2 \\
+&& infantcaretime=h_c n_1 \\
+&& childcarecosts=childcarec (h>0) n_1  \\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+where $equiv$ is a household consumption equivalence scale (scales down the utility of consumption based on the number of people in the households). Notice that $n_1$ and $n_2$ are part of the state space, and $f$ is added to the decision variables. Infants require the household to decicate some of their time ($infantcaretime$), and if they work ($h>0$) while they have an infant there are child care costs ($childcarecosts$).
+
+We first discuss semi-exogeneity in terms of this application, and then give a more general mathematical description. We have two semi-exogenous variables $n_1$ and $n_2$ whose transition probabilities depend on the fertility decision $f$. The idea is that $n_1$ is the number of infants, and if it is currently zero later period and the household is not trying to have a child ---the fertility decision $f$ equals zero--- then the number of infants next period is zero. If however the number of infants is zero and the fertility decision equals one, then the household will succeed in having an infant next period with probability $probofbirth_j$ (and remain with zero infants next period with probability $1-probofbirth_j$). Hence the transition probabilities for the semi-exogenous state $n_1$ depend on the value of the decision variable of fertility. Notice that the probability of birth depends on age $j$. The rest of relatively exogenous and simply inherits the semi-exogeneity from the part we just described: if the household already has an infant, $n_1=1$, then that infant becomes a child (adding one to $n_2$, and subtracting one from $n_1$) with probability $probofchild$. Children, $n_2$, become adults with probability $probofadult$, which has the effect of substracting one from $n_2$.
+
+To set up the semiexogenous variables in the code we have a few steps: (i) define in $vfoptions$ the fields $n\_{}semiz$, $semiz\_{}grid$, and $SemiExoStateFn$, setting up the first two of these is fairly standard (ii) set up $SemiExoStateFn$, which takes the inputs of $(semiz,semizprime,d,...)$ and returns the transition probability for the next period $semizprime$ given this period $semiz$ and the decision $d$ as well as any parameters. We only tell the codes about the semi-exogenous states, here $n_1$ and $n_2$, but not explicitly about the relevant decision variable, here $f$. VFI Toolkit is hard-coded to assume that the 'last' decision variable is the one that is relevant to the semi-exogenous states (if these are being used in $vfoptions$). (iii) We also need to set up the same three fields in $simoptions$.  (iv) The ordering of the inputs to the return function are: $(d,aprime,a,semiz,z,e,...)$, although of course the current problem does not use any $e$ variables, I just mention them to be comprehensive.\footnote{The ordering of inputs for any functions to evaluate are the same, $(d,aprime,a,semiz,z,e,...)$.}
+
+From the mathematical perspective when happends is VFI Toolkit treats $semiz$ variables the same as $z$ variables for things like evaluating the return function, but then for computing expectations or the agent distribution it creates a large transition matrix for the $semiz$ corresponding to each possible value of the 'last' decision variable. Hence from the perspective of solving models, any situation in which you have $Pr(semiz'|semiz,d)$ can be solved using VFI Toolkit with a semi-exogenous shock. That is, any time you have a 'exogenous variable whose transition probabilities depend on a decision variable'. The key limitations are that the next period value of the semi-exogenous variable cannot appear in the return function, and that it is a decision variable (not an endogenous state variable) on which the transition probabilities depend.\footnote{For example, another application would be an employed/unemployed/out-of-labor-force semi-exogenous state, where the transition probabilties depend both of the previous value of this semi-exogenous state and on a decision variable about how hard to search for a job.}
+
+At the bottom of the codes after the model is solved it shows what the transition matrix that is created internally, with transition probabilities from $semiz$ to $semizprime$ which depend on $d$, look like. This might help you understand exactly what it is and is not capable of.
+
+
+
+\section{Solving Models Faster!}
+\subsection{Life-Cycle model 30: Exploiting Monotonicity for Faster Solutions (Divide-and-Conquer)}
+No actual model. Instead just add a single line of code to any of the Life-Cycle Models we have seen so far, namely
+\\ \textit{vfoptions.divideandconquer=1}
+and as a result, it solves more than twice as fast! In fact the model also uses less GPU memory when solving, meaning it is not only faster, but that you can solve bigger models on a given GPU!\footnote{Because of how GPUs parallelize there is an exception, namely for very small models it may actually be slower.}
+
+Divide-and-conquer works by exploiting the monotonicity of the policy function, that is, it is exploits that $aprime(a)$ is a monontone increasing function (that next periods choice of endogenous state is a monotone increasing choice of this periods endogenous state). This is a property that almost all Economic models satisfy, although there are some expections.
+
+In practice, you would want to set \textit{vfoptions.divideandconquer=1} in every single one of the models we have seen. These models all satisfy the monotonicity assumption, and we can solve them faster by exploiting this property. The reason that using divide-and-conquer is not on by default is there are some non-monotone models, and so it is important that you think about whether your model is monotone before you activate \textit{vfoptions.divideandconquer=1}.
+
+Divide-and-conquer in VFI Toolkit works in two 'layers'. \textit{vfoptions.level1n=11} is the number of points (in the grid on this period endogenous state) used in the first layer. If you increase/decrease this number you can make the codes go faster still (the best number depends heavily on the model, so you just have to play around with it (the speed gains are modest compared to turning on divide-and-conquer, so you can just leave it at default value unless you really do need the speed).
+
+If you are unsure if your model satisfies the monotonicity assumption, you have two options: (i) sit down and think carefully through the equations, (ii) run the model twice with \textit{vfoptions.divideandconquer=0} and \textit{vfoptions.divideandconquer=1} and check that both give identical answers (which they only will if the model is monotone; if the answers differ the model is non-monotone and only the \textit{vfoptions.divideandconquer=0} answer is correct). Obviously the first of these is the more through and better, but the second is very easy and convenient (albeit not completely certain).
+
+For a more comprehensive explanation of what divide-and-conquer is and what exactly the technical monotonicity assumption involves, see:
+\href{http://discourse.vfitoolkit.com/t/divide-and-conquer-solve-one-endogenous-state-models-faster/265/39}{http://discourse.vfitoolkit.com/t/divide-and-conquer-solve-one-endogenous-state-models-faster/265/39}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

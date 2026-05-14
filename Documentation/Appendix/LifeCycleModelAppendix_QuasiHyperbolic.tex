@@ -1,0 +1,39 @@
+% \section{Quasi-Hyperbolic Discounting}
+\label{app:QuasiHyperbolic}
+Quasi-hyperbolic preferences are a tractable way to model 'impatience', with the present-self taking decisions that are not in the interest of their own future-self. The standard way to discount the future is exponential discounting, which uses the same discount factor $\beta$ between any two consecutive periods. Quasi-hyperbolic discounting involves two discount factors, $\beta_0$ which is used as the additional discount factor between the current period and the next period, and $\beta$ which is used as the discount factor between any two consecutive periods; so the discount factor between the current period and the next period is $\beta_0 \beta$.\footnote{We use $\beta_0 \beta$ as the discount rate between this period and next period, rather than just some $\alpha \equiv \beta_0 \beta$ because this notation becomes much more convenient when we want to look at, e.g., life-cycle models where there is a probability of dying; especially in terms of writing the codes. Note that papers that look at theory on Quasi-Hyperbolic discounting in simple models often just use one parameter to control this period to next period, e.g., $\alpha \equiv \beta_0 \beta$.} The concept of hyperbolic discounting has a long heritage, and the tractable case of quasi-hyperbolic was popularised (not introduced) in \cite*{Laibson1997}. Let's introduce the idea using a four period model. I first will describe quasi-hyperbolic here in a deterministic setting (without uncertainty), and then switch to a stochastic setting when switching to recursive notation
+
+In a four period model with standard exponential discounting
+\begin{equation}
+ u(c_1)+\beta u(c_2) +\beta^2 u(c_3)+\beta^3 u(c_4) \label{eqn:expdiscount}
+\end{equation}
+Notice how $\beta$ is used as the discount rate between periods one-and-two as well as between periods two-and-three and three-and-four. In contrast quasi-hyperbolic discounting uses $\beta_0 \beta$ between periods one-and-two, but then uses $\beta$ between periods two-and-three and three-and-four. Thus our four period model with quasi-hyperbolic discounting becomes
+\begin{equation}
+ u(c_1)+\beta_0 \beta u(c_2) +\beta_0  \beta^2 u(c_3)+ \beta_0 \beta^3 u(c_4) \label{eqn:qhdiscount}
+\end{equation}
+Because we have not fully specified the optimization problem (what is being choosen, just $c_1$? or also $c_2$, $c_3$, \& $c_4$?) it is not so obvious in this formulation that there are two types of quasi-hyperbolic discounter: naive and sophisticated. A \textit{naive} quasi-hyperbolic discounter assumes that their future self will not be impatient even though their present self is (their future self is using exponential discounting). A \textit{sophisticated} quasi-hyperbolic discounter; one who realises that their future self will also behave impatiently by discounting in a quasi-hyperbolic manner. This will be much clearer when we now switch to recursive notation and write out the optimization problem in full.
+
+We now express the same thing in recursive notation, but adding stochastics ($z$ and the expectations). We have that standard exponential discounting can be expressed as the value function
+\begin{equation} \label{eqn:naive1}
+    V(a,z)=max_{c,a' \in D(a,z)} u(c)+\beta E[V(a',z')]
+\end{equation}
+where $a$ is an endogenous state, and $z$ is an exogenous stochastic state. $c$ and $a'$ are constrainted to be in some feasible decision space $D(a,z)$. In finite time $V(a',z')$ would be next period value function and so not the same as $V(a,z)$, in infinite time they are the same.
+
+We can express naive quasi-hyperbolic discounting in terms of the exponential discounting solution. Let $\tilde{V}$ be the value function of the naive quasi-hyperbolic discounter, then
+\begin{equation} \label{eqn:naive2}
+    \tilde{V}(a,z)=max_{c,a' \in D(a,z)} u(c)+\beta_0 \beta E[V(a',z')]
+\end{equation}
+notice how the expected next-period value function is that of the behavior of the exponential discounter, who the naive quasi-hyperbolic discounter (incorrectly) believes they will act like. We call $V$ the 'continuation value' of the naive quasi-hyperbolic discounter.
+
+The sophisticated quasi-hyperbolic discounter understands that their future self will behave as a quasi-hyperbolic discounter. Let $\hat{V}$ be the value function of the sophisticated quasi-hyperbolic discounter, then
+\begin{equation} \label{eqn:sophisticated1}
+    \hat{V}(a,z)=max_{c,a' \in D(a,z)} u(c)+\beta_0 \beta E[\underbar{V}(a',z')]
+\end{equation}
+and the argmax of this same expression gives the (optimal) policies $\hat{c}$ and $\hat{a}'$. Using $\hat{c}$ and $\hat{a}'$ we get the definition of $\underbar{V}(a,z)$ as
+\begin{equation} \label{eqn:sophisticated2}
+    \underbar{V}(a,z)= u(\hat{c})+\beta E[\underbar{V}(\hat{a}',z')]
+\end{equation}
+note that to compute this we will need, given next period $\underbar{V}$, to first get current period $\hat{V}$ and $\hat{c}$ and $\hat{a}'$ from equation (\ref{eqn:sophisticated1}), and then use these in equation (\ref{eqn:sophisticated2}) to calculate the current period $\underbar{V}$. We call $\underbar{V}$ the 'continuation value' of the naive quasi-hyperbolic discounter.\footnote{One way to see is going on with the continuation value of the sophisticated quasi-hyperbolic discounter is to return our trivial example of $u(c_1)+\beta_0 \beta u(c_2) +\beta_0  \beta^2 u(c_3)+ \beta_0 \beta^3 u(c_4)$, and rewrite this as $u(c_1)+\beta_0 \beta [u(c_2) +\beta u(c_3)+ \beta u(c_4)]$, now we can see that we have the current problem $u(c_1)+\beta_0 \beta 'continuation \, value'$, and the continuation value is $u(c_2) +\beta u(c_3)+ \beta u(c_4)$  which only uses $\beta$ and for the sophisticated agent they know that this continuation value, their $underbar{V}$, is based on the actions that an impatient agent will take (the 'hat' policies).}
+
+Notice that standard exponential discounting is nested as the case $\beta_0=1$, and quasi-hyperbolic discounting involves $0<\beta_0<1$. For infinite horizon models $0<\beta<1$, but for finite horizon models with a probability of dying it can sometimes be greater than 1.
+
+Quasi-hyperbolic preferences are time-inconsistent preferences.

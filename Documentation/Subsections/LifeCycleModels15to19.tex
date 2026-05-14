@@ -1,0 +1,181 @@
+
+\subsection{Life-Cycle model 15: Consumption and Borrowing Constraints 1}
+We will use our models to look at how borrowing constraints impact consumption when young. Households would like to smooth consumption over their lifetime (based on life-cycle permanent income hypothesis). But earnings have a hump-shape. So households want to save some income from the 'hump' to consume in retirement, which is easy enough. They also want to bring some income from the 'hump' forward to when they are young, which requires borrowing. But they are unable to borrow due to borrowing constraints when young. So consumption is lower when young, and more importantly the marginal utility of consumption when young is higher, and marginal propensities to consume are also higher when young.
+
+We will use a simple life-cycle model with exogenous labor, no idiosyncratic shocks, and we will make the life-cycle profile of labor producitivity units very step to really make the borrowing constraint bind strongly when young.
+\begin{eqnarray*}
+ V(a,j)&=& \max_{c,aprime} \frac{c^{1-\sigma}}{1-\sigma} + \beta V(aprime,j+1) \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1 \\
+&& aprime \geq borrowingconstraint
+\end{eqnarray*}
+notice that labor earnings is now $w \kappa_j$, which is exogenous so you could equally call it 'endowment' or exogenous income.
+
+The code sets a parameter called 'borrowconstraint' that you can change to see how the borrowing constraint matters. There are life-cycle profiles of consumption and marginal utility consumption and you can see how the borrowing constraint causes a 'jump' in consumption because people cannot borrow and consume as much as they would like. You can also see that the borrowing constrained have a very high marginal utility of consumption. As a result there are large welfare gains for the household from anything that loosens the borrowing constraint (whether it is being able to borrow more, lump-sum transfers, etc.). The borrowing constrained household would also consume any extra income and so has a high marginal propensity to consume (how high depends on how long borrowing constraint is expected to continue binding).
+
+Note that all of our models until now have had a borrowing constraint, namely $aprime\geq 0$. This was enforced via the grid on assets which had a minimum value of zero, meaning that choosing less than zero assets was simply not possible. To implement the present model we have to set a lower minimum point on the grid on assets, and we could either use that implicitly, or do as the codes have here and add a parameter called 'borrowconstraint' that imposes a tighter borrowing contraint via the return function (note that the parameter must be greater than or equal to the minimum point on the asset grid else it is not relevant). It is worth mentioning that it is 'not possible' to have a model without a borrowing constraint, in the sense that in the absence of a borrowing constraint optimial behaviour would be to borrow an infinite amount, consume it all, and die in infinite debt; mathematically this is of course possible, I say not possible in the sense you would never actually want to use that model.
+
+
+\subsection{Life-Cycle model 16: Consumption and Borrowing Constraints 2}
+We will look at how stochastic shocks mean borrowing contraints can sometimes bind when shocks are 'bad', and what this means for consumption. We use Life-Cycle Model 9, which had an AR(1) idiosyncratic shock process, except we will use just 5 states to discretize it so as to make it easier to see 'bad' shocks.\footnote{Just 5 points will provide a poor approximation to the AR(1) process, we use just five points purely to make it easier to illustrate.}
+
+In stochastic models borrowing constraints often bind after a series of 'bad' shocks. They don't bind most of the time, nor for most households, so looking at life-cycle profiles is not a good way to see them. Two options are possible: (i) we could simulate households that get a series of bad shocks and see them run up against the borrowing constraints, or (ii) we could run regressions. We will take the first approach here.
+
+For the panel data, we first simulate a panel data set and then look for candidate households for whom the borrowing constraints are likely to bind, that is, households who have a run of bad shocks. To make it clearer we first look for households that have median or better shocks in the first 15 periods, so that they mostly get away from the borrowing constraints, and then narrow our search to those who have 7 or more bad shocks in periods 16-25. This defines our candidate households. We plot the first 30 periods for ten of these candidate households (the ten are arbitrarily selected from among all candidate households) and for these we plot the consumption, the marginal utility of consumption, and next period assets. You can see in Figure 3 how the households during periods 16-25 run into the borrowing constraint as a result of the bad shocks, and as a result their consumption is low and their marginal utility of consumption is high.
+
+Note that the reason households do not like running into borrowing constraints ---because it forces them to cut consumption more than they would otherwise like--- is exactly the same in this model as in the previous Life-Cycle Model 15, what differs is just the reason that the borrowing constraints bind.
+
+To emphasise that the borrowing constraints bind for a different reason to what happened in Life-Cycle Model 15 we flatten the earnings profile to largely eliminate what drove them in that model.
+
+\subsection{Life-Cycle model 17: Precautionary Savings (with exogenous earnings)}
+We have already seen how the binding of borrowing constraints can force households to reduce consumption, and in particular how this leads to a large increase in the marginal utility of consumption. Households want to avoid this situation of binding borrowing constraints, and so they engage in 'precautionary savings': savings that are 'higher' than they would otherwise be so as to avoid the probability of the borrowing constraints binding.\footnote{Note that precautionary savings is a phenomenon of stochastic models: precautionary savings are savings to avoid the chance of a borrowing constraint binding that the household. In a deterministic model households know for a fact that borrowing constraints will or will not bind. In a stochastic model a household can do precautionary savings, get good shock outcomes that means the household never end up in a situation where the borrowing constraint would bind, and now have ended up saving more than they would would like ex-post. In a deterministic model it is not possible to choose savings optimally ex-ante that you end up regretting as overly cautious ex-post.}
+
+We use the exact same model from Life-Cycle Model 10, and then solve it a second time, which we call the 'no shock' version, in which $z=1$ (rather than an AR(1) process in logs). We will use just 3 states to discretize it so as to make it easier to see how the savings policies differ.\footnote{Just 3 points will provide a poor approximation to the AR(1) process, we use just three points purely to make it easier to illustrate. We do make one other change from Life-Cycle Model 10, namely we make the initial age j=1 distribution of agents have zero assets (as before) and the stationary distribution of shocks (previously just the median), this is so the life-cycle profile of mean earnings is exactly equal in the models with and without shocks; the difference is very small.}
+
+How to see precautionary savings? We take three approaches: (i) savings policy functions, (ii) life-cycle profiles, (iii) aggregate assets.
+
+We start with the savings policies. Figure 1 shows how households in the model with the median shock value and low asset holdings\footnote{Note that the graph zooms in on low asset holdings, as seen by the x-axis.} choose to save more, for precautionary reasons, than households in the model without shocks. This is true even though the median shock is actually slightly lower earnings than the model without shocks (0.9976 vs 1). The top panel of Figure 2 shows the period before retirement in which there are no future shocks and so no precautionary savings motive,\footnote{Shocks are only relevant during working age as they are to labor producitivity units, and retirees never work.} you can see that now the households with the median shock actually save less than those with no shocks (because of the 0.9976 vs 1 earnings mentioned before). The other panels of Figure 2 show that in retirement, because shocks are now irrelvant the households all make the exact same decisions (multiple lines are plotted, but you can only see one as they are all on top of each other).
+
+We look at life-cycle profiles in Figure 3. Those on the left are with shocks, on the right are without shocks; except the bottom row that shows those with shocks minus those without shocks. Looking at the bottom-left panel we confirm that there is no difference in mean earnings for households in the models with and without shocks (is just the left panel of top row minus the right panel of top row); this is just to confirm that any savings differerences are not coming from differences in mean earnings. In the bottom-right panel we see the precautionary savings: households with shocks have higher assets than households without shocks. We can also see how the precautionary savings interact with the life-cycle consumption-smoothing motives we discussed in Life-Cycle Model 15. When households are young the life-cycle consumption-smoothing motives dominate and no households save any assets (see panels in second row); the precautionary savings motives are there, but they are overwhelmed. Later in working age the life-cycle consumption-smoothing motives largely disappear (in sense of keeping assets at zero) and we can see the precautionary savings in the bottom-right panel with households that face earnings risk holding more assets tha households that do not face any shocks.
+
+Our final look at precautionary savings comes from looking at aggregate assets ---the total assets held by all households added up across the stationary distribution--- where we can see that assets are higher for the households with shocks than for the households without shocks. We don't use these 'aggregates' much in life-cycle models as they make more sense when thinking about the economy as a whole, but this idea that households will with precautionary savings save up more assets is very important in general equilibrium models of incomplete markets, an idea we will discuss later. The aggregate assets are printed to the screen when you run the codes.
+
+\subsection{Life-Cycle model 18: Precautionary Savings with Endogenous labor}
+Precautionary savings are one way to avoid the binding of borrowing constraints. An alternative is to adjust labor supply; working more to avoid hitting borrowing constraints. So models with endogenous labor supply have lower amounts of precautionary savings. We will use Life-Cycle Model 9, but discretizing AR(1) process on $z$ using just three shocks values to make things clearer.
+
+Note that while endogenous labor will reduce precautionary savings this is not the only effect it will have on savings, because it will also interact with life-cycle motives for savings; for example, households can choose to work more when they reach higher earnings levels during middle age and do all their saving for retirement then, which would do some combination of reducing assets when young (although most households don't save when young and are already up against their borrowing constraints) and increasing the asset levels in middle-age that they carry over into retirement. As a result whether endogenizing labor supply results in higher or lower levels of assets overall depends on various factors; especially, the utility of leisure and the form of the utility function.
+
+Too see all of this we will solve the model four times. First we solve the model with endogenous labor and exogenous shocks, second we solve the model with endogenous labor and no shocks, third we solve the model with exogenous labor and exogenous shocks, and fourth we solve the model with exogenous labor and no shocks.
+
+Comparing the model with endogenous labor and shocks to the model with endogenous labor without shocks we can see that there are precautionary savings as a result of shocks, seen, e.g., in the higher aggregate capital/income ratio in the model with shocks (see the numbers printed to screen). We can also see how agents near the borrowing constraint (low assets) chose to work more hours as a way to avoid the budget constraint. In period $j=1$ households are trying to escape the borrowing constraint mostly for life-cycle reasons, so there is little difference between the models with and without shocks in the top panel of Figure 4. By constrast by age $j=20$ the borrowing constraints are mostly about bad shocks, and so we can see how the model with shocks alway results in more labor supply at low assets levels compared to the model without shocks (life-cycle motives also play a role). You can see how this use of precautionary labor supply is often enough to actually reduce savings relative to the model without shocks; top panels of Figures 1, 2 and 3. This is partly because precautionary labor reduces demand for precautionary savings, and partly because of how it changes life-cycle motives.
+
+If we now compare the model with endogenous labor and exogenous shocks to the model with exogenous labor and exogenous shocks we can see that in our current calibration endogenizing labor leads to an increase in savings; e.g., by comparing capital/income ratios. Note that this varies over the life-cycle, you can see how endogenous labor supply decreases savings at ages $j=1$ (bottom panel of Figure 1) and $j=20$ (bottom panel of Figure 2), but for life-cycle motives actually increases savings at age $j=40$ (bottom panel of Figure 4). This is because the reduced precautionary savings are more than offset by the increased saving for life-cycle motives at young ages, but then the life-cycle motives go towards higher savings, adding to the precautionary savings motive, at middle age. This provides a good example of how there are often various effects of any model changes working in different directions and it is rarely clear beforehand which will dominate.
+
+To ease the comparison of results between the model with endogenous labor supply and that with exogenous labor supply we have normalized earnings in the later so that both have the same aggregate (mean) earnings. The reason is as follows: note that for exogenous labor earnings is $w \kappa_j z$, while with endogenous labor earnings is $w \kappa_j z h$, and $0 \leq h \leq 1$, so earnings will be lower in the model with exogenous savings.\footnote{We could try and deal with this by looking at aggregate capital/income ratios, but this is not a full fix as there would still be income effects that may be playing a substantial role. By normalizing mean earnings we substantially reduce these other channels.} We can do this be simply adding a parameter to earnings in the exogenous labor model, so that earnings are now $\phi_{normalizemeanearnings} w \kappa_j z$. By
+setting $\phi_{normalizemeanearnings}$ equal to the mean earnings in the model with endogenous labor divided by the mean earnings in the model with exogenous labor we will give both the models the same mean earnings.\footnote{Because we are doing this to the model with exogenous labor supply we don't need to worry about how people react in determining mean earnings. To find this $\phi_{normalizemeanearnings}$ we would first just solve both models with $\phi_{normalizemeanearnings}=1$ and then calculate the appropriate $\phi_{normalizemeanearnings}$.}
+
+This exercise of endogenous labor supply reducing precautionary savings is much cleaner in an infinite-horizon (and general equilibrium) model \citep*{PijoanMas2006}, where there are no life-cycle considerations.
+
+
+
+\subsection{Life-Cycle model 19: Incomplete Markets}
+We saw how borrowing constraints and idiosyncratic shocks together lead to precautionary savings. There is an important third aspect to this that was 'hidden' in the background: incomplete markets. Loosely speaking, complete markets is the presence of perfect insurance which all households buy and therefore the idiosyncratic shocks they later receive are irrelavant as they are perfectly insured against them. With complete markets, because households perfectly insure themselves, there is no meaningful inequality; no meaningful distribution of households.
+
+If we wanted to create a life-cycle model in which there was an exogenous shock that takes two values we would need two assets (one of which pays out in the case the shock takes the first value, the second asset pays out in the case the shock takes the second value), and so we won't attempt to do that here.
+
+Instead we will solve a two period model and show how briefly the idea of how complete and incomplete markets relate. We start with a deterministic two-period model, then add shocks in the second period. We end with a brief discussion of how Representative Agents are related to complete markets models. Note that all the models being solved elsewhere in this document (and more generally, in essentially all of the heterogenous agent model literature) are incomplete markets models.
+
+Let's start with a simple two-period deterministic model. The household solve the following maximization problem,
+\begin{eqnarray*}
+ \max_{\{c_1,c_2,a\}} u(c_1)+\beta u(c_2) \\
+ \quad \text{s.t. } c_1+a=y_1 \\
+ \quad \quad c_2=(1+r)a+y_2
+\end{eqnarray*}
+We can solve this using the Lagrangian method. First write the Lagrangian,
+\begin{equation*}
+ \mathcal{L}(c_1,c_2,a,\lambda_1,\lambda_2)= u(c_1)+\beta u(c_2) + \lambda_1(y_1-c_1-a)+\lambda_2((1+r)a+y_2-c_2)
+\end{equation*}
+The first-order conditions of this are
+\begin{eqnarray*}
+ \frac{\partial \mathcal{L}}{\partial c_1}=0; \quad u'(c_1)+\lambda_1(-1)=0 \\
+ \frac{\partial \mathcal{L}}{\partial c_2}=0; \quad \beta u'(c_2)+\lambda_2(-1)=0 \\
+ \frac{\partial \mathcal{L}}{\partial a}=0; \quad \lambda_1(-1)+\lambda_2 (1+r)=0 \\
+ \frac{\partial \mathcal{L}}{\partial \lambda_1}=0; \quad c_1+a=y_1 \\
+ \frac{\partial \mathcal{L}}{\partial \lambda_2}=0; c_2=(1+r)a+y_2
+\end{eqnarray*}
+From the first three of these we get
+\begin{equation*}
+ u'(c_1)=\beta (1+r) u'(c_2)
+\end{equation*}
+Purely to make it easier to see how this compares to what we will do next let $\beta (1+r)=1$ to get,\footnote{In a Representative Agent model it is typically true that $\beta (1+r)=1$ in general equilibrium.}
+\begin{equation*}
+ u'(c_1)=u'(c_2)
+\end{equation*}
+Because there is one asset it is possible to shift consumption between the two periods and equate the marginal utitlities. Complete markets are key to this as we will see in the next two examples.
+
+Now, we will introduce a shock, $z$, in the second period that takes on of two possible values $z_1$ or $z_2$. Let $p$ be the probability of $z=z_1$, so then $1-p$ is the probability of $z=z_2$. What we are about to solve is an $in$complete market model; we will explain later why this is incomplete markets. The household problem is,
+\begin{eqnarray*}
+ \max_{\{c_1,c_2(z_1),c_2(z_2),a\}} u(c_1)+\beta [p u(c_2(z_1)) +(1-p)u(c_2(z_2))]\\
+ \quad \text{s.t. } c_1+a=y_1 \\
+ \quad \quad c_2(z_1)=(1+r)a+y_2(z_1) \\
+ \quad \quad c_2(z_2)=(1+r)a+y_2(z_2)
+\end{eqnarray*}
+where $c_2(z_1)$ is consumption in the second period when $z=z_1$, $c_2(z_2)$ is consumption in the second period when $z=z_2$. Notice that the difference caused by the shock is that the income/endowment is $y_2(z_1)$ vs $y_2(z_2)$; so we can think of the shock as being low/high earnings. We will assume, without loss of generality, that $y_2(z_1)<y_2(z_2)$. Notice how the asset $a$ allows us to shift consumption between period one and period two, but there is no way to shift consumption between the two states/shocks in period two; this is the incomplete markets. Writing the Lagrangian we get,
+\begin{eqnarray*}
+ \mathcal{L}(c_1,c_2(z_1),c_2(z_2),a,\lambda_1,\lambda_2,\lambda_3)= u(c_1)+\beta [p u(c_2(z_1)) +(1-p)u(c_2(z_2))] + \lambda_1(y_1-c_1-a) \\
+ +\lambda_2((1+r)a+y_2(z_1)-c_2(z_1)) +\lambda_3((1+r)a+y_2(z_2)-c_2(z_2))
+\end{eqnarray*}
+The first-order conditions of this are
+\begin{eqnarray*}
+ \frac{\partial \mathcal{L}}{\partial c_1}=0; \quad u'(c_1)+\lambda_1(-1)=0 \\
+ \frac{\partial \mathcal{L}}{\partial c_2(z_1)}=0; \quad p \beta u'(c_2(z_1))+\lambda_2(-1)=0 \\
+ \frac{\partial \mathcal{L}}{\partial c_2(z_2)}=0; \quad (1-p) \beta u'(c_2(z_2))+\lambda_3(-1)=0 \\
+ \frac{\partial \mathcal{L}}{\partial a}=0; \quad \lambda_1(-1)+\lambda_2 (1+r)+\lambda_3 (1+r)=0 \\
+ \frac{\partial \mathcal{L}}{\partial \lambda_1}=0; \quad c_1+a=y_1 \\
+ \frac{\partial \mathcal{L}}{\partial \lambda_2}=0; c_2(z_1)=(1+r)a+y_2(z_1) \\
+ \frac{\partial \mathcal{L}}{\partial \lambda_3}=0; c_2(z_2)=(1+r)a+y_2(z_2)
+\end{eqnarray*}
+From the first, second, third and fourth,  we get,
+\begin{equation*}
+ u'(c_1)=(1+r)\beta [ p u'(c_2(z_1)) + (1-p) u'(c_2(z_2))]
+\end{equation*}
+Again, purely to simplify to something easier to look at, let $\beta (1+r)=1$, to get,
+\begin{equation*}
+ u'(c_1)= p u'(c_2(z_1)) + (1-p) u'(c_2(z_2))
+\end{equation*}
+so with incomplete markets we have that the household is able to shift between period one and period two consumption using the asset, $a$, and so it sets the marginal utility of consumption in period one equal to the expected marginal utility of consumption in period two (expected=sum weighted by probabilities). Note that we had $y_2(z_1)<y_2(z_2)$ and so it follows from the period 2 budget constraints that $c_2(z_1)<c_2(z_2)$ (as $a$ must be the same for both), from which if follows that $u'(c_2(z_1))>u'(c_2(z_2))$ (because $u$ is increasing and concave; standard assumptions that $u'>0$ and $u''<0$; note that the later says that there is decreasing marginal utility). Combining $u'(c_2(z_1))>u'(c_2(z_2))$ with $u'(c_1)= p u'(c_2(z_1)) + (1-p) u'(c_2(z_2))$ we get that $u'(c_2(z_2))<u'(c_1)<u'(c_2(z_1))$ (take the 'weighted sum'/'average' of any two positive numbers and you will get something that is inbetween them).
+
+Now we will look at the two period model with a shock in the second period that can take two values, again. But this time we will solve the complete markets version. For complete markets we will need two assets, with different returns depending on states, and the easiest way to do this will be to have asset $a_1$ which returns $(1+r)a_1$ when $z=z_1$ and zero when $z=z_2$, as well as asset $a_2$ which returns zero when $z=z_1$ and $(1+r)a_2$ when $z=z_2$.\footnote{These are essentially the 'Arrow-Debreu securities' (essentially as normally would have prices, rather than rate of return $r$). What matters is that we have enough assets with different returns to 'span' the space of the shocks (and time periods). An intuitive way to think about it is that we need to be able to trade between all the states independently of the others, in this model we have three states: period one, period two with shock one, and period two with shocks two. To be able to shift between all of these we need one less asset than there are states; or you can think of it as as many assets as there are states, not counting the state we are already in.}
+The household problem is,
+\begin{eqnarray*}
+ \max_{\{c_1,c_2(z_1),c_2(z_2),a_1, a_2\}} u(c_1)+\beta [p u(c_2(z_1)) +(1-p)u(c_2(z_2))]\\
+ \quad \text{s.t. } c_1+a_1+a_2=y_1 \\
+ \quad \quad c_2(z_1)=(1+r)a_1+y_2(z_1) \\
+ \quad \quad c_2(z_2)=(1+r)a_2+y_2(z_2)
+\end{eqnarray*}
+Note that, e.g., the zero return of $a_2$ is implicit in the period 2 state 1 budget contraint (you could write it explicity as $0 *a_2$). The Lagrangian is,
+\begin{eqnarray*}
+ \mathcal{L}(c_1,c_2(z_1),c_2(z_2),a_1,a_2,\lambda_1,\lambda_2,\lambda_3)= u(c_1)+\beta [p u(c_2(z_1)) +(1-p)u(c_2(z_2))] + \lambda_1(y_1-c_1-a_1-a_2) \\
+ +\lambda_2((1+r)a_1+y_2(z_1)-c_2(z_1)) +\lambda_3((1+r)a_2+y_2(z_2)-c_2(z_2))
+\end{eqnarray*}
+The first-order conditions of this are
+\begin{eqnarray*}
+ \frac{\partial \mathcal{L}}{\partial c_1}=0; \quad u'(c_1)+\lambda_1(-1)=0 \\
+ \frac{\partial \mathcal{L}}{\partial c_2(z_1)}=0; \quad p \beta u'(c_2(z_1))+\lambda_2(-1)=0 \\
+ \frac{\partial \mathcal{L}}{\partial c_2(z_2)}=0; \quad (1-p) \beta u'(c_2(z_2))+\lambda_3(-1)=0 \\
+ \frac{\partial \mathcal{L}}{\partial a_1}=0; \quad \lambda_1(-1)+\lambda_2 (1+r)=0 \\
+ \frac{\partial \mathcal{L}}{\partial a_2}=0; \quad \lambda_1(-1)+\lambda_3 (1+r)=0 \\
+ \frac{\partial \mathcal{L}}{\partial \lambda_1}=0; \quad c_1+a=y_1 \\
+ \frac{\partial \mathcal{L}}{\partial \lambda_2}=0; c_2(z_1)=(1+r)a_1+y_2(z_1) \\
+ \frac{\partial \mathcal{L}}{\partial \lambda_3}=0; c_2(z_2)=(1+r)a_2+y_2(z_2)
+\end{eqnarray*}
+From various combinations of the first five we get,
+\begin{eqnarray*}
+ u'(c_1)=(1+r)\beta p u'(c_2(z_1)) \\
+ u'(c_1)=(1+r)\beta (1-p) u'(c_2(z_2)) \\
+ p u'(c_2(z_1)) = (1-p) u'(c_2(z_2))
+\end{eqnarray*}
+Complete markets make it possible to trade independently between any two states (we have three, period 1, period 2 shock 1, period 2 shock 2; note that, e.g., one more unit of $a_1$ and one less unit of $a_2$ 'trades' between period 2 shock 1 and period 2 shock 2, with no impact on period 1). So complete markets mean we equalize the (discounted) marginal utility between any two states, adjusted for the probability of the state and for the 'price' of transfering between states ($1+r$ between period one and either of the period two states, $1$ between the two period 2 states).
+
+The most important difference to notice between the incomplete markets and complete markets models we just solved is that in the complete markets economy we had that we equate (with adjustments for prices, discounting, and probability) the marginal utility for each and every state. By contrast in the incomplete markets model it was not always possible to equate between some states, in our case the two period 2 states, and so agents are in this sense more 'exposed' to the risk of bad shocks that arise in some states; they are less able to insure against them. Because agents cannot insure so well against the shocks it follows that they are more 'affected' by the shocks and end up very different to each other based on which shocks hit them over their lifetime. The idiosyncratic shocks that hit a household in a complete markets model are largely irrelevant as households are perfectly insured agains them; so different shocks do not give rise to differences between agents in a complete markets model.
+
+\subsubsection{Representative Agent}
+Complete Markets are not the same thing as a Representative Agent. But complete markets are a prerequisite (a necessary condition) for the existence of a Representative Agent. We won't attempt to fully explain the concept of a Representative Agent here as it involve competitive equilibrium, while none of the life-cycle models considered in this document are general equilibrium models (see the companion document on OLG models for the extension of life-cycle models to general equilibrium, linked in Section \ref{sec:whatnext}).
+
+The basic idea is that instead of solving a model with lots of different households (whether due to ex-ante differences, or simply ex-post different due to receiving different idiosyncratic shocks) we can just solve a model with a Representative Agent\footnote{Technically it is not one single agent, but a continuum of agents that are all identical, but we can solve it like there was one agent as all the other agents are identical. The continuum of agents is needed to allow that the model has a competitive equilibrium, rather than being a monopoly.} and get the same answer. Since Representative Agent models are easier to solve, if they give the same answer we are better off just using Representative Agents. The intuition for creating a Representative Agent is that any competitive equilibrium of a model containing lots of different households can be recreated (in terms of the aggregates, like total consumption, or total assets) as the competitive equlibrium of a model with a Representative Agent as long as we choose the preferences appropriately (as a weighted sum of the individual households, with the weights based on the lagrange multipliers of their maximization problem); and as long as markets are complete.
+
+Obviously the idea that heterogeneity does not matter is a strong assumption, and one that often fails to be realistic. Representative Agent models are 'simpler' and more parsimonious than heterogenous agent models, and for that reason are still useful for some things where either heterogeneity is unimportant, or where it would simply be impossible to solve the incomplete markets version of the model. But Representative Agents models should be treated with caution where they differ from heterogenous agent models. It is worth knowing that while you can create a Representative Agent that recreates all the same model aggregates, like consumption and assets, as would occur in a complete markets competitive equilibrium, you cannot create a Representative Agent for the welfare of these agents, and so all welfare analysis in Representative Agent models is actually not well microfounded. Just like it is still useful to teach very simple models in first-year undergraduate economics classes, it is still useful to use Representative Agent models in teaching.
+
+Because we need the concept of competitive equilibrium to make sense of the details of Representative Agent models I won't attempt it here. A decent 'simple' example is given in \href{https://www.econ.uzh.ch/dam/jcr:9fa05862-891f-4004-aa7c-ca74980f746c/1\%20-\%20Endowment\%20Economy.pdf}{'Lecture 1: Complete Markets' by Florian Scheuer} (if you know of a nicer explanation/example please let me know so I can link it here instead)
+
+
+
+
+
+
+
+
+
+
+

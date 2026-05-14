@@ -1,0 +1,114 @@
+
+\subsection{Life-Cycle model 11: Idiosyncratic shocks again, persistent and transitory}
+We introduced an idiosyncratic shock to labor productivity units. We modelled that shock as an AR(1) process, which was discretized and entered the model as a markov exogenous state. But empirical work suggests we can do better by modelling changes in labor producitivity units as a combination of two shocks, one persistent and one transitory. The persistent shocks we will model as an AR(1). The transitory shock we will model as i.i.d.
+
+We can include an i.i.d exogenous state, which VFI Toolkit calls 'e', into our model. This will be the first thing we have seen that takes us beyond the 'baseline setup' of VFI Toolkit which has a model 'action space' being $(d,aprime,a,z,..)$, we have seen in our models up until now. Because we go beyond the baseline we need to use \textit{vfoptions} and \textit{simoptions} to tell VFI Toolkit that we are using an i.i.d. exogenous state, e.
+
+The persistent shocks, $z$, we will model as an AR(1). The transitory shock, $e$ we will model as i.i.d. Because VFI Toolkit will know that $z$ is markov and $e$ is i.i.d. it can take advantage of the simplicity of the i.i.d. shock to run faster. Because this increases the 'action space' of our model, we will have to modify \textit{ReturnFn} and \textit{FnsToEvaluate} appropriately.
+
+Our household value function now has $z e$ in place of $z$ to determine idiosyncratic producitivity units,
+\begin{eqnarray*}
+ V(a,z,e,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)  \\
+ && \quad \quad \quad \quad+ s_j \beta E[V(aprime,zprime,eprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j  z e h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& log(zprime)=\rho_{z} log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+&& log(e) \sim N(0,\sigma_{e}^2)
+\end{eqnarray*}
+Notice that $z$ is AR(1) and $e$ is i.i.d. normal (in logs).
+
+Note that to get an exogenous shock (log) $e$ which is i.i.d. $N(0,\sigma_{e}^2)$, we can simply use the same method as we did for the AR(1) process and just set $\rho=0$, because it is explicitly i.i.d. we then keep only the first row (or any row) of the transition matrix created to store as a column vector in $pi\_{}e$.
+
+How do we let the codes know we have two exogenous shocks? First we just set up $z$ exactly as we would if it were the only such shock (because it is the only markov shock). Then we set up $e$ in a similar fashion, except that it has to go in $vfoptions$ and $simoptions$ (because it is not part of the baseline setup). So we set $vfoptions.n\_{}e$, $vfoptions.e\_{}grid$ and $vfoptions.pi\_{}e$ to be the number of points, the grid, and the probability weights, respectively. We need to put the exact same things into $simoptions.n\_{}e$, $simoptions.e\_{}grid$ and $simoptions.pi\_{}e$. The important difference when setting up an i.i.d. 'e' variable compared to a markov 'z' variable is that instead of having a transition matrix 'pi\_{}z' we instead have probability weights 'pi\_{}e'; instead of a matrix we have a column vector.
+
+\subsection{Alternative Exogenous Shock Processes (Appendix A)}
+There are many other things we might want to do with exogenous shocks, both in terms of different kinds of shock process ---AR(1) with parameters that depend on age, AR(1) with gaussian-mixture shocks, VAR(1)---- as well as alternative methods for discretizing shocks ---Tauchen, Rouwenhorst, Tauchen-Hussey. A wide variety of these are demonstrated in Life-Cycle Models Appendix \ref{app:exogshocks}. It also explains all the types of shocks VFI Toolkit recognizes, namely markov exogenous state $z$, and i.i.d. exogenous state $e$, which we have seen, plus semi-exogenous states which won't be seen until Life-Cycle model 29. Additionally it explains how to set up multiple shocks, so for example you might have two markov and three i.i.d. shocks. How to handle that the shocks are correlated, or that the transitions of one shock depend on the other, are also all explain in the various Appendix models. So go check out Life-Cycle Models Appendix \ref{app:exogshocks} for information on how to discretize and handle a wide variety of shock types.
+
+\subsection{Assignment 2: Alternative Utility Functions}
+Because the utility function is coded inside the return function changing it is easy. We will now present a few different utility functions. It is left as an assignment for you to try and implement the 'non-seperable CES utility function' by modifying LifeCylceModel9.m code, and look at how they change the life-cycle profiles. A 'solution' is provided as Assignment2\_{}LifeCycleModel.m.
+
+We can write a generic utility function of consumption and leisure as $u(c,l)$, where leisure can be defined as $l=1-h$, is the fraction of time not worked. The advantage of using leisure rather than hours worked in the utility function is that utility is increasing in leisure, which makes theoretical properties easier to derive; we will no longer need to subtract the disutiliy of hours worked as we did until now.
+
+Using this generic utility function we can write the value function problem as,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime,l} u(c,l) + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)  \\
+ && \quad \quad \quad \quad + s_j \beta E[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z (1-l)\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq l \leq 1, aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+notice that $h=1-l$ has been substituted into the budget constraint, and the restriction that $0 \leq h \leq 1$ has been replaced with $0 \leq l \leq 1$; the obvious modifications around replacing $h=1-l$ in the FnsToEvaluate also need to be made.
+
+In the Life-Cycle models we have seen until now we used the 'seperable CES' utility function,
+\begin{equation*}
+ u(c,l)=\frac{c^{1-\sigma_c}}{1-\sigma_c} + \psi \frac{l^{1-\sigma_l}}{1-\sigma_l}
+\end{equation*}
+note of course that this is not the exact form of the utility function we used until now, but it has the same properitie, just that we are now writing it in terms of $l$ instead of $h$ (you could substitute $1-h$ in place of $l$ here and the properties of the utility function would be the same).\footnote{The exact numbers of utils would differ, but as is well know utility is only defined up to a linear transformation; that is, the utility functions $u()$ and $a+bu()$, where $a$,$b$ are constants, both represent the same preferences. This can be proven in very general terms, see any advanced Microeconomic Theory textbook. If you are unconvinced, write out a basic problem, say one-period lagrangian problem choosing between consumption of two goods, and solve it with both these utility fns, you will see how $a$ disappears when you take derivatives, and then $b$ cancels out because it is in all the marginal utility terms.}
+
+The CES refers to 'constant elasticity of substitution', and the 'seperable' refers to how the (marginal) utility of consumption is independent of leisure (and vice-versa the marginal utility of leisure is independent of consumption).
+
+One important alternative is 'non-seperable CES' utility, which is given by,
+\begin{equation*}
+ u(c,l)=\frac{(\sigma_1 c^{\sigma_2} + (1-\sigma_1) l^{1-\sigma_2})^{1-\sigma_3}}{1-\sigma_3}
+\end{equation*}
+which also has constant-elasticity-of-substitution, but now the marginal utility of consumption depends on leisure, and vice-versa (take the derivatives and you will see they depend on both). $\sigma_1$ can be understood as a 'share' parameter, in this case it is the share of consumption (versus leisure) in utility. $1/(1-\sigma_2)$ is the elasticity of substitution between $c$ and $l$. $\sigma_3$ is determining the decreasing marginal utility, and will therefore determine things like risk-aversion. Note that you can obviously set $h=1-l$ and solve the model in terms of hours worked, the 'assignment solution' does this: modify life-cycle model 9 to have non-seperable CES utility function.
+
+An important subcase of the 'non-seperable CES' utility function, is given in the limit when $\sigma_2 \to 0$, and we get,
+\begin{equation*}
+ u(c,l)=\frac{(c^\sigma_1 l^{1-\sigma_1})^{1-\sigma_3}}{1-\sigma_3}
+\end{equation*}
+This is particularly important in models that contain economic growth; see Life-Cycle model 22 for an explanation of why it matters, and of how to include deterministic growth in a model.\footnote{You could call this the Cobb-Douglas utility function. It is the same functional form as the Cobb-Douglas production function,  just that the parameters need some rewriting to make it obvious.}
+
+An alternative non-seperable utility function is GHH preferences.\footnote{Greenwood-Hercowitz-Huffman preferences.} They are easier to write in terms of hours worked,
+\begin{equation*}
+ u(c,l)= \frac{ \left(c - \psi \frac{h^{1+\eta}}{1+\eta} \right)^{1-\sigma} }{1-\sigma}
+\end{equation*}
+what matters to labor supply is just the wage. As the marginal rate of substitution is independent of consumption and only depends on the real wage, there is no wealth effect on the labour supply. They are not consistent with a balanced growth path (that would result from deterministic growth). A version that extends this to allow a balanced growth path are \href{https://en.wikipedia.org/wiki/Jaimovich\%E2\%80\%93Rebelo_preferences}{Jaimovich-Rebelo preferences}.
+
+\subsection{Life-Cycle model 12: Epstein-Zin preferences}
+Epstein-Zin preferences avoids an 'restriction' implicit in the use of CES utility functions (with von-Neumann Morgenstern expected utility), namely that a single parameter determines both risk aversion and the intertemporal elasticity of substitution. Epstein-Zin preferences have an additional parameter than modifies the degree of risk aversion.
+
+Implementing Epstein-Zin preferences involves a reformulation of the value function problem itself. In this model we will use 'Epstein-Zin in utility units', note that traditionally Epstein-Zin was done in 'consumption units'; Appendix \ref{app:EpsteinZin} explains these, and how you can use the consumption-units version by setting \textit{vfoptions}. The other issue with Epstein-Zin preferences is that we have to be careful how we handle warm-glow of bequests.
+
+Starting from Life-Cycle model 9, we make just the change to Epstein-Zin preferences and get the value function problem,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta}   \\
+ && \quad \quad \quad - \beta E[- s_j V(aprime,zprime,j+1)^{1-\phi} - (1-s_j)G(aprime)^{1+\phi} |z]^{\frac{1}{1+\phi}} \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j z h\\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+where $1-\phi$ is modifying the amount or risk-aversion. The minuses before and inside the expectation are needed to handle that the utility function is negative. A larger value of $\phi$ is associated with a higher risk aversion ($\phi>0$ corresponds to more risk aversion that standard vonNeumann-Morgenstern preferences, when $\phi=0$ we get standard vonNeumann-Morgenstern preferences). This setup depends on the fact that we have $u<0$, if $u>0$ the specification is different, see Appendix \ref{app:EpsteinZin}.
+
+Implementing this in the codes is as simple as naming the additional parameters, and setting,
+\\ $\quad \quad \quad vfoptions.exoticpreferences='EpsteinZin'$
+\\ \noindent You specify the names of the parameters that modifies the Epstein-Zin preferences using \textit{vfoptions.EZriskaversion='phi'}. Because the specification depends on the sign of the utility function, you also need to set \textit{vfoptions.EZpositiveutility}.
+
+Note that with Epstein-Zin preferences we want to seperate out the conditional survival probabilities from the discount factor (this is implicit in the above formulation as $s_j$ does not appear everywhere $\beta$ appears). You can do this when using Epstein-Zin preferences by setting \textit{vfoptions.survivalprobability='sj'} (and not including it in the \textit{DiscountFactorParamNames}).
+
+When using Epstein-Zin preferences we have to be careful about how we treat warm-glow of bequests. VFI Toolkit handles this for you, and you just set up \textit{vfoptions.WarmGlowBequestsFn} which depends on next-period endogenous state (on \textit{aprime}). The idea is to use the same thing as your utility function. In this model the utility of consumption is $\frac{c^{1-\sigma}}{1-\sigma}$, and so we use the warm-glow of bequests function $\frac{aprime^{1-\sigma}}{1-\sigma}$. We multiply this by a constant $wg$ to determine the importance of bequests, and  we also use a term so that bequests are only received ten periods after retirement (in line with previous models). Hence our final warm-glow of bequest function is $ \mathbb{I}_{(agej\geq Jr+10)}wg\frac{aprime^{1-\sigma}}{1-\sigma}$.
+Here $wg$ controls the strength of the bequest motive. For an explantion see Appendix \ref{app:EZbequests} which explains how to set up the bequests for Epstein-Zin preferences, as well exactly what the codes are doing.
+
+\subsection{Life-Cycle model 13: Simulating Panel Data}
+We used the FnsToEvaluate to create the life-cycle profiles. We can also use the same FnsToEvaluate to simulate panel data (now that we have idiosyncratic shocks). Note that a single household can be simulated to create a time series, and by starting numerous household simulations we get panel data.
+
+We will use the model of Life-Cycle model 9, so we do not repeat that here. And we will simulate the same FnsToEvaluate as we used in that model.
+
+We can choose the number of time periods for the panel data simulations using $simoptions.simperiods$ (it cannot be larger than number of model periods in a life-cycle model), and can choose the number of individuals time series simulations using $simoptions.numbersims$ (1000 by default). Any simulation needs to start from somewhere. The codes use 'InitialDist' as a distribution from which the starting state of agents is drawn ($seedpoint$ is what VFI Toolkit calls it internally), we will just set InitialDist to be equal to the stationary distribution in the current example, but in principle any distribution could be used.
+
+
+\subsection{Life-Cycle model 14: More Life-Cycle Profiles}
+Now that our models have idiosyncratic shocks so we can look at life-cycle profiles other than the mean. For example we will look at the variance conditional on age. We will also see how to group ages together in 'age bins', for example we can look at mean income for 5-year age-groupings, or at the labor earnings Gini coefficient for all 'working age' individuals. This will all take just a few lines of code.
+
+The model is exactly that of Life-Cycle model 9, so we do not repeat that here.
+
+The variance, gini, and much more conditional on age were already being automatically computed, just that we did not look at them.
+
+To use 'age bins' we just need to specify them. By default it is assumed that every period is it's own bin, this would correspond to setting $options.agegroupings=1:1:N_j$. To compute them in 5 year age bins use $options.agegroupings=1:5:N_j$ (note, if $N_j$ is not divisible by 5 the last bin will contain less than 5). For working age as a single bin use $options.agegroupings=[1,Params.Jr]$. In general, $options.agegroupings$ is a vector each element of which defines the period at which a new bin starts. So to give a more complex example $options.agegroupings=[1,7,10,11,15]$ would create four bins, the first would be periods 1 to 6, the second is periods 7 to 9, third is 10, fourth is 11 to 14, fourth is 15 on (until $N_j$, inclusive). We then just add $options$ as the final input to the Life Cycle Profiles command.
+
+
+
+

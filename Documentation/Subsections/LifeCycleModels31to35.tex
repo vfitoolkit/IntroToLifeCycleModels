@@ -1,0 +1,114 @@
+\subsection{Life-Cycle model 31: Portfolio-Choice}
+Households saving for retirement face a 'portfolio-choice' decision about how to allocate their savings; households can either save in a safe asset that returns $r$ with certainty, or in a risky-asset that has a stochastic return (and a higher expected return). We build on Life-Cycle model 9, adding the decision on whether to invest in the safe or risky asset (and switching to exogenous labor for simplicity). We take advantage of the insight that (in the absence of portfolio-adjustment costs) once we have the returns to each asset we only need to know total assets next period. This way we can have only one endogenous state (total assets), and then need two decision variables, savings and the 'share of savings invested in the risky asset'. Note however that this means we cannot choose next period endogenous state (total assets) directly, as it depends on our two decision variables, but also on the return to the risky asset which depends on an i.i.d. shock that occurs between this period and next.
+
+Because $aprime$ can no longer be choosen directly, we cannot use a standard endogenous state as we have done for all the examples until now. Instead we will use a '\textit{riskyasset}', which is where $aprime(d,u)$, that is the next period endogenous state, $aprime$, is a function of the decision variables $d$ and an i.i.d. shock $u$ that occurs between this period and next period. Until now the return function and any functions to evaluate always had $(d,aprime,a,z...)$ as their first arguments, now with a \textit{riskyasset} they will instead have $(d,a,z,...)$ as their first arguments. We also need to set up $aprime(d,u)$, which will be a function that takes $d$ and $u$ as inputs and returns the value of $aprime$ (the codes will then interpolate this onto the grid on the endogenous state).
+
+Our household value function is thus,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,savings,riskyshare} \frac{c^{1-\sigma}}{1-\sigma} + s_j \beta E[V(aprime,zprime,j+1)|z] \\
+&& \text{if }j<Jr: \; c+savings=a+w \kappa_j z\\
+&& \text{if }j>=Jr: \; c+savings= a +pension\\
+&& \quad aprime=(1+r) (1-riskyshare) savings + (1+r+u) \, riskyshare \, savings \\
+&& 0 \leq riskyshare \leq 1, \quad savings\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+&& u \sim N(rp,\sigma_u^2)
+\end{eqnarray*}
+where $r$ is the return on safe assets, and $u$ is the i.i.d. excess return on risky assets which has mean $rp$ (the risk premium that will be greater than zero to compensate for the risk).
+
+Implementing the codes is almost all just the same as usual. We need to set up the $aprime(d,u)$ function (which outputs the value of $aprime$). Then when calling the value function, agent simulation, etc., we just have to set \textit{vfoptions.riskyasset=1}.
+
+Everything else is standard, except of course that the policy function, $Policy$, is slightly different than before as it now just contains the decision variables $d$.
+
+To make things run faster we will also use \textit{vfoptions.refine\_{}d}, which is always a 1-by-3 vector. The three elements are respectively the number of \textit{d1}, \textit{d2} and \textit{d3} decision variables, where \textit{d1} are decision variables that appear in the return function but not the aprime function, \textit{d2} are decision variables that appear in the aprime function but not the return function, and \textit{d3} are decision variables that appear in both the aprime function and the return function. As a result the first inputs to the return function  are $(d1,d3,a,z,...)$, while the first inputs to the aprime function are $(d2,d3,u,...)$. Our current model has two decisions, riskyshare and savings: riskyshare is only needed in the aprime function so it is a \textit{d2} variable, and savings is needed for both the return function and the aprime function so it is a \textit{d3} variable, and this model has no \textit{d1} variables. Hence we set \textit{vfoptions.refine\_{}d}$=[0,1,1]$, and we have to make sure that the ordering used for the decision variables in \textit{n\_{}d} and \textit{d\_{}grid} fit with the same ordering (we don't have a $d1$ in this model, so first is our $d2$ which is riskyshare, and then comes our $d3$ which is savings). Note, the codes allow for more than one of each of $d1$, $d2$ and $d3$ variables; you can also have no $d1$ variables, but you cannot have no $d2$ nor no $d3$ variables. Note, functions to evaluate still take all decision variables. You also need to set \textit{simoptions.refine\_{}d=vfoptions.refine\_{}d}.
+
+
+\subsection{Life-Cycle model 32: Portfolio-Choice with Epstein-Zin preferences}
+When saving for retirement and making portfolio-choice decisions households need to distinguish two things: how much to save for retirement, which will depend on the intertemporal elasticity of substitution, and how what share of savings to invest in risky assets, which will depend on the level of risk aversion. But in standard (vonNeumann-Morgenstern) preferences, these are both determined by the same parameter. Epstein-Zin preferences introduce an additional parameter so that the intertemporal elasticity of substitution and the risk aversion can be determined seperately. We now resolve Life-Cycle model 31 but this time using Epstein-Zin preferences. We will use Epstein-Zin preferences in utility-units (see Appendix \ref{app:EpsteinZin}).
+
+Our household value function is thus,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,savings,riskyshare} \frac{c^{1-\sigma}}{1-\sigma} - \beta  E[- s_j V(aprime,zprime,j+1)^{1+\phi}|z]^\frac{1}{1+\phi} \\
+&& \text{if }j<Jr: \; c+savings=a+w \kappa_j z\\
+&& \text{if }j>=Jr: \; c+savings=a +pension\\
+&& \quad aprime=(1+r) (1-riskyshare) savings + (1+u) \, riskyshare \, savings \\
+&& 0\leq riskyshare \leq 1, \quad savings\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+&& u \sim N(rp,\sigma_u^2)
+\end{eqnarray*}
+where the only differences relate to the preferences. Here $\phi>0$ is a parameter that determines the amount of 'additional' risk aversion (relative to the standard vonNeumann-Morgenstern risk preferences).
+
+Implementing this in the codes is just a few lines which say that we want to use Epstein-Zin preferences (\textit{vfoptions.exoticpreferences='EpsteinZin';}), that the utility function is negative valued (\textit{vfoptions.EZpositiveutility=0}), and then stating which parameter is the one relating to Epstein-Zin preferences (\textit{vfoptions.EZriskaversion='phi'}). For more about Epstein-Zin preferences see the Appendix \ref{app:EpsteinZin}.
+
+When using Epstein-Zin preferences conditional surivival probabilities have to be treated specially. We therefore have to specify the name of the parameter,
+\\ \textit{vfoptions.survivalprobability='sj'}
+\\ \noindent and we also remove $s_j$ from the discount factors (which is how we treated conditional survival probabilities under standard vonNeumann-Morgenstern risk preferences).
+
+\subsection{Life-Cycle model 33: Portfolio-Choice with Warm-Glow of Bequests}
+With Epstein-Zin preferences there is an important difference between the discount factor and the conditional survival probability that we have to take into account when using Warm-Glow of Bequests. We add a Warm-Glow of Bequests to Life-Cycle model 32 and show how to ensure that this is handled correctly in the presence of Epstein-Zin preferences.
+
+Our household problem is,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,savings,riskyshare} \frac{c^{1-\sigma}}{1-\sigma} - \beta  E[- s_j  V(aprime,zprime,j+1)^{1+\phi} - (1-s_j) W(aprime)|z]^\frac{1}{1+\phi} \\
+&& \text{if }j<Jr: \; c+savings=a+w \kappa_j z \\
+&& \text{if }j>=Jr: \; c+savings=a +pension \\
+&& \quad aprime=(1+r) (1-riskyshare) savings + (1+u) \, riskyshare \, savings \\
+&& 0\leq riskyshare \leq 1, \quad savings\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+&& u \sim N(rp,\sigma_u^2)
+\end{eqnarray*}
+where $W(aprime)$ is the warm-glow of bequest function.
+
+The question is then just what we want to use as the warm-glow of bequest function. The most obvious choice is the utility function, and thus we get,
+\\ \textit{vfoptions.WarmGlowBequestsFn}$= wg*\frac{aprime^{1-\sigma}}{1-\sigma}$
+\\ \noindent Notice that this is utility function in terms of $aprime$, but also has a parameter $wg$ multiplying it that we can use to control the strength of the bequest motive. Any alternative function could be used for the warm-glow of bequests, which has as inputs the next period endogenous state ($aprime$) and any parameters.
+
+Because we already had so specify the conditional surivival probabilities when using Epstein-Zin preferences this warm-glow of bequest function is simply evaluated whenever there is a non-zero risk of death (when the conditional surivival probability is less than one).
+
+\subsection{Life-Cycle model 34: Portfolio-Choice with Endogenous Labor Supply}
+We will now add endogenous labor supply to Life-Cycle model 33. This just involves adding a decision variable.
+
+Our household problem is,
+\begin{eqnarray*}
+ V(a,z,j)&=& \max_{c,savings,riskyshare,h} \frac{c^{1-\sigma}}{1-\sigma} + \psi \frac{(1-h)^{1+\eta}}{1+\eta} - \beta  E[- s_j  V(aprime,zprime,j+1)^{1+\phi} - (1-s_j) W(aprime)|z]^\frac{1}{1+\phi} \\
+&& \text{if }j<Jr: \; c+savings=a+w \kappa_j z h\\
+&& \text{if }j>=Jr: \; c+savings=a +pension \\
+&& \quad aprime=(1+r) (1-riskyshare) savings + (1+u) \, riskyshare \, savings \\
+&& 0\leq riskyshare \leq 1, \quad savings\geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+&& u \sim N(rp,\sigma_u^2)
+\end{eqnarray*}
+where $W(aprime)$ is the warm-glow of bequest function.
+
+Note that if we were using Epstein-Zin preferences in consumption-units we would not be able to have a utility function, as here, which is seperable in consumption and leisure. With Epstein-Zin preferences in utility-units this is not a problem.
+
+Remember how we go about setting up \textit{vfoptions.refine\_{}d}. The three elements are respectively the number of \textit{d1}, \textit{d2} and \textit{d3} decision variables, where \textit{d1} are decision variables that appear in the return function but not the aprime function, \textit{d2} are decision variables that appear in the aprime function but not the return function, and \textit{d3} are decision variables that appear in both the aprime function and the return function. As a result the first inputs to the return function are $(d1,d3,a,z,...)$, while the first inputs to the aprime function are $(d2,d3,u,...)$. Our current model has three decisions, h, riskyshare and savings: h is only needed in the return function so it is a \textit{d1} variable, riskyshare is only needed in the aprime function so it is a \textit{d2} variable, and savings is needed for both the return function and the aprime function so it is a \textit{d3} variable, and this model has no \textit{d1} variables. Hence we set \textit{vfoptions.refine\_{}d}$=[1,1,1]$, and we have to make sure that the ordering used for the decision variables in \textit{n\_{}d} and \textit{d\_{}grid} fit with the same ordering (so h, riskyshare, savings). Note, the codes allow for more than one of each of $d1$, $d2$ and $d3$ variables; you can also have no $d1$ variables, but you cannot have no $d2$ nor no $d3$ variables. Note, functions to evaluate still take all decision variables. You also need to set \textit{simoptions.refine\_{}d=vfoptions.refine\_{}d}.
+
+
+
+\subsection{Life-Cycle model 35: Portfolio-Choice with Housing}
+We will now add housing to Life-Cycle model 32. This involves adding a standard endogenous state alongside our 'riskyasset' state. We will make housing take six values, the smalllest of which is zero and represents not owning a house.
+
+Households get utility from consumption, $c$ and housing services $s$. Homeowners get housing services as a fraction of their house value/size, renters get housing services equal to half the housing services of owning the smallest house size and have to pay rent. When households buy/sell a house there are housing transaction costs, $htc$. Previously we imposed that $savings\geq 0$ (implicitly via the grid on savings), now we allow borrowing up to a fraction, $f\_{}coll$, of the house value (using the house as collateral); when borrowing the borrowed assets are restricted to be safe assets (a mortgage).
+
+Our household problem is,
+\begin{eqnarray*}
+ V(h,a,z,j)&=& \max_{c,savings,riskyshare,hprime} \frac{(c^{1-\sigma_h}s^{\sigma_h})^{1-\sigma}}{1-\sigma} - \beta  E[- s_j V(hprime,aprime,zprime,j+1)^{1+\phi}|z]^\frac{1}{1+\phi} \\
+&& \text{if }j<Jr: \; c+savings=a+w \kappa_j z+(h-hprime)-rentalcosts-htc\\
+&& \text{if }j>=Jr: \; c+savings=a +pension+(h-hprime)-rentalcosts-htc\\
+&& \text{if }h>0: \; s=housingservices*h, \, rentalcosts=0 \\
+&& \text{if }h=0: \; s=0.5*housingservices*minhouse \, rentalcosts=rentalprice \\
+&& \text{if }hprime=h: \; htc=0 \\
+&& \text{if }hprime \neq h:htc=f\_{}htc (h+hprime) \\
+&& \quad aprime=(1+r) (1-riskyshare) savings + (1+u) \, riskyshare \, savings \\
+&& 0\leq riskyshare \leq 1 \\
+&& savings\geq -f\_{}coll * hprime \\
+&& \text{if }savings<0: \; riskyshare=0 \\
+&& \text{if }j>=Jr: \; savings \geq 0 \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
+&& u \sim N(rp,\sigma_u^2)
+\end{eqnarray*}
+Notice that utility is now based on $c^{1-\sigma_h}s^{\sigma_h}$, which is an aggregate of consumption and housing services $s$. $minhouse$ is the smallest (non-zero) house size/value.
+
+There is also a totally arbitrary restriction that assets (savings) have to be greater than zero during retirement. Not a lot of thought has been put into the constraints of this model, they are rather arbitrary and intended as an illustration.
+
+Because of how the toolkit works, the riskyasset must be the 'last' (here second) endogenous state.

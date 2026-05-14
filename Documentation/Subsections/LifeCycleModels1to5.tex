@@ -1,0 +1,97 @@
+
+\subsection{Life-Cycle Model 1: Consumption-Leisure}
+Households live for J periods and solve the life-cycle problem,
+\begin{eqnarray*}
+ \sum_{j=1}^J \beta^{j-1} && \left[ \frac{c_j^{1-\sigma}}{1-\sigma} - \psi \frac{h_j^{1+\eta}}{1+\eta} \right] \\
+&& c_j= w h_j \\
+&& 0\leq h_j \leq 1
+\end{eqnarray*}
+where $j$ indexes age, $c_j$ is consumption, $h_j$ is hours worked,\footnote{$h$ is actually 'fraction of time worked', but I will call it hours worked throughout simply as it is easier to think of in this way. $0\leq h \leq 1$ is showing us that this 'fraction of time worked' is from 0 to 1.} $w$ is the wage per hour worked. So a household that works $h_j$ hours receives an hourly wage of $w$, giving them a pre-tax labor income of $w h_j$. Notice that all the parameters are just a single number.\footnote{In principle we could write the budget constraint as $c_j\leq w h_j$, but it would anyway bind every period as otherwise the agent is essentially throwing income away by not consuming it all (there is nothing else to do with it in this model).}
+
+We can rewrite this recursively as a value function problem,
+\begin{eqnarray*}
+ V(j)&=& \max_{c,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta}  + \beta V(j+1) \\
+&& c= w h \\
+&& 0\leq h \leq 1, aprime\geq 0
+\end{eqnarray*}
+notice that the value function $V$ depends on the age $j$, so households face different problems and make different decisions (different optimal policies) at different ages.\footnote{While true of these models in general this is actually not true in this most simple example. In this first simple example the problems for each age are completely seperate as there is nothing connecting them, that is, there is no way (such as savings) to move resources between periods. Put another way, nothing the household does in one period can have any influence on any other period. As a result, for this simple example the household actually faces a seperate problem in each period, and because all the constraints, utility function and parameters are the same it is even the same problem at every age and so the household will make the same decisions at every age.} There is one of these problems for each $j=1,2,...,J$; one problem for each period of the agents life. We assume $V(J+1)=0$.\footnote{$V(J+1)$ is effectively the utility received upon dying.} Notice also from the budget constraint that once the household chooses one of $c$ or $h$, it is implicitly choosing the other. The codes take advantage of this and just has one decision of $h$.
+
+To solve this we need parameter values for $\beta$, $\sigma$, $\phi$, $\eta$ and $w$. In the codes we will create these. We also need to let the codes know what the 'return function' is: essentially this combines the period-utility function ($\frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta}$) with the constraints ($c= w h$ and $0\leq h \leq 1$).\footnote{In practice we will enforce $0\leq h \leq 1$ via the grid on h, so only the budget constraint appears inside the code for the return function.} The only other thing the codes need is the 'grid' on h, and it needs to know which parameter is the discount factor ---the parameter that discounts the next period value function $V(j+1)$--- which in our case is $\beta$.
+
+We will set this up in the code and then use the command 'ValueFnIter\_{}FHorz\_{}Case1()' to solve to get both the value function and the policy function. The value function tells us the value at each point on the grid (currently the only variable the value function depends on is $j$). It also gives us the 'policy function', which is the optimal decision the agent makes, in our case this will just be the choice of h (by default the policy is the choice of grid point for h, rather than the value of h, the codes will make this clearer).
+
+\subsection{Life-Cycle Model 2: Retirement}
+Let's make just about the simplest change we can. Currently households live $J$ periods, specifically they live 81 periods intended to represent ages 20 to 100 years old, inclusive. In reality we know many people retire at age 65 and receive a pension. We will add this to our codes. We need to tell the codes how to detect retirement (which we will make automatic at age 65) and how much the pension is. Let $Jr=46$ be the retirement age (46=65-19, 19 is years before the first model period of age 20 years old). The life-cycle value function of the household is now,
+\begin{eqnarray*}
+ V(j)&=& \max_{c,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta}  + \beta V(j+1) \\
+&& \text{if }j<Jr: \; c=w h \\
+&& \text{if }j>=Jr: \; c= pension\\
+&& 0\leq h \leq 1, aprime\geq 0
+\end{eqnarray*}
+notice that $j<Jr$ is pre-retirement (working age), and $j>=Jr$ is retirement during which the household can no longer earn money by working, but does receive a pension. Notice that the codes will need to know age $j$, which in the code we will call $agej$.
+
+In terms of the codes this will mean creating the parameters ($Jr$, $agej$ and $pension$) and passing them into the return function.
+
+\subsection{Life-Cycle Model 3: Assets}
+We will now add assets to the household problem. This will give households a way to save from one period to the next. We denote assets as $a$, and next period assets we call $aprime$. Households decisions depend on the (endogenous) state variable $a$, and one of those decisions is $aprime$. Because decisions now depend on assets, as well as age, we have $V(a,j)$. The life-cycle value function of the household is now,
+\begin{eqnarray*}
+ V(a,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta}  + \beta V(aprime,j+1) \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0
+\end{eqnarray*}
+Notice that current assets $a$ are added to the 'resources' in the budget constraint, as well as interest rate $r$ which is paid on the asset holdings. $aprime$, next period assets subtract from present period assets, and so $aprime$ appears on the left-hand-side of the budget constraint: every dollar saved ($aprime$) is a dollar not spent ($c$).
+
+In terms of the codes this will mean creating a grid for the assets, and adding them into the return function.
+
+\subsection{Life-Cycle Model 4: Life-Cycle Profiles}
+We make no change to the model. Instead we will look at 'life-cycle profiles', which are graphs of how variables change with age. So our value function is still the same,
+\begin{eqnarray*}
+ V(a,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta}  + \beta V(aprime,j+1) \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0
+\end{eqnarray*}
+
+What we want to do is to start households off at age $j=$1 with zero assets, and watch what they do over their lifetime. Notice that what they do at age 1 is determined by the policy function at age 1, and part of what it tells use is aprime, which in age 2 will become current assets a. So wherever the household starts at age 1, the policy at age 1 tells us where the household is at 2, and then the policy at age 2 tells us where the household is at age 3, etc. We can then draw a graph of what happens to the household over the life-cycle (given how they start) and this will be what we call a 'life-cycle profile'. More precisely, the life-cycle profile of a given variable, say hours worked, shows the mean value of that variable conditional on age (so hours worked at age 1, hours worked at age 2, etc.).\footnote{Later, in more sophisticated models this distinction will matter and the correct interpretation of the life-cycle profile for a variable is as the age-conditional mean value of that variable (there are also life-cycle profiles for age-conditional standard deviations, etc.). Because the present model has no uncertainty (no idiosyncratic shocks) and all agents are identical at birth (at age $j=1$) it just so happens that in this model all households will exactly follow this life-cycle profile; there is no variance so everyone is exactly at the age-conditional mean.}
+
+To be able to create life-cycle profiles we need to make an assumption about how agents are 'born' at age $j=1$. We will assume that they start with zero assets. The codes refer to this as the $jequaloneDist$, the distribution of agents at age 1.
+
+Because of how the codes work, before we can calculate the life-cycle profiles we have to create something called the 'stationary distribution'.\footnote{The stationary distribution is not needed for the specific life-cycle profiles we need in this model, but is necessary for other life-cycle profiles in more sophisticated models.} We will not explain the concept of the stationary distribution here, but will cover it later on. To compute the stationary distribution we need one other piece of information, namely how many households are of each age, we will just assume there is an equal fraction of each age, so $1/J$ agents of each age; it is almost always assumed that the total population is normalized to have a mass of 1.\footnote{How households are distributed is needed to compute the stationary distribution, but is not relevant to the life-cycle profiles themselves (the life-cycle profile command essentially ignores them). This looks a bit silly in this simple example as we have to set up information we don't need, but it will make sense in more advanced models.}
+
+We want to draw three life-cycle profiles: fraction of time worked ($h$), earnings ($wh$), and assets ($a$). To do this we first set up three 'FnsToEvaluate'. And then just run the life-cycle profile command. We then plot these. Note that we are creating 'Mean' life cycle profiles.\footnote{As mentioned life-cycle profiles are more accurately called 'value conditional on age'. We can think of conditional mean, or conditional variance, etc. In the present model because all agents of a given age are identical (because the model is deterministic and all agents start with the same assets, namely zero) only the conditional mean is relevant.}
+
+
+\subsection{Assignment 1: Add a tax on labor income}
+Now is a good chance to see if you can make some changes yourself. Try and modify the fourth life-cycle model by adding a tax on labor income, $\tau_l$. So the value function you should implement is,
+\begin{eqnarray*}
+ V(a,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta}  + \beta V(aprime,j+1) \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+(1-\tau_l) w h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0
+\end{eqnarray*}
+where the only change is the inclusion of $(1-\tau_l)$ multiplying the $wh$, note that $(1-\tau_l wh)$ is after-tax labor income.
+
+You will need to add the parameter $\tau_l$, which you can give the value $\tau_l=0.2$ (a 20\% tax rate). You will need to modify the value function. You can also try to draw the life-cycle profile of tax paid ($\tau_l wh$).
+
+A code implementing this can be found in the assignments folder: Assignment1\_{}LifeCycleModel.m and the related return fn code.
+%
+\subsection{Life-Cycle model 5: Earnings are hump-shaped}
+If we plotted the life-cycle of earnings using real-world data we would see a clear 'hump-shape'. Earning increase when young, peak around age 45-55, and then fall slightly until retirement. We want to capture this fact with our model. To do this we will introduce deterministic labor productivity units as a function of age. The basic idea is that when young people work one hour, they are less productive/efficient, and so get paid less. This 'hourly labor efficiency' will increase until around 45-55 years old and then decrease.\footnote{The equivalent in the data to find realistic numbers would be to look at how hourly wages change with age.}
+
+We will introduce a parameter, $\kappa_j$ ('kappa'), that is the labor productivity units. Note that this parameter depends on age, so it is a vector of length $J$, rather than just a single number like all of our previous parameters. The codes will recognise that the parameter is of size $J$-by-1 and automatically understand that this parameter depends on age and use it appropriately.\footnote{The codes do not care if it is $J$-by-1 or 1-by-$J$, both work fine.}
+
+The households value function problem becomes,
+\begin{eqnarray*}
+ V(a,j)&=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta}  + \beta V(aprime,j+1) \\
+&& \text{if }j<Jr: \; c+aprime=(1+r)a+w \kappa_j h \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a +pension\\
+&& 0\leq h \leq 1, aprime\geq 0
+\end{eqnarray*}
+notice that labor earnings is now $w \kappa_j h$, 'wage time hourly productivity times hours'.
+
+To implement this we need to create the parameter $\kappa_j$, modify the return function, and also change the FnsToEvaluate for earnings.
+
+If you compare the hours worked profile from this model with that of life-cycle model 4 you can see how this changing hourly wage ($w \kappa_j$) has impacted households decisions to work more/less at different ages.
+
+The purpose of this particular model is really about showing how you can set parameters to depend on age. You can make any parameter depend on age by making it of size $J$-by-1, and the codes will automatically recognise that the parameter is of this size and treat it as a parameter that depends on age.

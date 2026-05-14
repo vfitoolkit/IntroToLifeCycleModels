@@ -1,0 +1,84 @@
+\section{GMM Estimation of Life-Cycle Models} \label{app:GMMestimation}
+GMM estimation involves choosing/estimating the model parameters to get the 'model moments' to be close to the 'data moments'; e.g., we might estimate the parameters for an exogenous process on earnings so that the age-conditional mean earnings in the model look like those in the data. This appendix gives a formal definition of GMM estimation. It then explains things like efficient GMM, how standard deviations of the estimated parameters are calculated, local identification, and how 'sensitivity' is calculated. VFI Toolkit estimates GMM as described below in equation (\ref{eqn:GMM2}).
+
+We begin with the formal definition of the Generalized Method of Moments, we will consider the case of \textit{i.i.d.} data. GMM is based on a moment condition,
+\begin{equation*}
+ E[M(X, \theta)]=0
+\end{equation*}
+where $M$ is a vector-valued function, $X$ is a random vector, and $\theta$ is the vector of parameters we want to estimate. Because we will have more moment conditions than parameters (overidentification) we cannot get all the moment conditions to equal zero and so we instead aim to minimize the weighted square of the moment conditions,
+\begin{equation} \label{eqn:GMM1}
+ \theta^*=\argmin_{\theta \in \Theta} \quad  E[M(X, \theta)]' W E[M(X, \theta)]
+\end{equation}
+where $W$ is a weighting matrix. Of course to implement the estimator we have to replace the population moment conditions with the sample moment conditions, so our GMM estimator for parameter vector $\theta$ is given by,
+\begin{equation*}
+ \hat{\theta}=\argmin_{\theta \in \Theta} \quad  M_N(\{x_i\}_{i=1}^N, \theta)' W M_N(\{x_i\}_{i=1}^N, \theta)
+\end{equation*}
+where $M_N(\{x_i\}_{i=1}^N, \theta)=\frac{1}{N}\sum_{i=1}^N m(x_i,\theta)$ are the (vector-valued) sample moment conditions.
+
+For a life-cycle model we are typically interested in seperable moment conditions.\footnote{See \href{https://github.com/robertdkirkby/GMMSeparableMoments}{github.com/robertdkirkby/GMMSeparableMoments} for some examples of GMM estimation of simple models, which illustrate which kinds of moments conditions are seperable, and which are not.}\textsuperscript{,}\footnote{We separate the moment condition $M(X,\theta)=M^d-M^m(\theta)$ into two parts, the first part depends only on data and the second part only on the model. Note that the 'moment' of GMM is $M(X,\theta)$, but we will talk about moments of the data $M^d$ and moments of the model $M^m(\theta)$. The confusing language in which the estimation moment is the difference between a data moment and a model moment is inherit in the way the language around GMM works.} In this case we can rewrite the GMM estimator as,
+\begin{equation} \label{eqn:GMM2}
+ \hat{\theta} = \argmin_{\theta \in \Theta} \quad (M^d-M^m(\theta))' W (M^d-M^m(\theta))'
+\end{equation}
+where $M^d\equiv M^d(\{x_i\}_{i=1}^N)=\frac{1}{N}\sum_{i=1}^N m_d(x_i)$ are data moments, and $M^m(\theta)$ are model moments. This formulation covers the set up in most application of GMM to life-cycle models; e.g., we might have that $M^d(\{x_i\}_{i=1}^N)$ are the age-conditional mean earnings moments in the data, while $M^m(\theta)$ are the age-conditional mean earnings moments in the model. Separable refers to the fact that our moment conditions (which depend on data and parameters) can be seperated into two seperate terms, where the first term depends (only) on the data and the second term (only) on the parameters.
+
+Under standard assumptions, GMM is consistent and asymptotically normal, so
+\begin{equation*}
+ \sqrt{N}(\hat{\theta}-\theta_0) \to N(0,\Sigma)
+\end{equation*}
+where $\Sigma=(J'WJ)^{-1} J' W \Omega W J (J'W J)^{-1}$, where $W$ is the weighting matrix on the moments, $J$ is the Jacobian matrix of derivatives of model moments with respect to $\theta$ ($J\equiv \frac{\partial M^m}{\partial \theta} \big|_{\theta=\theta_0} $), and $\Omega$ is the covariance matrix of the data moments.\footnote{In principle, $J$ is the Jacobian matrix of the moment conditions for GMM, but as long as the moments are seperable, since the data moments are independent of $\theta$, this simplifies to just the Jacobian of the model moments.}\textsuperscript{,}\footnote{In the just-identified case, where the number of moment conditions equals the number of parameters to be estimated, we simply get $\Sigma=(J'\Omega^{-1} J)^{-1}$}
+
+$\Sigma$ can be calculated by the above formula once we have $J$ (as both $W$ and $\Omega$ are required as inputs). $J$ is the Jacobian matrix of the derivatives of the model moments with respect to $\theta$, and we can compute this by finite-differences: we compute $J=\frac{\partial M^m(\theta)}{\partial \theta}|_{\theta=\theta_0}$ as $\frac{M^m(\theta_0(1+\epsilon))-M^m(\theta_0)}{\epsilon}$.\footnote{We write \textit{times 1 plus epsilon}, instead of \textit{plus epsilon}, as we do the former internally to ensure the size of the 'plus epislon' is reasonable given the size of theta.}
+
+To perform the estimation using VFI Toolkit, in addition to just setting up the life-cycle model you need to declare: \textit{EstimParamNames}, the names of the parameters you want to estimate (of $\theta$; their initial values will be taken from the parameter structure); \textit{TargetMoments} which is the names and values of the data moments $M^d$ (the names of $M^m(\theta)$ are implicit in these); the weighting matrix $W$; and the variance-covariance matrix of the the data moments $\Omega$.
+
+The codes estimate the GMM by solving (\ref{eqn:GMM2}). The three main outputs are \textit{EstimParams} which is the estimated $\hat{\theta}$, \textit{EstimParamsConfInts} which reports the 90\% confidience intervals for the estimated parameter vector, and \textit{estsummary} which is a structure containing all sort of goodies :)
+
+Among the things VFI Toolkit calculates and includes in \textit{estsummary}, are $J$ and $\Sigma$ (as well as storing copies of $W$ and $\Omega$, so you know which ones were used in this estimation). \textit{estsummary.objectivefnval} reports the value of $(M^d-M^m(\hat{\theta}))' W (M^d-M^m(\hat{\theta}))'$. \textit{estsummary.EstimParamsStdDev} contains the standard deviations of the estimated parameters (the square-root of the diagonal elements of $\Sigma$). \textit{estsummary.confindenceintervals} contains the 68, 80, 85, 90, 95, 98 and 99 percent confidence intervals (calculated from the standard deviations, as asymptotic distribution is normal).
+
+
+\subsection{Choosing the Weighting Matrix}
+GMM estimation can be performed with any positive semi-definite weighting matrix $W$. One popular choice is 'robust' GMM using either $W=\mathbb{I}$ (the identity matrix) or $W=diag(\Omega)^{-1}$ (zeros on the off-diagonals, and the inverse of the variance of each moment on the diagonals). Note that if we change a moment measured in dollars (say mean earnings) to being measured in thousands of dollars, then this scale will matter and change the estimates if we use $W=\mathbb{I}$, but will have no effect if we use $W=diag(\Omega)^{-1}$, as the later has the desirable property of being scale independent.
+
+\subsubsection{Efficient GMM}
+$\Sigma$ is minimized by choosing $W=\Omega^{-1}$, in which case it simplies to $\Sigma=(J'W J)^{-1}$. This is the smallest possible $\Sigma$, so it is minimizing the standard deviations/confidence intervals for the estimated parameter vector.\footnote{If you set \textit{estimoptions.efficientW} the toolkit will use this formula, although the only difference will anyway be numerical error.}
+
+Note, often 'two-iteration' efficient GMM is needed for implementation, but that is not the case here because we have separable moment conditions.
+
+\subsubsection{W might cause Bias}
+If $W$ is correlated with $M^d$, then our GMM estimator will be biased. This can be a problem in small samples.
+
+For example, imagine we our target moments $M^d$ include first and second moments (say, mean and variance of earnings); so we might have both $\sum_{i=1}^N x_i$ and $\sum_{i=1}^N (x_i-\bar{x})^2$ in $M^d$. If we use efficient GMM with $W=\Omega^{-1}$, the element which coincides with the target moment of mean earnings, will be (the inverse of) $\sum_{i=1}^N x_i^2$, which looks a lot like the variance moment in $M^d$, and so it is likely that $W$ is correlated with $M^d$.
+
+So sometimes efficient GMM will be biased in small samples; and same for some other choices of $W$. More generally, any time we include first and second moments among the targets we need to be careful about potentially having bias from our choice of $W$. In practice, a popular thing to do is just perform both robust and efficient GMM, and report both.
+
+\subsection{Parameter Identification and Sensitivity}
+Since the whole point of GMM is to estimate the value of the parameter vector $\theta$ we are obviously going to be interested whether the result is meaningful, and if it is fragile? Identification and Sensitivity provide formal answers to these questions.
+
+
+\subsection{Identification}
+Global identification asks whether $\theta^*$ is the unique \textit{argmin} of the GMM objective function (\ref{eqn:GMM1}). Local identification asks whether $\theta^*$ is the unique \textit{local-argmin}. Global identification is difficult to assess (conceptually fine, but computationally very difficult). Local identification can be evaluated by looking at the Jacobian matrix of the derivatives of the moment conditions with respect to the parameter vector, evaluated at the true parameter value. Because we have seperable moments this simplifies to $J$, which is the Jacobian matrix of the derivatives of the \textit{model moments} with respect to the parameter vector, evaluated at the true parameter value. And we can evaluate this by computing the Jacobian matrix of the derivatives of the model moments with respect to the parameter vector, evaluated at the \textit{estimated parameter value}, where the derivatives. Once we compute $J$, which was explained above, we can then simply check if $rank(J)$ is full-rank (so $\geq k$, the number of parameters being estimated), and if so then the estimate is locally-identified. VFI Toolkit does this automatically and reports it in \textit{estsummary.localidentification}.
+
+
+\subsection{Sensitivity to Estimation Moments}
+We might be interested in how sensitive $\theta$ is to the various moments that we targetted to estimate the model. We can measure this as, roughly, the change in $\theta$ if we change the values of the moments. This is formalized by the sensitivity matrix,
+$$SensitivityMatrix=-(J'WJ)^{-1} (J'W)$$
+where the rows index the parameters and the columns index the moments. VFI Toolkit will compute this automatically, and reports the result in \textit{estsummary.sensitivitymatrix}.
+
+Like with identification, global sensitivity and local sensitivity are two different concepts, and the sensitivity matrix reported by VFI Toolkit, which was developed by \cite*{AndrewsGentzkowShapiro2017} is a measure of local sensitivity.
+
+\subsection{Sensitivity to Pre-Calibrated Parameters}
+Say our model has parameters $\theta_1$ which were calibrated, and $\theta_2$ which were GMM estimated (after the calibration was completed). We might be intereted in how sensitive $\theta_2$ is to the calibration of $\theta_1$. We can calculate the sensitivity matrix
+$$SensitivityToCalibrationMatrix=-(J'WJ)^{-1} (J'W) J_{Calib}$$
+where the rows index the estimated parameters and the columns index the pre-calibrated parameters. $J_{Calib}$ is the Jacobian of the derivatives of the moments with respect to the pre-calibrated parameters. VFI Toolkit will do this if you set \textit{estimoptions.CalibParamNames} to contain the names of (some) pre-calibrated parameters, and reports the results in \textit{estsummary.sensitivitytocalibrationmatrix}. This is a local, not global, measure of sensitivity, and was developed by \cite*{Jorgensen2023}.
+
+
+
+
+
+
+
+
+
+
+
+

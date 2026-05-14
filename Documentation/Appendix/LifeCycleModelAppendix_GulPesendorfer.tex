@@ -1,0 +1,47 @@
+% \section{Temptation and Self-Control: Gul-Pesendorfer preferences}
+\label{app:GulPesendorfer}
+Under standard preferences, more options is always better. Temptation is the idea that having more options can make you worse off, and self-control captures that you can resist that temptation at a cost. Let $A$ be a set of options, and $B$ be another set of options, and assume $A$ is preffered to $B$; standard preferences are that $A \cup B$ is preferred to both $A$ and $B$, as more options is always better. The key to Gul-Pesendorfer preferences is the concept of \textit{set betweenness}: $A$ is preferred $B$, but the union is now 'between' these, that is $A$ is preferred to $A\cup B$ is preferred to $B$, so adding the option of $B$ to $A$ makes the agent worse off.
+
+First, let's revisit standard preferences. We can think of the standard utility of a set of options as $U(x)=\max_{x \in A} u(x)$. This view of preferences over a set of options is how we need to think to introduce Gul-Pesendorfer preferences.
+
+Before introducing Gul-Pesendorfer preferences we need a two period setting so that we will have distinct concepts of commitment and self-control. In period 1, we think of the agent as choosing which set of options will occur in period 2. So in period one we are choosing between, e.g., $A$, $B$, and $A\cup B$. Then in period 2 we find ourselves in one of these sets, e.g., $A \cup B$, and have to choose an option from that set, e.g. choose some $x \in A \cup B$; let $y$ be the most tempting element in $A \cup B$. Then choosing $A$ over $A \cup B$ will be understood as commitment. Whereas, in period 2 if we are choosing a option out of $A\cup B$ then still selecting an element of $x$ other than the most-tempting element $y$, will be understood as self-control. (Note: Nothing about self-control relies on this being choices from the set $A \cup B$, it could be $A$ or $B$.) So commitment can be though of as avoiding temptation, while self-control is resisting temptation. Gul-Pesendorfer offer the example of whether to eat a Burger or a Sandwich for lunch (we assume the Burger is the temptation). Commitment is choosing to go for lunch at a Restaurant that only serves Sandwiches, but no Burgers: we avoid temptation. Self-Control is when we order a Sandwich for lunch in a restaurant that has both Sandwiches and Burgers on the menu: we resist temptation.\footnote{I don't personally find Burgers very tempting, but whatever, it is Gul and Pesendorfers example.}
+
+So we will use a two-period setting: the first-period is a decision over sets, in the second period we choose an option from the set selected in period one. Gul-Pesendorfer preferences in the first period rank sets according to,
+\begin{equation*}
+ U(A)=\max_{x \in A} u(x)+w(x)-\max_{y\in A} v(y)
+\end{equation*}
+where both $u$ and $w$ are standard von Neumann-Morgenstern utility functions. Notice that what is being ranked by these preferences is a set $A$, not an element of the set. $u$ is the \textit{commitment ranking} and $w$ is the \textit{temptation ranking}. $\max_{y\in A} w(y) -w(x)$ is interpreted as the (utility) cost of temptation (and is always postitive). Choosing a lottery to maximize $u+w$ represents the optimal compromise between the utility that could have been acheived under commitment and the cost of self-control. Notice also that only the most tempting element of $B$ matters for the (dis)utility of temptation, not anything else in $B$.
+
+Gul-Pesendorfer as described so far is just preferences at period 1, but can be naturally extended to choice behaviour in the second period, when finding yourself in e.g. set $A$, of choosing the element in $A$ that maximizes $u+w$; $U^{*}(x; A)=\max_{x \in A} u(x)+w(x)$.
+
+The amount of commitment is determined by the 'distance' between $u$ and $w$: $u_1$ and $w_1$ display greater commitment that $u_2$ and $w_2$ if the indifference curves for $u_2$ and $w_2$ are a convex combination of the indifference curves for $u_1$ and $w_1$. The amount of self-control reflects the amount of temptation that can be resisted and is determined by the 'distance' between $u+w$ and $w$: $u_1$ and $w_1$ display greater self-control than $u_2$ and $w_2$ if the indifference curves for $u_2+w_2$ and $w_2$ are a convex combination of the indifference curves for $u_1+w_1$ and $w_1$. To say the same thing in a different way, recall that in period 2 the agent maximizes $u+w$, so if $u+w$ is very different from the temptation ranking $w$ then the agent frequently exercises self-control.
+
+We can now extend Gul-Pesendorfer preferences to finite-horizon problems. We first do this with general notation based around the concepts of utility depending on the whole set being chosen. We will then refine it to something that we can solve. We start by defining a value function (on a different space to usual, here it is on the space of sets),
+\begin{equation*}
+ V(B_j, j) = \max_{d \in B_j} [ u(d) + w(d) + V(B_{j+1}(d))] - \max_{\hat{d} \in B_j} w(\hat{d})
+\end{equation*}
+where $d$ is an action, $B_j$ is the set of possible actions this period. The action $d$ also helps determine next period set of possible actions $B_{j+1}$. Note that when $d$ determines next period state, this appears implicitly as part of determining $B_{j+1}$.
+
+We can interpret $u(d)+ V(B_{j+1}(d))$ as the commitment utility. $[\max_{\hat{d} \in B_j} w(\hat{d})] - w(d)$ is the (utility) cost of temptation.
+
+We now need to rewrite this in a form that looks more like our standard approach, so that we will be able to compute the solution. This is,
+\begin{eqnarray*}
+ V(a, j) = \max_{d, a' \in D(a,j)} [ u(c) + w(c) + V(a',j+1)] - \max_{\hat{d},\hat{a}' \in D(a,j)} w(c) \\
+ \text{s.t. a constraint that gives }c\text{ as a function of }d\text{ and }a'
+\end{eqnarray*}
+notice that this now looks like our standard life-cycle problem, but with two differences: (i) the period return is now $u(c)+w(c)$, and (ii) we need to handle the $\max_{\hat{d},\hat{a}' \in D(a,j)} w(c)$ term.
+
+We rewrite this once more into the way the toolkit thinks about this,
+\begin{eqnarray*}
+ V(a, j) = \max_{d, a' \in D(a,j)} [ F_u(d,a',a) + F_w(d,a',a) + V(a',j+1)] - \max_{\hat{d},\hat{a}' \in D(a,j)} F_w(d,a',a) \\
+\end{eqnarray*}
+To implement this, we define the temptation function $F_w(d,a',a,z)$, everything else we need to know about the problem is standard. Note that $D(a,j)$ is already implicitly defined in the way the toolkit operates as any combination of $(d,a')$ for which the temptation function is finite valued (returning -Inf is saying that $(d,a') \not\in D(a,z)$). When setting this up we (re)define the return function to be $F_u(d,a',a,z)$.
+
+The extension of this to problems with uncertainty ($z$ and $e$ variables) is trivial,
+\begin{eqnarray*}
+ V(a,z,e,j) = \max_{d, a' \in D(a,z,e,j)} [ F_u(d,a',a,z,e) + F_w(d,a',a,z,e) + E[V(a',z',e',j+1)|z] - \max_{\hat{d},\hat{a}' \in D(a,z,e,j)} F_w(d,a',a,z,e) \\
+\end{eqnarray*}
+
+
+
+
