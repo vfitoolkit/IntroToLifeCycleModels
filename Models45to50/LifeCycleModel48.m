@@ -485,7 +485,7 @@ estimoptions.logmoments=0; % For EstimateLifeCycleModel_MomentDerivatives, estim
 estimoptions.skipestimation=1;
 % can be used to recalculate all the outputs of
 % EstimateLifeCycleModel_MethodOfMoments()
-% without repeating the estimation (uses whatever the inital parameter vector is when called). 
+% without repeating the estimation (uses whatever the initial parameter vector is when called). 
 % For example, after you complete the estimation you could decide you want
 % to perform the sensitivity with respect to the pre-calibrated parameters.
 % In which case you can set estimoptions.CalibParamsNames and estimoptions.skipestimation=1
