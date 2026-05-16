@@ -94,7 +94,8 @@ d_grid=h_grid;
 DiscountFactorParamNames={'beta','sj'};
 
 % Change to use 'Assignment2_ReturnFn'
-ReturnFn=@(h,aprime,a,z,w,sigma1,sigma2,sigma3,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) Assignment2_ReturnFn(h,aprime,a,z,w,sigma1,sigma2,sigma3,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+ReturnFn=@(h,aprime,a,z,w,sigma1,sigma2,sigma3,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
+    Assignment2_ReturnFn(h,aprime,a,z,w,sigma1,sigma2,sigma3,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

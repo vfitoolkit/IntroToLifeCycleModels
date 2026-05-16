@@ -58,7 +58,8 @@ DiscountFactorParamNames={'beta'};
 
 % Add r to the inputs (in some sense we add a and aprime, but these were already required, if previously irrelevant)
 % Notice change to 'LifeCycleModel3_ReturnFn'
-ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,tau_l) Assignment1_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r, tau_l)
+ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,tau_l) ...
+    Assignment1_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r, tau_l)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

@@ -128,7 +128,8 @@ d_grid=h_grid;
 DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModel49_ReturnFn', only difference from 'LifeCycleModel45_ReturnFn' is that it includes alpha_i
-ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,alpha_i,wg1,wg2,wg3,beta,sj) LifeCycleModel49_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,alpha_i,wg1,wg2,wg3,beta,sj)
+ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,alpha_i,wg1,wg2,wg3,beta,sj) ...
+    LifeCycleModel49_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,alpha_i,wg1,wg2,wg3,beta,sj)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to estimation
 disp('Test ValueFnIter')

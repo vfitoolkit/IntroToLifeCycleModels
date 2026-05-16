@@ -100,7 +100,8 @@ Params.growthdiscount=(1+Params.g)^(1-Params.sigma);
 DiscountFactorParamNames={'beta','sj','growthdiscount'};
 
 % Switch to use 'LifeCycleModel10_ReturnFn'
-ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,g) Assignment4_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,g)
+ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,g) ...
+    Assignment4_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,g)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

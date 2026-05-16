@@ -112,7 +112,8 @@ d_grid=h_grid;
 DiscountFactorParamNames={'beta','sj'};
 
 % Only difference from 'LifeCycleModel10_ReturnFn' is that bequests are no longer used
-ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j) LifeCycleModel36B_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j)
+ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j) ...
+    LifeCycleModel36B_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
