@@ -48,7 +48,7 @@ Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-P
 Params.rho_z1=0.9;
 Params.sigma_epsilon_z1=0.02;
 % transitory iid normal process on idiosyncratic labor productivity units
-Params.sigma_epsilon_z2=0.2; % Implictly, rho_z2=0
+Params.sigma_epsilon_z2=0.2; % Implicitly, rho_z2=0
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
 % Most countries have calculations of these (as they are used by the government departments that oversee pensions)
@@ -103,7 +103,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Notice change to 'LifeCycleModelA11_ReturnFn', and now input z1 and z2
 ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModelA11_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModelA11_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
@@ -176,7 +176,7 @@ figure(1)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j h z1 z2)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

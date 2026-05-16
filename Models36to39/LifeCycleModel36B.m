@@ -11,15 +11,15 @@
 % 1. Use vfoptions to state that you are using Quasi-Hyperbolic discounting.
 % The quasi-hyperbolic preferences are controlled using,
 % vfoptions.exoticpreferences='None'
-vfoptions.exoticpreferences='QuasiHyperbolic' % Use the quasi-hyperbolic preferences
-% To turn off, either don't delare vfoptions.exoticpreferences, or set vfoptions.exoticpreferences='None'
+vfoptions.exoticpreferences='QuasiHyperbolic'; % Use the quasi-hyperbolic preferences
+% To turn off, either don't declare vfoptions.exoticpreferences, or set vfoptions.exoticpreferences='None'
 % If you turn this off you would just solve the same model but with standard exponential discounting (parameter beta0 removed from discount factor by code below). 
 % This is intended as purely illustrative. A serious comparison of the preference types would require you to recalibrate the model.
 
 % 2. (optional) Use vfoptions to state whether you want 'naive' or 'sophisticated' Quasi-Hyperbolic discounting. (Optional as naive by default)
 % Also need to choose which of the two quasi-hyperbolic solutions, naive or sophisticated, to use.
 % vfoptions.quasi_hyperbolic='Naive' % This is the default, alternative is 'Sophisticated'.
-vfoptions.quasi_hyperbolic='Sophisticated' % This is the default, alternative is 'Sophisticated'.
+vfoptions.quasi_hyperbolic='Sophisticated'; % Default is 'Naive', alternative is 'Sophisticated'.
 
 % 3. Set the appropriate preference parameters.
 Params.beta0=0.85; % The quasi-hyperbolic discounting parameter controlling 'additional' discounting between 'today and tomorrow'
@@ -113,7 +113,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Only difference from 'LifeCycleModel10_ReturnFn' is that bequests are no longer used
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j) ...
-    LifeCycleModel36B_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j)
+    LifeCycleModel36B_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
@@ -244,7 +244,7 @@ figure(5)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

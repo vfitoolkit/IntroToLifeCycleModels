@@ -7,7 +7,7 @@
 % repurpose z during retirement to use it to model something else.
 % That is what we do here, we use z as labor productivity during working
 % ages, and as medical shocks in retirement. ExogShockFn is used to make
-% both the grid and transition probailities depend on age.
+% both the grid and transition probabilities depend on age.
 
 % Note: Both the z_grid_J and the ExogShockFn approaches require that the
 % number of grid points in z_grid does NOT change with age.
@@ -16,7 +16,7 @@
 %
 % One decision variable: h, labour hours worked
 % One endogenous state variable: a, assets (total household savings)
-% One stochastic exogenous state variable: z, 'unemployment' shock
+% One stochastic exogenous state variable: z, dual-purpose ('unemployment' shock in working age, medical shock in retirement)
 % Age: j
 
 %% Begin setting up to use VFI Toolkit to solve
@@ -93,7 +93,7 @@ simoptions.ExogShockFn=vfoptions.ExogShockFn;
 % Both value function and simulations need to know about the age-dependence exogenous shocks
 
 % We will evaluate the ExogShockFn at agej=1, just because I want to use
-% the stationary distribtion as the initial distribution for agents.
+% the stationary distribution as the initial distribution for agents.
 [z_grid, pi_z]=vfoptions.ExogShockFn(1,Params.Jr);
 % Note, because vfoptions.ExogShockFn exists the values of z_grid and pi_z
 % are effectively ignored internally by the VFI Toolkit commands.
@@ -105,11 +105,10 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Now use 'LifeCycleModel21_ReturnFn'
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel21_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel21_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
-% vfoptions=struct(); % Just using the defaults.
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -121,7 +120,7 @@ toc
 % Before we plot the life-cycle profiles we have to define how agents are
 % at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, and the median shock
+jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, with z drawn from its stationary distribution
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -142,7 +141,7 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z) h; % h is fraction of time worked
 FnsToEvaluate.earnings=@(h,aprime,a,z,w,kappa_j) w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
 FnsToEvaluate.assets=@(h,aprime,a,z) a; % a is the current asset holdings
-FnsToEvaluate.fractionunemployed=@(h,aprime,a,z) (z==0); % indicator for z=0 (unemployment) [Note: only makes sense as unemployment for j=1,..,Jr
+FnsToEvaluate.fractionunemployed=@(h,aprime,a,z) (z==0); % indicator for z=0 (unemployment) [Note: only makes sense as unemployment for j=1,..,Jr]
 FnsToEvaluate.fractionwithmedicalexpenses=@(h,aprime,a,z) (z==0.3); % indicator for z=0.3 medical shock
 
 %% Calculate the life-cycle profiles
@@ -156,23 +155,23 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % those were trivial, but now that we have an idiosyncratic shock z they
 % are meaningful and worth looking at.
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
+%% Plot the life cycle profiles of fraction-of-time-worked, earnings, assets, unemployment, and medical expenses
 
 figure(1)
 subplot(5,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(5,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(5,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 subplot(5,1,4); plot(1:1:Params.J,[AgeConditionalStats.fractionunemployed.Mean(1:Params.Jr-1),nan(1,Params.J-Params.Jr+1)])
 title('Life Cycle Profile: Fraction Unemployment (z==0)')
 xlim([1,Params.J])
 subplot(5,1,5); plot(1:1:Params.J,AgeConditionalStats.fractionwithmedicalexpenses.Mean)
-title('Life Cycle Profile: Fraction experiencing medical expenses (z==0.5)')
+title('Life Cycle Profile: Fraction experiencing medical expenses (z==0.3)')
 
 % Notice how we only plot the first part of
-% AgeConditionalStats.fractionunemployed.Mean(1:Params.Jr-1), becasuse this
+% AgeConditionalStats.fractionunemployed.Mean(1:Params.Jr-1), because this
 % FnToEvaluate is based on z, which changes meaning between j=Jr-1 and j=Jr.
 
  
@@ -185,7 +184,7 @@ simoptions=struct();
 % is exactly the model without medical shocks if we switch to the return
 % function from Life-Cycle model 8.
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 [V_nomedical, Policy_nomedical]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 StationaryDist_nomedical=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy_nomedical,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 AgeConditionalStats_nomedical=LifeCycleProfiles_FHorz_Case1(StationaryDist_nomedical,Policy_nomedical,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);

@@ -1,6 +1,6 @@
 %% Life-Cycle Model 32: Portfolio-Choice with Epstein-Zin preferences
 % Same as life-cycle model 31, except with Epstein-Zin preferences
-% Esptein-Zin preferences separate risk aversion from the intertemporal
+% Epstein-Zin preferences separate risk aversion from the intertemporal
 % elasticity of substitution, which is important for problems like this as
 % the intertemporal elasticity of substitution will control the amount of
 % saving for retirement, while risk aversion will determine the share of
@@ -52,7 +52,7 @@ simoptions.riskyasset=1;
 
 % Specify Epstein-Zin preferences
 vfoptions.exoticpreferences='EpsteinZin';
-vfoptions.EZpositiveutility=0; % Epstein-Zin preferences in utility-units have to be handled differently depending on whether the utility funciton is positive or negative valued (this is all done internally, you just need to use vfoptions to specify which)
+vfoptions.EZpositiveutility=0; % Epstein-Zin preferences in utility-units have to be handled differently depending on whether the utility function is positive or negative valued (this is all done internally, you just need to use vfoptions to specify which)
 vfoptions.EZriskaversion='phi'; % additional risk-aversion
 % Params.phi is set below
 
@@ -86,7 +86,7 @@ Params.r=0.05; % Rate of return on risk free asset
 % u is the stochastic component of the excess returns to the risky asset
 Params.rp=0.03; % Mean excess returns to the risky asset (so the mean return of the risky asset will be r+rp)
 Params.sigma_u=0.025; % Standard deviation of innovations to the risky asset
-Params.rho_u=0; % Asset return risk component is modeled as iid (if you regresse, e.g., the percent change in S&P500 on it's one year lag you get a coefficient of essentially zero)
+Params.rho_u=0; % Asset return risk component is modeled as iid (if you regress, e.g., the percent change in S&P500 on its one year lag you get a coefficient of essentially zero)
 [u_grid, pi_u]=discretizeAR1_FarmerToda(Params.rp,Params.rho_u,Params.sigma_u,n_u);
 pi_u=pi_u(1,:)'; % This is iid
 
@@ -151,7 +151,7 @@ simoptions.n_u=n_u;
 simoptions.u_grid=u_grid;
 simoptions.pi_u=pi_u;
 % Because a_grid and d_grid are involved in risky assets, but are not
-% normally needed for agent distriubiton simulation, we have to also
+% normally needed for agent distribution simulation, we have to also
 % include these in simoptions
 simoptions.a_grid=a_grid;
 simoptions.d_grid=d_grid;
@@ -161,7 +161,7 @@ simoptions.d_grid=d_grid;
 
 % Use 'LifeCycleModel31_ReturnFn' (because we want to turn off the bequests for now)
 ReturnFn=@(savings,a,z,w,sigma,agej,Jr,pension,kappa_j) ...
-    LifeCycleModel31_ReturnFn(savings,a,z,w,sigma,agej,Jr,pension,kappa_j)
+    LifeCycleModel31_ReturnFn(savings,a,z,w,sigma,agej,Jr,pension,kappa_j);
 % vfoptions.refine_d: only (d1,d3,..) are input to ReturnFn [this model has no d1, so here just d3]
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
@@ -233,7 +233,7 @@ xlabel('Age j')
 ylabel('Assets (a)')
 zlabel('share of savings invested in risky assets (riskyshare)')
 
-% Again, plot both policies (h and aprime), this time as a function (of assets) for a given age  (I do a few for different ages)
+% Again, plot both policies (savings and riskyshare), this time as a function (of assets) for a given age  (I do a few for different ages)
 figure(4)
 subplot(5,2,1); plot(a_grid,PolicyVals(1,:,1,1),a_grid,PolicyVals(1,:,zind,1),a_grid,PolicyVals(1,:,end,1)) % j=1
 title('Policy for savings at age j=1')
@@ -282,7 +282,7 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
+% Like with return function, we have to include (savings,riskyshare,a,z) as first
 % inputs, then just any relevant parameters.
 FnsToEvaluate.riskyshare=@(savings,riskyshare,a,z) riskyshare; % riskyshare, is the fraction of savings invested in the risky asset
 FnsToEvaluate.earnings=@(savings,riskyshare,a,z,w,kappa_j) w*kappa_j*z; % labor earnings
@@ -300,7 +300,7 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % those were trivial, but now that we have an idiosyncratic shock z they
 % are meaningful and worth looking at.
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
+%% Plot the life cycle profiles of riskyshare, earnings, and assets
 
 figure(5)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.riskyshare.Mean)

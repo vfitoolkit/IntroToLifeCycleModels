@@ -65,7 +65,7 @@ Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-P
 Params.rho_z=0.9;
 Params.sigma_epsilon_z=0.02;
 % transitory iid normal process on idiosyncratic labor productivity units
-Params.sigma_epsilon_e=0.2; % Implictly, rho_e=0
+Params.sigma_epsilon_e=0.2; % Implicitly, rho_e=0
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
 % Most countries have calculations of these (as they are used by the government departments that oversee pensions)

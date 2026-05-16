@@ -185,7 +185,8 @@ title('Policy for f at age j=20')
 subplot(6,2,12); plot(a_grid,PolicyVals(2,:,2,1,end,25)) % j=20
 title('Policy for f at age j=25')
 xlabel('Fertility Decision for Household with Infant')
-% Note that a household with an infant cannot have a second, so they 
+% Note that a household with an infant cannot have a second one, so the
+% fertility decision is irrelevant in those states. 
 
 % A look at how the utility of children varies with age
 figure(2)
@@ -222,15 +223,15 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 % is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
+% Like with return function, we have to include (h,f,aprime,a,n1,n2,z) as first
 % inputs, then just any relevant parameters.
 FnsToEvaluate.fractiontimeworked=@(h,f,aprime,a,n1,n2,z) h; % h is fraction of time worked
 FnsToEvaluate.earnings=@(h,f,aprime,a,n1,n2,z,w,kappa_j) w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
 FnsToEvaluate.assets=@(h,f,aprime,a,n1,n2,z) a; % a is the current asset holdings
-FnsToEvaluate.ninfants=@(h,f,aprime,a,n1,n2,z) n1; % a is the current asset holdings
-FnsToEvaluate.nchildren=@(h,f,aprime,a,n1,n2,z) n2; % a is the current asset holdings
+FnsToEvaluate.ninfants=@(h,f,aprime,a,n1,n2,z) n1; % n1 is the number of infants
+FnsToEvaluate.nchildren=@(h,f,aprime,a,n1,n2,z) n2; % n2 is the number of children
 
-% notice that we have called these fractiontimeworked, earnings and assets
+% notice that we have called these fractiontimeworked, earnings, assets, ninfants, and nchildren
 
 %% Calculate the life-cycle profiles
 AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
@@ -242,13 +243,13 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % those were trivial, but now that we have an idiosyncratic shock z they
 % are meaningful and worth looking at.
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
+%% Plot the life cycle profiles of fraction-of-time-worked, earnings, assets, ninfants, and nchildren
 
-figure(5)
+figure(3)
 subplot(5,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(5,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(5,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 subplot(5,1,4); plot(1:1:Params.J,AgeConditionalStats.ninfants.Mean)

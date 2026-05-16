@@ -61,7 +61,7 @@ Params.alpha_i=exp([0.5,0.3,0,-0.3,-0.5]); % Roughly: increase earnings by 50%, 
 PTypeDistParamNames={'alphadist'};
 Params.alphadist=[0.1,0.2,0.4,0.1,0.2]; % Must sum to one
 % Note: this is not relevant to solving the value function, but is needed for
-% stationary distribition. It then gets encoded into the StationaryDist and
+% stationary distribution. It then gets encoded into the StationaryDist and
 % so is not needed for things like life-cycle profiles.
 
 %% Parameters
@@ -90,7 +90,7 @@ Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-P
 Params.rho_z=0.9;
 Params.sigma_epsilon_z=0.02;
 % transitory iid normal process on idiosyncratic labor productivity units
-Params.sigma_epsilon_e=0.2; % Implictly, rho_e=0
+Params.sigma_epsilon_e=0.2; % Implicitly, rho_e=0
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
 % Most countries have calculations of these (as they are used by the government departments that oversee pensions)
@@ -151,7 +151,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Notice: have added alpha_i to inputs (relative to Life-Cycle Model 11 which this extends)
 ReturnFn=@(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,alpha_i,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel24_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,alpha_i,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel24_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,alpha_i,kappa_j,wg1,wg2,wg3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
@@ -206,15 +206,15 @@ StationaryDist=StationaryDist_Case1_FHorz_PType(jequaloneDist,AgeWeightsParamNam
 % is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
+% Like with return function, we have to include (h,aprime,a,z,e) as first
 % inputs, then just any relevant parameters.
 FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z,e) h; % h is fraction of time worked
-FnsToEvaluate.earnings=@(h,aprime,a,z,e,w,kappa_j,alpha_i) w*h*kappa_j*alpha_i*z*e; % w*kappa_j*h*z*e is the labor earnings
+FnsToEvaluate.earnings=@(h,aprime,a,z,e,w,kappa_j,alpha_i) w*h*kappa_j*alpha_i*z*e; % w*h*kappa_j*alpha_i*z*e is the labor earnings
 FnsToEvaluate.assets=@(h,aprime,a,z,e) a; % a is the current asset holdings
 FnsToEvaluate.alpha_i=@(h,aprime,a,z,e,alpha_i) alpha_i; % alpha_i is the fixed effect
-FnsToEvaluate.agej=@(h,aprime,a,z,e,agej) agej; % alpha_i is the fixed effect
+FnsToEvaluate.agej=@(h,aprime,a,z,e,agej) agej; % agej is the age
 
-% notice that we have called these fractiontimeworked, earnings and assets
+% notice that we have called these fractiontimeworked, earnings, assets, alpha_i, and agej
 % Have added alpha_i so that we can see how this evaluates differently across the different permanent types of agents
 % Note that alpha_i also appears in the function for earnings
 

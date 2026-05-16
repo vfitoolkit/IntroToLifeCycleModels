@@ -183,7 +183,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModelA5_ReturnFn', which has two i.i.d. exogenous states
 ReturnFn=@(h,aprime,a,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)... 
-    LifeCycleModelA5_ReturnFn(h,aprime,a,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModelA5_ReturnFn(h,aprime,a,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 % Note: From the perspective of the ReturnFn, it does not know what kind of
 % states e1 and e2 are (whether they are markov, i.i.d. or anything else).
 % Hence we can just reuse LifeCycleModelA5_ReturnFn which was originally
@@ -259,7 +259,7 @@ figure(1)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j h e1 e2)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

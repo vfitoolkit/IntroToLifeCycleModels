@@ -94,7 +94,7 @@ Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-P
 Params.rho_z=[0.9,0.1;0.1,0.7];
 Params.sigmasq_epsilon_z=[0.0303, 0.0027; 0.0027, 0.0382]; 
 Params.sigma_epsilon_z=sqrt(Params.sigmasq_epsilon_z);
-    % The Farmer-Toda method can discretize a VAR(1) with any (postivite
+    % The Farmer-Toda method can discretize a VAR(1) with any (positive
     % semi-definite) variance-covariance matrix.
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
@@ -155,7 +155,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModelA5_ReturnFn', which has two markov exogenous states
 ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)... 
-    LifeCycleModelA5_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModelA5_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
@@ -227,7 +227,7 @@ figure(1)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j h z1 z2)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

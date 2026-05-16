@@ -12,7 +12,7 @@ elseif agej==Jr % Want a special one-off transition to determine an initial dist
     pi_z=[0,1; 0,1]; % Everyone starts healthy (zero medical expense shock)
 else
     z_grid=[0.3;0];
-    pi_z=[0.2,0.8;0.3,0.7]; % Medical expense shocks are resonably rare and not very perisitent
+    pi_z=[0.2,0.8;0.3,0.7]; % Medical expense shocks are resonably rare and not very persistent
 end
 
 

@@ -111,7 +111,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModel45_ReturnFn' (it is just a renamed copy of the return fn used by Life-Cycle Model 9)
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel45_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel45_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to estimation
 disp('Test ValueFnIter')
@@ -182,7 +182,7 @@ subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean,1:
 legend('all','funtimes','worktimes')
 title('Life Cycle Profile (pre-calibration): Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean, 1:1:Params.J,AgeConditionalStats.earnings.funtimes.Mean, 1:1:Params.J,AgeConditionalStats.earnings.worktimes.Mean)
-title('Life Cycle Profile (pre-calibration): Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile (pre-calibration): Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean, 1:1:Params.J,AgeConditionalStats.assets.funtimes.Mean, 1:1:Params.J,AgeConditionalStats.assets.worktimes.Mean)
 title('Life Cycle Profile (pre-calibration): Assets (a)')
 
@@ -303,7 +303,7 @@ subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean,1:
 legend('all','funtimes','worktimes')
 title('Life Cycle Profile (pre-calibration): Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean, 1:1:Params.J,AgeConditionalStats.earnings.funtimes.Mean, 1:1:Params.J,AgeConditionalStats.earnings.worktimes.Mean)
-title('Life Cycle Profile (pre-calibration): Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile (pre-calibration): Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean, 1:1:Params.J,AgeConditionalStats.assets.funtimes.Mean, 1:1:Params.J,AgeConditionalStats.assets.worktimes.Mean)
 title('Life Cycle Profile (pre-calibration): Assets (a)')
 

@@ -173,17 +173,17 @@ size(Policy)
 % Convert the policy function to values (rather than indexes).
 % Note that there is one policy for participation (p), and another for next period assets (aprime). 
 % Because h is an experienceasset, hprime is not chosen directly so is not in Policy
-% Policy(1,:,:,:,:) is h, Policy(2,:,:,:,:) is aprime [as function of (a,h,z,j)]
+% Policy(1,:,:,:,:) is p, Policy(2,:,:,:,:) is aprime [as function of (a,h,z,j)]
 
 % Rather than plot lots of outputs, we will just look at two, some
 % participation decisions and some aprime decisions. 
 % Plots are conditional on median z, mid-point of h_grid
 zind=ceil(n_z/2);
 hind=ceil(n_a(2)/2);
-figure(3)
+figure(1)
 PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
 subplot(2,1,1); surf(asset_grid*ones(1,Params.J),ones(n_a(1),1)*(1:1:Params.J),reshape(PolicyVals(1,:,hind,zind,:),[n_a(1),Params.J]))
-title('Policy function: participation decions (p), median h, median z')
+title('Policy function: participation decisions (p), median h, median z')
 xlabel('Assets (a)')
 ylabel('Age j')
 zlabel('Female participation decision (p)')
@@ -207,7 +207,7 @@ zlabel('Next period assets (aprime)')
 % Before we plot the life-cycle profiles we have to define how agents are
 % at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,4,floor((n_z+1)/2))=1; % All agents start with zero assets, h_grid(4) of human capital, and the median shock [h_grid(4) is roughly same as y_m(1), just my arbitarty decision]
+jequaloneDist(1,4,floor((n_z+1)/2))=1; % All agents start with zero assets, h_grid(4) of human capital, and the median shock [h_grid(4) is roughly same as y_m(1), just my arbitrary decision]
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -219,14 +219,13 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
-% simoptions=struct(); % Use the default options
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 % Again, we will explain in a later model what the stationary distribution
 % is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (p,aprime,a,h,z) as first inputs, then just any relevant parameters.
-FnsToEvaluate.participation=@(p,aprime,a,h,z) p; % h is fraction of time worked
+FnsToEvaluate.participation=@(p,aprime,a,h,z) p; % p is female participation decision
 FnsToEvaluate.femaleearnings=@(p,aprime,a,h,z,w) w*h*z*p; % labor earnings of female (note, p will equal 0 in retirement, so we don't need to treat it separately)
 FnsToEvaluate.maleearnings=@(p,aprime,a,h,z,w,y_m) w*y_m*z; % labor earnings of male
 FnsToEvaluate.assets=@(p,aprime,a,h,z) a; % a is the current asset holdings
@@ -240,9 +239,9 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % For example
 % AgeConditionalStats.participation.Mean
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
+%% Plot the life cycle profiles of participation, earnings, assets, and female LFPH
 
-figure(5)
+figure(2)
 subplot(5,1,1); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.participation.Mean)
 title('Life Cycle Profile: Partipication (p)')
 subplot(5,1,2); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.femaleearnings.Mean)

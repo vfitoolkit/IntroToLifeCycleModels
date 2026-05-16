@@ -257,7 +257,7 @@ subplot(5,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 % Note: non-employed all work zero hours, and they are included in this Mean
 subplot(5,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(5,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 subplot(5,1,4); plot(1:1:Params.J,AgeConditionalStats.work.Mean)

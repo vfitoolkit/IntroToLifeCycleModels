@@ -101,7 +101,7 @@ DiscountFactorParamNames={'beta','sj','growthdiscount'};
 
 % Switch to use 'LifeCycleModel10_ReturnFn'
 ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,g) ...
-    Assignment4_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,g)
+    Assignment4_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,g);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
@@ -155,7 +155,7 @@ SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,Param
 % Lets draw the time series plots of h, earnings and assets for ten households (arbitrarily, the first ten)
 figure(1)
 subplot(2,1,1); plot(1:1:Params.J,SimPanelValues.earningshat(:,16))
-title('Renormalized Time Series of one Household: Labor Earnings (what kappa_j h)')
+title('Renormalized Time Series of one Household: Labor Earnings (what kappa_j z)')
 subplot(2,1,2); plot(1:1:Params.J,SimPanelValues.ahat(:,16))
 title('Renormalized Time Series of one Household: Assets (ahat)')
 
@@ -175,6 +175,6 @@ SimPanelValues.a=SimPanelValues.ahat .* ((1+Params.g).^(1:1:simoptions.simperiod
 % Lets draw the time series plots of h, earnings and assets for ten households (arbitrarily, the first ten)
 figure(2)
 subplot(2,1,1); plot(1:1:Params.J,SimPanelValues.earnings(:,16))
-title('Time Series of one Household: Labor Earnings (w kappa_j h)')
+title('Time Series of one Household: Labor Earnings (w kappa_j z)')
 subplot(2,1,2); plot(1:1:Params.J,SimPanelValues.a(:,16))
 title('Time Series of one Household: Assets (a)')

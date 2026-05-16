@@ -1,6 +1,6 @@
 %% Life-Cycle Model 20: Idiosyncratic shocks that depend on age
 % We might want a different shock process at each age (empirical data suggests this is more realistic).
-% There are two ways to do this, one is to create a z_grid_J and pi_z_J, which are matricies 
+% There are two ways to do this, one is to create a z_grid_J and pi_z_J, which are matrices 
 % containing the z_grid and pi_z for each age; an example using a Life-Cycle AR(1) process with age-dependent 
 % parameters is given in Life-Cycle Model A4. The other way to do this is to create a function that 
 % returns z_grid and pi_z given age. We will demonstrate this second method
@@ -106,7 +106,7 @@ simoptions.ExogShockFn=vfoptions.ExogShockFn;
 % Both value function and simulations need to know about the age-dependence exogenous shocks
 
 % We will evaluate the ExogShockFn at agej=1, just because I want to use
-% the stationary distribtion as the initial distribution for agents.
+% the stationary distribution as the initial distribution for agents.
 [z_grid, pi_z]=vfoptions.ExogShockFn(1,Params.Jr);
 % Note, because vfoptions.ExogShockFn exists the values of z_grid and pi_z
 % are effectively ignored internally by the VFI Toolkit commands.
@@ -118,11 +118,10 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Notice we still use 'LifeCycleModel8_ReturnFn'
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
-% vfoptions=struct(); % Just using the defaults.
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -164,13 +163,13 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % For example
 % AgeConditionalStats.earnings.Mean
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
+%% Plot the life cycle profiles of fraction-of-time-worked, earnings, assets, and fraction unemployed
 
-figure(5)
+figure(1)
 subplot(4,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(4,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(4,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 subplot(4,1,4); plot(1:1:Params.J,AgeConditionalStats.fractionunemployed.Mean)

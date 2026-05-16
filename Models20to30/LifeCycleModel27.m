@@ -13,7 +13,7 @@
 % actually true as the gaussian-mixture is a single pdf/cdf, but is a useful 
 % thought), in the first stage we draw a probability p, which tells use that 
 % with p we are in the first of two normal distributions (that make up our 
-% mixture) and with 1-p we are in the second of the two normal distriubtions. 
+% mixture) and with 1-p we are in the second of the two normal distributions. 
 % Then in the second stage we draw from that normal distribution.
 
 %% How does VFI Toolkit think about this?
@@ -215,9 +215,9 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModel27_ReturnFn', and now input z, upsilon and e.
 ReturnFn=@(aprime,a,z1,upsilon,e,alpha,w,sigma,agej,Jr,pension,incomefloor,r,kappa_j,wg1,wg2,wg3,beta,sj,tau1,tau2,Jbeq)...
-    LifeCycleModel27_ReturnFn(aprime,a,z1,upsilon,e,alpha,w,sigma,agej,Jr,pension,incomefloor,r,kappa_j,wg1,wg2,wg3,beta,sj,tau1,tau2,Jbeq)
+    LifeCycleModel27_ReturnFn(aprime,a,z1,upsilon,e,alpha,w,sigma,agej,Jr,pension,incomefloor,r,kappa_j,wg1,wg2,wg3,beta,sj,tau1,tau2,Jbeq);
 % We have no decision variable, one standard endogenous state, two markovs
-% and an i.i.d, so inputs start with (aprime,a,upsilon,z,e,...)
+% and an i.i.d, so inputs start with (aprime,a,z1,upsilon,e,...)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 vfoptions.divideandconquer=1; % exploit monotonicity
@@ -287,8 +287,8 @@ StationaryDist=StationaryDist_Case1_FHorz_PType(jequaloneDist,AgeWeightsParamNam
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (aprime,a,z1,upsilon,e) as first
 % inputs, then just any relevant parameters.
-FnsToEvaluate.earnings=@(aprime,a,z1,upsilon,e,agej,Jr,kappa_j,w,alpha) (agej<Jr)*w*(1-upsilon)*exp(kappa_j+alpha+z1+e); % w*kappa_j*h*z*e is the labor earnings
-FnsToEvaluate.assets=@(aprime,a,z1,upsilon,e) a; % h is fraction of time worked
+FnsToEvaluate.earnings=@(aprime,a,z1,upsilon,e,agej,Jr,kappa_j,w,alpha) (agej<Jr)*w*(1-upsilon)*exp(kappa_j+alpha+z1+e); % (agej<Jr)*w*(1-upsilon)*exp(kappa_j+alpha+z1+e) is the labor earnings
+FnsToEvaluate.assets=@(aprime,a,z1,upsilon,e) a; % a is the current asset holdings
 FnsToEvaluate.nonemployment=@(aprime,a,z1,upsilon,e,agej,Jr) (agej<Jr)*upsilon; % upsilon=1 is non-employment
 % notice that we have called these earnings, assets and nonemployment
 
@@ -302,7 +302,7 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1_PType(StationaryDist,Policy,Fn
 % those were trivial, but now that we have an idiosyncratic shock z they
 % are meaningful and worth looking at.
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
+%% Plot the life cycle profiles of earnings, assets, and non-employment
 
 % Plot the age-conditional means for the population as a whole
 figure(1)
@@ -346,7 +346,7 @@ SimPanelData=SimPanelValues_FHorz_Case1_PType(jequaloneDist,PTypeDistParamNames,
 % First, restrict the sample
 earningsmin=1885; % 2013 dollars
 % According to US Census: 2013 U.S. median house-hold income was $52,250
-scaledearningsmin=earningsmin*(AllStats.earnings.Median/552250); 
+scaledearningsmin=earningsmin*(AllStats.earnings.Median/52250); 
 % convert earningsmin so that it is appropriate fraction of median earnings
 % GKSW2022 include households with earnings over a minimum amount (earningsmin)
 KeepIndicator=ones(1,simoptions.numbersims);

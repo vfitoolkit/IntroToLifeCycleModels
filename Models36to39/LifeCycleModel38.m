@@ -184,19 +184,19 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 % Again, we will explain in a later model what the stationary distribution
 % is, it is not important for our current goal of graphing the life-cycle profile
 
-figure(4)
+figure(2)
 subplot(2,1,1); plot(asset_grid,cumsum(sum(sum(sum(StationaryDist,2),3),4)))
 title('cdf over assets')
 subplot(2,1,2); plot(clag_grid,cumsum(sum(sum(sum(StationaryDist,1),3),4)))
 title('cdf over lag of consumption')
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first inputs, then just any relevant parameters.
+% Like with return function, we have to include (aprime,a,clag,z) as first inputs, then just any relevant parameters.
 FnsToEvaluate.consumption=@(aprime,a,clag,z,w,agej,Jr,pension,r,kappa_j) LifeCycleModel38_ConsumptionFn(aprime,a,clag,z,w,agej,Jr,pension,r,kappa_j); % Just to make the point that here we use clag as an input as it is a FnsToEvaluate, whereas our rprimeFn did not have clag as an input; internally the two functions are identical (this period consumption, and next period lag of consumption, are of course just the same thing)
-FnsToEvaluate.earnings=@(aprime,a,clag,z,w,kappa_j) w*kappa_j*z; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
+FnsToEvaluate.earnings=@(aprime,a,clag,z,w,kappa_j) w*kappa_j*z; % w*kappa_j*z is the labor earnings (exogenous labor)
 FnsToEvaluate.assets=@(aprime,a,clag,z) a; % a is the current asset holdings
 
-% notice that we have called these fractiontimeworked, earnings and assets
+% notice that we have called these consumption, earnings and assets
 
 %% Calculate the life-cycle profiles
 AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
@@ -208,11 +208,11 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % those were trivial, but now that we have an idiosyncratic shock z they
 % are meaningful and worth looking at.
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
+%% Plot the life cycle profiles of earnings, assets, and consumption
 
-figure(5)
+figure(3)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.consumption.Mean)

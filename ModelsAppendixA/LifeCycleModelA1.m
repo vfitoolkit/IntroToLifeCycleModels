@@ -1,7 +1,7 @@
 %% Life-Cycle Model A1: Idiosyncratic shocks again, AR(1), different discretization methods
 % This is the exact same model as Life-Cycle Model 9, it simply shows three
 % alternative methods to discretize the AR(1) process on z.
-% AR(1) process, z_t=0+rho_z z_{t-1}+epsilon_{z,t}, epsilon_{z,t} ~N(0,simga_{epsilon,z}^2)
+% AR(1) process, z_t=0+rho_z z_{t-1}+epsilon_{z,t}, epsilon_{z,t} ~N(0,sigma_{epsilon,z}^2)
 %
 % As well as the Farmer-Toda method, we see how to implement the
 % Rouwenhorst, Tauchen, and Tauchen-Hussey methods. We use an if statement
@@ -9,7 +9,7 @@
 DiscretizeAR1method='FarmerToda';
 % Options: 'FarmerToda', 'Rouwenhorst','Tauchen', 'TauchenHussey'.
 
-% I recommend that you use Farmer-Toda method, execept when rho_z (the
+% I recommend that you use Farmer-Toda method, except when rho_z (the
 % autocorrelation of the AR(1)) is >=0.99, then use Rouwenhorst. I
 % recommend against using Tauchen or Tauchen-Hussey methods. (They used to
 % be fine, but we nowadays simply have better alternatives.)
@@ -116,7 +116,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Note 'LifeCycleModelA1_ReturnFn' is just a copy paste of 'LifeCycleModel8_ReturnFn'
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)...
-    LifeCycleModelA1_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModelA1_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
@@ -184,7 +184,7 @@ figure(5)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

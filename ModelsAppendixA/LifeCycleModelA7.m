@@ -19,7 +19,7 @@
 %
 % We do the same for the i.i.d shocks
 % pi_e1e2=kron(pi_e2,pi_e1);
-% pi_e=kron(pi_e3,pi_e12);
+% pi_e=kron(pi_e3,pi_e1e2);
 %
 % Note that we have the same sizes as before:
 % size(z_grid)=sum(n_z)-by-1
@@ -198,7 +198,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModelA7_ReturnFn', which has three markov and three i.i.d. exogenous states
 ReturnFn=@(h,aprime,a,z1,z2,z3,e1,e2,e3,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)... 
-    LifeCycleModelA7_ReturnFn(h,aprime,a,z1,z2,z3,e1,e2,e3,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModelA7_ReturnFn(h,aprime,a,z1,z2,z3,e1,e2,e3,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
@@ -274,7 +274,7 @@ figure(1)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j h z1 z2 z3 e1 e2 e3)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

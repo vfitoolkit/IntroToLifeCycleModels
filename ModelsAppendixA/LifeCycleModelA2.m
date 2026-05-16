@@ -2,10 +2,10 @@
 % Change the exogenous shock z to be a (discretized markov approximation
 % of an) AR(1) process with gaussian mixture shocks, 
 %    z_t=rho_z z_{t-1}+epsilon_{z,t}, epsilon_{z,t}~F, 
-%          where F is a gaussian mixture F=\sum_{i=1}^n p_i N(mu_i, simga_i^2),
+%          where F is a gaussian mixture F=\sum_{i=1}^n p_i N(mu_i, sigma_i^2),
 % We use Farmer-Toda method to discretize it.
 % I have deliberately use mu instead of mew as the mean of the normal
-% distributions beings used so as to make it clearer that it represents
+% distributions being used so as to make it clearer that it represents
 % something different here.
 %
 % We will use a gaussian mixture of two normal (gaussian) distributions:
@@ -117,7 +117,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Note 'LifeCycleModelA1_ReturnFn' is just a copy paste of 'LifeCycleModel8_ReturnFn'
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)...
-    LifeCycleModelA1_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModelA1_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
@@ -186,7 +186,7 @@ figure(5)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

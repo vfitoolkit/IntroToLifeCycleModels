@@ -64,7 +64,7 @@ Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-P
 Params.rho_z=0.9;
 Params.sigma_epsilon_z=0.02;
 % transitory iid normal process on idiosyncratic labor productivity units
-Params.sigma_epsilon_e=0.2; % Implictly, rho_e=0
+Params.sigma_epsilon_e=0.2; % Implicitly, rho_e=0
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
 % Most countries have calculations of these (as they are used by the government departments that oversee pensions)
@@ -122,7 +122,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % 'LifeCycleModelA12_ReturnFn' is just copy-paste of 'LifeCycleModel11_ReturnFn'
 ReturnFn=@(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)...
-    LifeCycleModelA12_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModelA12_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 % In this model we have 1 decision variable, h, 1 next period endogenous
 % state, aprime, 1 this period endogenous state, a, 1 markov exogenous
 % state, z, and one i.i.d. exogenous state, e.
@@ -203,7 +203,7 @@ figure(1)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j h z e)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

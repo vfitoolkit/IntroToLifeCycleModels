@@ -78,7 +78,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=2; % Curvature of warm-glow (conrols rate at which marginal utility diminishes)
+Params.wg3=2; % Curvature of warm-glow (controls rate at which marginal utility diminishes)
 
 
 %% Grids
@@ -105,7 +105,7 @@ DiscountFactorParamNames={'beta','sj','growthdiscount'};
 
 % Change to 'LifeCycleModel22_ReturnFn'
 ReturnFn=@(h,aprime,a,z,w,sigma1,sigma2,g,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel22_ReturnFn(h,aprime,a,z,w,sigma1,sigma2,g,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel22_ReturnFn(h,aprime,a,z,w,sigma1,sigma2,g,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
@@ -141,7 +141,7 @@ FnsToEvaluate.ahat=@(h,aprime,a,z) a; % a is the current asset holdings
 simoptions.simperiods=N_j; % N_j is the default value
 simoptions.numbersims=10^3; % 10^3 is the default value
 % To simulate panel data you have to define 'where' an individual household
-% simulation starts from, we will use the StationaryDist (from which
+% simulation starts from, we will use the jequaloneDist (from which
 % starting points will be drawn randomly)
 InitialDist=jequaloneDist;
 
@@ -156,10 +156,10 @@ SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,Param
 
 % Lets draw the time series plots of h, earnings and assets for ten households (arbitrarily, the first ten)
 figure(1)
-subplot(3,1,1); plot(1:1:Params.J,SimPanelValues.fractiontimeworked(:,16)) % Note that we set simperiod so to be of length J (which would anyway have been the default)
+subplot(3,1,1); plot(1:1:Params.J,SimPanelValues.fractiontimeworked(:,16)) % Note that we set simoptions.simperiods to be of length J (which would anyway have been the default)
 title('Renormalized Time Series of one Household: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,SimPanelValues.earningshat(:,16))
-title('Renormalized Time Series of one Household: Labor Earnings (what kappa_j h)')
+title('Renormalized Time Series of one Household: Labor Earnings (what kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,SimPanelValues.ahat(:,16))
 title('Renormalized Time Series of one Household: Assets (ahat)')
 
@@ -180,10 +180,10 @@ SimPanelValues.a=SimPanelValues.ahat .* ((1+Params.g).^(1:1:simoptions.simperiod
 % Redraw the exact same plot, but now in the original model with wage growth
 % Lets draw the time series plots of h, earnings and assets for ten households (arbitrarily, the first ten)
 figure(2)
-subplot(3,1,1); plot(1:1:Params.J,SimPanelValues.fractiontimeworked(:,16)) % Note that we set simperiod so to be of length J (which would anyway have been the default)
+subplot(3,1,1); plot(1:1:Params.J,SimPanelValues.fractiontimeworked(:,16)) % Note that we set simoptions.simperiods to be of length J (which would anyway have been the default)
 title('Time Series of one Household: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,SimPanelValues.earnings(:,16))
-title('Time Series of one Household: Labor Earnings (w kappa_j h)')
+title('Time Series of one Household: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,SimPanelValues.a(:,16))
 title('Time Series of one Household: Assets (a)')
 

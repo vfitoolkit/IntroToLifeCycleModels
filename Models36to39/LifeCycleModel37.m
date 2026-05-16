@@ -6,7 +6,7 @@
 
 % 1. The temptation parameters are
 Params.sigmatempt=2; % curvature of consumption (note, is set to same value as sigma)
-Params.scaletemptation=1; % make is so temptation is same as standard utilty (this will substantially reduce assets in a visibly obvious way)
+Params.scaletemptation=1; % make it so temptation is same as standard utility (this will substantially reduce assets in a visibly obvious way)
 
 vfoptions.exoticpreferences='GulPesendorfer'; % Use Gul-Pesendorfer preferences
 
@@ -184,12 +184,12 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 % is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
+% Like with return function, we have to include (aprime,a,z) as first
 % inputs, then just any relevant parameters.
-FnsToEvaluate.earnings=@(aprime,a,z,w,kappa_j) w*kappa_j*z; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
+FnsToEvaluate.earnings=@(aprime,a,z,w,kappa_j) w*kappa_j*z; % w*kappa_j*z is the labor earnings (exogenous labor)
 FnsToEvaluate.assets=@(aprime,a,z) a; % a is the current asset holdings
 
-% notice that we have called these fractiontimeworked, earnings and assets
+% notice that we have called these earnings and assets
 
 %% Calculate the life-cycle profiles
 AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
@@ -201,11 +201,11 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % those were trivial, but now that we have an idiosyncratic shock z they
 % are meaningful and worth looking at.
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
+%% Plot the life cycle profiles of earnings and assets
 
 figure(5)
 subplot(2,1,1); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z)')
 subplot(2,1,2); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

@@ -6,7 +6,7 @@
 
 % 1. The temptation parameters are
 Params.sigmatempt=2; % curvature of consumption (note, is set to same value as sigma)
-Params.scaletemptation=1; % make is so temptation is same as standard utilty (this will substantially reduce assets in a visibly obvious way)
+Params.scaletemptation=1; % make is so temptation is same as standard utility (this will substantially reduce assets in a visibly obvious way)
 
 vfoptions.exoticpreferences='GulPesendorfer'; % Use Gul-Pesendorfer preferences
 
@@ -230,7 +230,7 @@ figure(5)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

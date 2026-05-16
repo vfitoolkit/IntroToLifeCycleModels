@@ -8,7 +8,7 @@
 % Then we estimate the parameters of the normal distribution of the permanent type, 
 % with these age-conditional mean and variance of earnings as the targets.
 
-% In a model with permament types normally we would use the parameter named
+% In a model with permanent types normally we would use the parameter named
 % in PTypeDistParamNames, with value in Params, to set the distribution of permanent types.
 % [The other option is to include permanent types as a dimension of the initial distribution]
 % We need to set PTypeDistParamNames as a function, so that the distribution can be estimated. To keep
@@ -84,7 +84,7 @@ Params.alpha_i=alpha_grid;
 PTypeDistParamNames={'alphadist'};
 Params.alphadist=pi_alpha; % Must sum to one
 % Note: this distribution is not relevant to solving the value function, but is needed for
-% stationary distribition. It then gets encoded into the StationaryDist and
+% stationary distribution. It then gets encoded into the StationaryDist and
 % so is not needed for things like life-cycle profiles.
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
@@ -129,7 +129,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModel49_ReturnFn', only difference from 'LifeCycleModel45_ReturnFn' is that it includes alpha_i
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,alpha_i,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel49_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,alpha_i,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel49_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,alpha_i,wg1,wg2,wg3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to estimation
 disp('Test ValueFnIter')
@@ -194,7 +194,7 @@ figure(1)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile (pre-calibration): Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile (pre-calibration): Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile (pre-calibration): Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile (pre-calibration): Assets (a)')
 
@@ -299,7 +299,7 @@ figure(2)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

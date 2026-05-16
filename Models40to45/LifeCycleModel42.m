@@ -35,7 +35,7 @@ Params.agejshifter=19; % Age 20 minus one. Makes keeping track of actual age eas
 Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
-n_d=[11,5]; % Endogenous labour suppy, study-time
+n_d=[11,5]; % Endogenous labour supply, study-time
 n_a=[201,21]; % Endogenous asset holdings, human capital
 n_z=11; % Exogenous labor productivity units shock
 n_u=5; % Exogenous between-period i.i.d shock
@@ -213,22 +213,22 @@ size(Policy)
 %% Let's take a quick look at what we have calculated, namely V and Policy
 
 % Convert the policy function to values (rather than indexes).
-% Note that there is one policy for participation (p), and another for next period assets (aprime). 
-% Because h is an experienceasset, hprime is not chosen directly so is not in Policy
-% Policy(1,:,:,:,:) is h, Policy(2,:,:,:,:) is aprime [as function of (a,h,z,j)]
+% Note that there are policies for labor supply (l), study time (s), and next period assets (aprime). 
+% Because h is an experienceassetu, hprime is not chosen directly so is not in Policy
+% Policy(1,:,:,:,:) is l, Policy(2,:,:,:,:) is s, Policy(3,:,:,:,:) is aprime [as function of (a,h,z,j)]
 
 % Rather than plot lots of outputs, we will just look at two, some
-% participation decisions and some aprime decisions. 
+% study decisions and some aprime decisions. 
 % Plots are conditional on median z, mid-point of h_grid
 zind=ceil(n_z/2);
 hind=ceil(n_a(2)/2);
-figure(3)
+figure(2)
 PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
 subplot(2,1,1); surf(asset_grid*ones(1,Params.J),ones(n_a(1),1)*(1:1:Params.J),reshape(PolicyVals(1,:,hind,zind,:),[n_a(1),Params.J]))
-title('Policy function: study decision, median h, median z')
+title('Policy function: labor supply (l), median h, median z')
 xlabel('Assets (a)')
 ylabel('Age j')
-zlabel('Female participation decision (p)')
+zlabel('Labor supply (l)')
 subplot(2,1,2); surf(asset_grid*ones(1,Params.J),ones(n_a(1),1)*(1:1:Params.J),reshape(PolicyVals(2,:,hind,zind,:),[n_a(1),Params.J]))
 title('Policy function: next period assets (aprime), median h, median z')
 xlabel('Assets (a)')
@@ -236,12 +236,12 @@ ylabel('Age j')
 zlabel('Next period assets (aprime)')
 
 % Because h is an experienceassetu, hprime is not chosen directly so is not in Policy
-% But then how does hprime evolve? Remember that hprime(p,h,u), so you can
+% But then how does hprime evolve? Remember that hprime(s,h,u), so you can
 % use the current h, together with s (which is in Policy) and a value for shock u, and 
 % you would then need to pass these as inputs into aprimeFn, which outputs the value
-% of hprime(p,h,u). We won't attempt to do that here, but that is what the
+% of hprime(s,h,u). We won't attempt to do that here, but that is what the
 % toolkit is doing internally (as well as then using linear interpolation
-% to put the value of hprime(p,h,u) back onto the two nearest points on h_grid and deal
+% to put the value of hprime(s,h,u) back onto the two nearest points on h_grid and deal
 % with the different u probabilities/values)
 
 
@@ -251,7 +251,7 @@ zlabel('Next period assets (aprime)')
 % Before we plot the life-cycle profiles we have to define how agents are
 % at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,4,floor((n_z+1)/2))=1; % All agents start with zero assets, h_grid(4) of human capital, and the median shock [h_grid(4) is roughly same as y_m(1), just my arbitarty decision]
+jequaloneDist(1,4,floor((n_z+1)/2))=1; % All agents start with zero assets, h_grid(4) of human capital, and the median shock [h_grid(4) is roughly same as y_m(1), just my arbitrary decision]
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -273,7 +273,7 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 % inputs, then just any relevant parameters.
 FnsToEvaluate.laborsupply=@(l,s,aprime,a,h,z) l; % l is labor supply
 FnsToEvaluate.studytime=@(l,s,aprime,a,h,z) s; % s is study-time
-FnsToEvaluate.earnings=@(l,s,aprime,a,h,z,w) w*h*z*l; % labor earnings of female (note, p will equal 0 in retirement, so we don't need to treat it separately)
+FnsToEvaluate.earnings=@(l,s,aprime,a,h,z,w) w*h*z*l; % labor earnings (note, l will equal 0 in retirement)
 FnsToEvaluate.humancapital=@(l,s,aprime,a,h,z) h; % human capital
 FnsToEvaluate.assets=@(l,s,aprime,a,h,z) a; % a is the current asset holdings
 
@@ -285,9 +285,9 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % For example
 % AgeConditionalStats.laborsupply.Mean
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
+%% Plot the life cycle profiles of labor supply, study time, earnings, human capital, and assets
 
-figure(5)
+figure(3)
 subplot(5,1,1); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.laborsupply.Mean)
 title('Life Cycle Profile: Labor Supply (l)')
 subplot(5,1,2); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.studytime.Mean)

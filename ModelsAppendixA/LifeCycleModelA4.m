@@ -3,7 +3,7 @@
 % exogenous shock process z. We model z as a 'non-stationary AR(1)', that
 % is, an AR(1) process whose parameters depend on age. I will refer to this
 % as a 'life-cycle AR(1) process'
-% AR(1) process, z_j=0+rho_{z,j} z_{j-1}+epsilon_{z,j}, epsilon_{z,j} ~N(0,simga_{epsilon,z,j}^2)
+% AR(1) process, z_j=0+rho_{z,j} z_{j-1}+epsilon_{z,j}, epsilon_{z,j} ~N(0,sigma_{epsilon,z,j}^2)
 % j=1,2,...J
 % Notice that both the autocorrelation, rho_{z,j}, and the standard deviation of
 % the innovations, sigma_{epsilon,z,j}, now depend on j. The codes will
@@ -145,7 +145,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Note 'LifeCycleModelA1_ReturnFn' is just a copy paste of 'LifeCycleModel8_ReturnFn'
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)...
-    LifeCycleModelA1_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModelA1_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
@@ -218,7 +218,7 @@ figure(5)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 
@@ -234,9 +234,9 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 figure(6)
 subplot(4,1,1); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile, Mean:     Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile, Mean:     Labor Earnings (w kappa_j z h)')
 subplot(4,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Variance)
-title('Life Cycle Profile, Variance: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile, Variance: Labor Earnings (w kappa_j z h)')
 subplot(4,1,3); plot(1:1:Params.J,AgeConditionalStats.consumption.Mean)
 title('Life Cycle Profile, Mean:     Consumption (c)')
 subplot(4,1,4); plot(1:1:Params.J,AgeConditionalStats.consumption.Variance)

@@ -10,15 +10,15 @@
 
 % 1. Use vfoptions to state that you are using Quasi-Hyperbolic discounting.
 % The quasi-hyperbolic preferences are controlled using,
-vfoptions.exoticpreferences='QuasiHyperbolic' % Use the quasi-hyperbolic preferences
-% To turn off, either don't delare vfoptions.exoticpreferences, or set vfoptions.exoticpreferences='None'
+vfoptions.exoticpreferences='QuasiHyperbolic'; % Use the quasi-hyperbolic preferences
+% To turn off, either don't declare vfoptions.exoticpreferences, or set vfoptions.exoticpreferences='None'
 % If you turn this off you would just solve the same model but with standard exponential discounting (parameter beta0 removed from discount factor by code below). 
 % This is intended as purely illustrative. A serious comparison of the preference types would require you to recalibrate the model.
 
 % 2. (optional) Use vfoptions to state whether you want 'naive' or 'sophisticated' Quasi-Hyperbolic discounting. (Optional as naive by default)
 % Also need to choose which of the two quasi-hyperbolic solutions, naive or sophisticated, to use.
 % vfoptions.quasi_hyperbolic='Naive' % This is the default, alternative is 'Sophisticated'.
-vfoptions.quasi_hyperbolic='Sophisticated' % This is the default, alternative is 'Sophisticated'.
+vfoptions.quasi_hyperbolic='Sophisticated'; % Default is 'Naive', alternative is 'Sophisticated'.
 
 % 3. Set the appropriate preference parameters.
 vfoptions.QHadditionaldiscount='beta0';
@@ -107,7 +107,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Only difference from 'LifeCycleModel10_ReturnFn' is that here there are no bequests
 ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j) ...
-    LifeCycleModel36_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j)
+    LifeCycleModel36_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
@@ -198,12 +198,12 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 % is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
+% Like with return function, we have to include (aprime,a,z) as first
 % inputs, then just any relevant parameters.
-FnsToEvaluate.earnings=@(aprime,a,z,w,kappa_j) w*kappa_j*z; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
+FnsToEvaluate.earnings=@(aprime,a,z,w,kappa_j) w*kappa_j*z; % w*kappa_j*z is the labor earnings (exogenous labor)
 FnsToEvaluate.assets=@(aprime,a,z) a; % a is the current asset holdings
 
-% notice that we have called these fractiontimeworked, earnings and assets
+% notice that we have called these earnings and assets
 
 %% Calculate the life-cycle profiles
 AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
@@ -215,11 +215,11 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % those were trivial, but now that we have an idiosyncratic shock z they
 % are meaningful and worth looking at.
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
+%% Plot the life cycle profiles of earnings and assets
 
 figure(5)
 subplot(2,1,1); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z)')
 subplot(2,1,2); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

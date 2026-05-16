@@ -6,7 +6,7 @@
 
 % Ambiguity Aversion setup is lines 115-155
 
-% Some explantion of how the ambiguity aversion is done: 
+% Some explanation of how the ambiguity aversion is done: 
 % z_grid_J represents the grid on the exogenous shocks.
 % pi_z_J represents the probabilities for the true process
 % vfoptions.ambiguity_pi_z_J represents the 'multiple priors' (which may or may not include the true process)
@@ -21,7 +21,7 @@
 %% How does VFI Toolkit think about this?
 %
 % One endogenous state variable: a, assets (total household savings)
-% One stochastic exogenous state variable: z, 'unemployment' shock
+% One stochastic exogenous state variable: z, dual-purpose ('unemployment' shock in working age, medical shock in retirement)
 % Age: j
 
 %% Begin setting up to use VFI Toolkit to solve
@@ -105,7 +105,7 @@ for jj=1:Params.J
         pi_z_J(:,:,jj)=[0,1; 0,1]; % Everyone starts healthy (zero medical expense shock)
     else
         z_grid_J(:,jj)=[0.3;0];
-        pi_z_J(:,:,jj)=[0.2,0.8;0.3,0.7]; % Medical expense shocks are resonably rare and not very perisitent
+        pi_z_J(:,:,jj)=[0.2,0.8;0.3,0.7]; % Medical expense shocks are resonably rare and not very persistent
     end
 end
 
@@ -142,7 +142,7 @@ for jj=Params.Jr+1:Params.J
 end
 
 % Done, notice that because all three priors are identical during working
-% age the 'muliple priors' set is just a singleton, and so reduced to be
+% age the 'multiple priors' set is just a singleton, and so reduced to be
 % standard risk.
 
 % Actually, we can do one more thing that will speed computation,
@@ -153,7 +153,7 @@ n_ambiguity=[ones(1,Params.Jr),3*ones(1,Params.J-Params.Jr)]; % one prior during
 % When n_ambiguity for a given age is less that the fourth dimension of
 % ambiguity_pi_z_J, the codes only use the first n_ambiguity(jj) parts.
 % So in current example, for working age jj, n_ambiguity(jj)=1, and hence
-% only the first, namely ambiguity_pi_z_J(:,:,jj,1), is used. Once we get to retirment and the
+% only the first, namely ambiguity_pi_z_J(:,:,jj,1), is used. Once we get to retirement and the
 % medical shocks n_ambiguity(jj)=3 and so all three are used.
 
 % All the ambiguity to be passed as vfoptions
@@ -166,11 +166,10 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Now use 'LifeCycleModel21_ReturnFn'
 ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j)...
-    LifeCycleModel39_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j)
+    LifeCycleModel39_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
-% vfoptions=struct(); % Just using the defaults.
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -198,9 +197,9 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 % is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
+% Like with return function, we have to include (aprime,a,z) as first
 % inputs, then just any relevant parameters.
-FnsToEvaluate.earnings=@(aprime,a,z,w,kappa_j) w*kappa_j*z; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
+FnsToEvaluate.earnings=@(aprime,a,z,w,kappa_j) w*kappa_j*z; % w*kappa_j*z is the labor earnings (exogenous labor)
 FnsToEvaluate.assets=@(aprime,a,z) a; % a is the current asset holdings
 FnsToEvaluate.fractionunemployed=@(aprime,a,z) (z==0); % indicator for z=0 (unemployment) [Note: only makes sense as employment for j=1,..,Jr]
 FnsToEvaluate.fractionwithmedicalexpenses=@(aprime,a,z) (z==0.3); % indicator for z=0.3 medical shock
@@ -215,7 +214,7 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % those were trivial, but now that we have an idiosyncratic shock z they
 % are meaningful and worth looking at.
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
+%% Plot the life cycle profiles of earnings, assets, unemployment, and medical expenses
 
 figure(1)
 subplot(4,1,1); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
@@ -223,13 +222,13 @@ title('Life Cycle Profile: Labor Earnings (w kappa_j z)')
 subplot(4,1,2); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 subplot(4,1,3); plot(1:1:Params.J,[AgeConditionalStats.fractionunemployed.Mean(1:Params.Jr-1),nan(1,Params.J-Params.Jr+1)])
-title('Life Cycle Profile: Fraction Unmployed (z==0)')
+title('Life Cycle Profile: Fraction Unemployed (z==0)')
 xlim([1,Params.J])
 subplot(4,1,4); plot(1:1:Params.J,AgeConditionalStats.fractionwithmedicalexpenses.Mean)
 title('Life Cycle Profile: Fraction experiencing medical expenses (z==0.3)')
 
 % Notice how we only plot the first part of
-% AgeConditionalStats.fractionunemployed.Mean(1:Params.Jr-1), becasuse this
+% AgeConditionalStats.fractionunemployed.Mean(1:Params.Jr-1), because this
 % FnToEvaluate is based on z, which changes meaning between j=Jr-1 and j=Jr.
 
 

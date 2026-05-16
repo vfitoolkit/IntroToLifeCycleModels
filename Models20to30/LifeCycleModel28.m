@@ -5,14 +5,14 @@
 % each person are correlated.
 %
 % Model shows how to do two decision variables.
-% Model also usees 'joint grids' for the exogenous variables (see Life-Cycle Model A9).
+% Model also uses 'joint grids' for the exogenous variables (see Life-Cycle Model A9).
 %
 % Use Farmer-Toda which produces a 'joint grid', as opposed to a cross-product (kronecker) grid.
 % Extends Life-Cycle Model 11, adding the second earner to the household.
 %
 % Notice that while there are, e.g., two deterministic labor productivity
 % earnings as a function of age (one for each earner), we do not use
-% permament types as both are relevant to the one household.
+% permanent types as both are relevant to the one household.
 %
 % To keep the emphasis on the two decision variables (and the shock
 % processes) we will keep everything else as little changed as possible, so
@@ -81,7 +81,7 @@ Params.kappa_j_2=0.9*[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Para
 Params.rho_z=[0.9,0;0,0.7];
 Params.sigmasq_epsilon_z=[0.0303, 0.0027; 0.0027, 0.0382]; 
 Params.sigma_epsilon_z=sqrt(Params.sigmasq_epsilon_z);
-    % The Farmer-Toda method can discretize a VAR(1) with any (postivite semi-definite) variance-covariance matrix.
+    % The Farmer-Toda method can discretize a VAR(1) with any (positive semi-definite) variance-covariance matrix.
 % iid processes on idiosyncratic labor units which are correlated
 Params.sigmasq_epsilon_e=[0.1,0.05;0.05,0.1];
 Params.sigma_epsilon_e=sqrt(Params.sigmasq_epsilon_e);
@@ -144,14 +144,14 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Notice change to 'LifeCycleModel28_ReturnFn', and now input h1,h2 and z1,z2,e1,e2
 ReturnFn=@(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel28_ReturnFn(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel28_ReturnFn(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,wg1,wg2,wg3,beta,sj);
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 % Note: on a more powerful GPU you can set lowmemory=0 (which is the default) and things will run faster.
 vfoptions.lowmemory=1;
 vfoptions.paroverz=1;
-vfoptions.verbose=1
+vfoptions.verbose=1;
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -195,13 +195,13 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 % is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first inputs, then just any relevant parameters.
+% Like with return function, we have to include (h1,h2,aprime,a,z1,z2,e1,e2) as first inputs, then just any relevant parameters.
 FnsToEvaluate.fractiontimeworked=@(h1,h2,aprime,a,z1,z2,e1,e2) h1+h2; % h is fraction of time worked
 FnsToEvaluate.fractiontimeworked1=@(h1,h2,aprime,a,z1,z2,e1,e2) h1; % h is fraction of time worked
 FnsToEvaluate.fractiontimeworked2=@(h1,h2,aprime,a,z1,z2,e1,e2) h2; % h is fraction of time worked
-FnsToEvaluate.earnings=@(h1,h2,aprime,a,z1,z2,e1,e2,w,kappa_j_1,kappa_j_2) w*kappa_j_1*h1*z1*e1+w*kappa_j_2*h2*z2*e2; % w*kappa_j*h*z is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
-FnsToEvaluate.earnings1=@(h1,h2,aprime,a,z1,z2,e1,e2,w,kappa_j_1) w*kappa_j_1*h1*z1*e1; % w*kappa_j*h*z is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
-FnsToEvaluate.earnings2=@(h1,h2,aprime,a,z1,z2,e1,e2,w,kappa_j_2) w*kappa_j_2*h2*z2*e2; % w*kappa_j*h*z is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
+FnsToEvaluate.earnings=@(h1,h2,aprime,a,z1,z2,e1,e2,w,kappa_j_1,kappa_j_2) w*kappa_j_1*h1*z1*e1+w*kappa_j_2*h2*z2*e2; % w*kappa_j_1*h1*z1*e1 + w*kappa_j_2*h2*z2*e2 is the labor earnings
+FnsToEvaluate.earnings1=@(h1,h2,aprime,a,z1,z2,e1,e2,w,kappa_j_1) w*kappa_j_1*h1*z1*e1; % w*kappa_j_1*h1*z1*e1 is the spouse-1 labor earnings
+FnsToEvaluate.earnings2=@(h1,h2,aprime,a,z1,z2,e1,e2,w,kappa_j_2) w*kappa_j_2*h2*z2*e2; % w*kappa_j_2*h2*z2*e2 is the spouse-2 labor earnings
 FnsToEvaluate.assets=@(h1,h2,aprime,a,z1,z2,e1,e2) a; % a is the current asset holdings
 
 % notice that we have called these fractiontimeworked, earnings and assets
