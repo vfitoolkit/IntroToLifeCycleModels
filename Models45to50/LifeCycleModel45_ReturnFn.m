@@ -1,4 +1,4 @@
-function F=LifeCycleModel45_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+function F=LifeCycleModel45_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
 
 F=-Inf;
 if agej<Jr % If working age
@@ -13,8 +13,8 @@ end
 
 % add the warm glow to the return, but only near end of life
 if agej>=Jr+10
-    % Warm glow of bequests
-    warmglow=warmglow1*((aprime-warmglow2)^(1-warmglow3))/(1-warmglow3);
+    % Warm glow of bequests: bequest are a luxury good
+    warmglow=wg1*((1+aprime/wg2)^(1-wg3))/(1-wg3);
     % Modify for beta and sj (get the warm glow next period if die)
     warmglow=beta*(1-sj)*warmglow;
     % add the warm glow to the return

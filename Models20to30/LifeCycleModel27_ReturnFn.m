@@ -32,7 +32,7 @@ end
 
 % add the warm glow to the return, but only near end of life
 if agej>=Jbeq
-    % Warm glow of bequests (use functional form of De Nardi (2004))
+    % Warm glow of bequests: bequest are a luxury good
     warmglow=wg1*((1+aprime/wg2)^(1-wg3))/(1-wg3);
     % Modify for beta and sj (get the warm glow next period if die)
     warmglow=beta*(1-sj)*warmglow;

@@ -30,10 +30,11 @@ Params.phi=-1;
 % 4. Warm-glow of bequests
 % Using warm-glow of bequests together with EZ preferences is subtle, so dealing with them has been mostly automated.
 % Need to define two things (if you don't want bequests you simply do not define these)
-vfoptions.WarmGlowBequestsFn=@(aprime,sigma,wg,agej,Jr) (agej>=Jr+10)*wg*(aprime^(1-sigma))/(1-sigma); % First input arguement must be aprime, after than can be any parameters
+vfoptions.WarmGlowBequestsFn=@(aprime,wg3,wg,wg2,agej,Jr) (agej>=Jr+10)*wg*((1+aprime/wg2)^(1-wg3))/(1-wg3); % First input arguement must be aprime, after than can be any parameters
 % Comment: Loosely speaking you want the WarmGlowBequestsFn to output the 'same'
 % thing as the return fn. Our utility function has (c^(1-sigma))/(1-sigma)
-% and hence we set the warmglow to (aprime^(1-sigma))/(1-sigma). We can
+% and hence we set the warmglow curvature wg3 equal to sigma, applied to the
+% luxury-good form ((1+aprime/wg2)^(1-wg3))/(1-wg3). We can
 % then control the importance of the warm-glow of bequests by multiplying
 % it by a constant, here called wg. Note that to keep this in line with previous models we
 % also include a term so that the warm-glow of bequests in only non-zero
@@ -117,6 +118,8 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 
 % Warm glow of bequest
 Params.wg=10; % (relative) importance of bequests
+Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
 % Note: wg can be interpreted as the target for the ratio of terminal wealth to terminal 
 % consumption (terminal meaning at end of the last period, period J). See pdf for explanation.
 

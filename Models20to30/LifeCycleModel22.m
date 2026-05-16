@@ -76,9 +76,9 @@ Params.sj=1-Params.dj(21:101); % Conditional survival probabilities
 Params.sj(end)=0; % In the present model the last period (j=J) value of sj is actually irrelevant
 
 % Warm glow of bequest
-Params.warmglow1=0.3; % (relative) importance of bequests
-Params.warmglow2=3; % bliss point of bequests (essentially, the target amount)
-Params.warmglow3=2; % Curvature of warm-glow (conrols rate at which marginal utility diminishes)
+Params.wg1=0.3; % (relative) importance of bequests
+Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
+Params.wg3=2; % Curvature of warm-glow (conrols rate at which marginal utility diminishes)
 
 
 %% Grids
@@ -104,7 +104,7 @@ Params.growthdiscount=(1+Params.g)^(Params.sigma1*(1-Params.sigma2));
 DiscountFactorParamNames={'beta','sj','growthdiscount'};
 
 % Change to 'LifeCycleModel22_ReturnFn'
-ReturnFn=@(h,aprime,a,z,w,sigma1,sigma2,g,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel22_ReturnFn(h,aprime,a,z,w,sigma1,sigma2,g,agej,Jr,pension,r,kappa_j,warmglow1,warmglow2,warmglow3,beta,sj)
+ReturnFn=@(h,aprime,a,z,w,sigma1,sigma2,g,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) LifeCycleModel22_ReturnFn(h,aprime,a,z,w,sigma1,sigma2,g,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')

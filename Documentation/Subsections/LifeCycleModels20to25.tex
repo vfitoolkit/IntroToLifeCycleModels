@@ -138,7 +138,7 @@ We can do the same renormalization as before, defining $\hat{c}_j \equiv \frac{c
 && 0\leq h \leq 1, \hat{a}_{j+1} \geq 0 \\
 && log(z_j)=\rho_z log(z_{j-1}) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
 \end{eqnarray*}
-note that we now just have $w_1$ and $pension_{Jr}$. Notice also the $warmglow(\hat{a}_{j+1} (1+g)^j)$; we could just take the $(1+g)^j$ out of the warmglow function as really it is just equivalent changing two of the warm-glow parameters, $warmglow1$ and $warmglow2$. When coding we will take advantage of this to rewrite the warm-glow as $(1-s_j)\beta (1+g)^{-1}  \mathbb{I}_{(j>=Jr+10)} warmglow(\hat{a}_{j+1} (1+g))$, as mentioned this is really just reparametrizing, not changing anything of substance.
+note that we now just have $w_1$ and $pension_{Jr}$. Notice also the $warmglow(\hat{a}_{j+1} (1+g)^j)$; we could just take the $(1+g)^j$ out of the warmglow function as really it is just equivalent changing two of the warm-glow parameters, $wg1$ and $wg2$. When coding we will take advantage of this to rewrite the warm-glow as $(1-s_j)\beta (1+g)^{-1}  \mathbb{I}_{(j>=Jr+10)} warmglow(\hat{a}_{j+1} (1+g))$, as mentioned this is really just reparametrizing, not changing anything of substance.
 
 We will solve this model in the standard way, and simulate some panel data with it. Note that what we simulate will be $\hat{a}$, $w_1 \kappa_j z_j h$, and $h$. We will then create panel data for the original model, by changing these to $a$, $w_j \kappa_j z_j h$ and $h$; this requires multiplying the first two by $(1+g)^{j-1}$ but leaving the third unchanged (we need to modify to get $a$ and $w_j$).
 

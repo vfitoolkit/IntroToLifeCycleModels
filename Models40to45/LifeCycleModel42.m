@@ -90,9 +90,9 @@ Params.sj=1-Params.dj(21:101); % Conditional survival probabilities
 Params.sj(end)=0; % In the present model the last period (j=J) value of sj is actually irrelevant
 
 % Warm glow of bequest
-Params.warmglow1=0.3; % (relative) importance of bequests
-Params.warmglow2=3; % bliss point of bequests (essentially, the target amount)
-Params.warmglow3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg1=0.3; % (relative) importance of bequests
+Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
 
 
 %% Grids
@@ -180,8 +180,8 @@ hold off
 DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModel42_ReturnFn'
-ReturnFn=@(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,warmglow1,warmglow2,warmglow3,beta,sj)...
-    LifeCycleModel42_ReturnFn(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,warmglow1,warmglow2,warmglow3,beta,sj);
+ReturnFn=@(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,wg1,wg2,wg3,beta,sj)...
+    LifeCycleModel42_ReturnFn(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,wg1,wg2,wg3,beta,sj);
 % Notice how we have (l,s,aprime,a,h,z,...)
 % Follow same decision-next endo-endo-exo ordering as usual, but because h
 % is an experienceassetu, we do not include hprime as it is not chosen

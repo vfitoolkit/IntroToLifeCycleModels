@@ -101,9 +101,9 @@ Params.sj=1-Params.dj(21:101); % Conditional survival probabilities
 Params.sj(end)=0; % In the present model the last period (j=J) value of sj is actually irrelevant
 
 % Warm glow of bequest
-Params.warmglow1=0.3; % (relative) importance of bequests
-Params.warmglow2=3; % bliss point of bequests (essentially, the target amount)
-Params.warmglow3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg1=0.3; % (relative) importance of bequests
+Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
 
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from
@@ -143,7 +143,7 @@ d_grid=[h1_grid; h2_grid];
 DiscountFactorParamNames={'beta','sj'};
 
 % Notice change to 'LifeCycleModel28_ReturnFn', and now input h1,h2 and z1,z2,e1,e2
-ReturnFn=@(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,warmglow1,warmglow2,warmglow3,beta,sj) LifeCycleModel28_ReturnFn(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,warmglow1,warmglow2,warmglow3,beta,sj)
+ReturnFn=@(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,wg1,wg2,wg3,beta,sj) LifeCycleModel28_ReturnFn(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,wg1,wg2,wg3,beta,sj)
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
 disp('Test ValueFnIter')
