@@ -1,6 +1,6 @@
 %% Life-Cycle Model 32: Portfolio-Choice with Epstein-Zin preferences
 % Same as life-cycle model 31, except with Epstein-Zin preferences
-% Esptein-Zin preferences seperate risk aversion from the intertemporal
+% Esptein-Zin preferences separate risk aversion from the intertemporal
 % elasticity of substitution, which is important for problems like this as
 % the intertemporal elasticity of substitution will control the amount of
 % saving for retirement, while risk aversion will determine the share of
@@ -164,7 +164,7 @@ ReturnFn=@(savings,a,z,w,sigma,agej,Jr,pension,kappa_j) ...
     LifeCycleModel31_ReturnFn(savings,a,z,w,sigma,agej,Jr,pension,kappa_j)
 % vfoptions.refine_d: only (d1,d3,..) are input to ReturnFn [this model has no d1, so here just d3]
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
@@ -190,7 +190,7 @@ size(Policy)
 
 % We can plot V as a 3d plot (surf is matlab command for 3d plot)
 % Which z value should we plot? I will plot the median
-zind=floor(n_z+1)/2; % This will be the median
+zind=floor((n_z+1)/2); % This will be the median
 figure(1)
 subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(V(:,zind,:),[n_a,Params.J]))
 title('Value function: median value of z')
@@ -210,7 +210,7 @@ subplot(5,1,2); plot(a_grid,V(:,1,20),a_grid,V(:,zind,20),a_grid,V(:,end,20)) % 
 title('Value fn at age j=20')
 subplot(5,1,3); plot(a_grid,V(:,1,45),a_grid,V(:,zind,45),a_grid,V(:,end,45)) % j=45
 title('Value fn at age j=45')
-subplot(5,1,4); plot(a_grid,V(:,1,46),a_grid,V(:,end,46),a_grid,V(:,end,46)) % j=46
+subplot(5,1,4); plot(a_grid,V(:,1,46),a_grid,V(:,zind,46),a_grid,V(:,end,46)) % j=46
 title('Value fn at age j=46 (first year of retirement)')
 subplot(5,1,5); plot(a_grid,V(:,1,81),a_grid,V(:,zind,81),a_grid,V(:,end,81)) % j=81
 title('Value fn at age j=81')
@@ -295,8 +295,10 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 

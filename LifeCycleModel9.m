@@ -1,12 +1,12 @@
 %% Life-Cycle Model 9: Idiosyncratic shocks again, AR(1)
 % Change the exogenous shock z to be a (discretized markov approximation
-% of an) AR(1) process, z_t=0+rho_z z_{t-1}+epsilon_{z,t}, epsilon_{z,t} ~N(0,simga_{epsilon,z}^2)
+% of an) AR(1) process, z_t=0+rho_z z_{t-1}+epsilon_{z,t}, epsilon_{z,t} ~N(0,sigma_{epsilon,z}^2)
 % We use Farmer-Toda method to discretize this AR(1) process
 % (discretize=turn it into a grid z_grid, and a transition matrix pi_z)
 %
 % (Alternative discretization methods for an AR(1) like Tauchen, Tauchen-Hussey 
 % and Rouwenhorst are illustrated in Life-Cycle Model A1. But Farmer-Toda is the 
-% best performing of these methods, expect for rho_z>=0.99, in which case 
+% best performing of these methods, except for rho_z>=0.99, in which case 
 % Rouwenhorst performs best. Hence we use Farmer-Toda here.)
 
 %% How does VFI Toolkit think about this?
@@ -34,7 +34,7 @@ N_j=Params.J; % Number of periods in finite horizon
 Params.beta = 0.96;
 % Preferences
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
 % Prices
@@ -71,7 +71,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 
 %% Grids
@@ -98,7 +98,7 @@ DiscountFactorParamNames={'beta','sj'};
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)...
     LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
@@ -124,7 +124,7 @@ size(Policy)
 
 % We can plot V as a 3d plot (surf is matlab command for 3d plot)
 % Which z value should we plot? I will plot the median
-zind=floor(n_z+1)/2; % This will be the median
+zind=floor((n_z+1)/2); % This will be the median
 figure(1)
 subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(V(:,zind,:),[n_a,Params.J]))
 title('Value function: median value of z')
@@ -144,7 +144,7 @@ subplot(5,1,2); plot(a_grid,V(:,1,20),a_grid,V(:,zind,20),a_grid,V(:,end,20)) % 
 title('Value fn at age j=20')
 subplot(5,1,3); plot(a_grid,V(:,1,45),a_grid,V(:,zind,45),a_grid,V(:,end,45)) % j=45
 title('Value fn at age j=45')
-subplot(5,1,4); plot(a_grid,V(:,1,46),a_grid,V(:,end,46),a_grid,V(:,end,46)) % j=46
+subplot(5,1,4); plot(a_grid,V(:,1,46),a_grid,V(:,zind,46),a_grid,V(:,end,46)) % j=46
 title('Value fn at age j=46 (first year of retirement)')
 subplot(5,1,5); plot(a_grid,V(:,1,81),a_grid,V(:,zind,81),a_grid,V(:,end,81)) % j=81
 title('Value fn at age j=81')
@@ -230,8 +230,10 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 

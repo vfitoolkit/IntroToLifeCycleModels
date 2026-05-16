@@ -59,7 +59,7 @@ Params.childcarec=0.5; % Cost of childcare for infants (paid if working)
 infant_grid=[0;1];
 children_grid=(0:1:(n_semiz(2)-1))';
 
-% Set up the semi-exogneous states
+% Set up the semi-exogenous states
 vfoptions.n_semiz=n_semiz;
 vfoptions.semiz_grid=[infant_grid; children_grid];
 % Define the transition probabilities of the semi-exogenous states
@@ -118,7 +118,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 
 %% Grids
@@ -147,7 +147,7 @@ DiscountFactorParamNames={'beta','sj'};
 ReturnFn=@(h,f,aprime,a,n1,n2,z,w,sigma,psi,eta,agej,eta1,eta2,eta3,nbar,hbar,h_c,childcarec,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
     LifeCycleModel29_ReturnFn(h,f,aprime,a,n1,n2,z,w,sigma,psi,eta,agej,eta1,eta2,eta3,nbar,hbar,h_c,childcarec,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Solve ValueFnIter')
 vfoptions.verbose=1;
 tic;
@@ -237,8 +237,10 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 

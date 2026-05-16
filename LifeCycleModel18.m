@@ -3,11 +3,11 @@
 % We now repeat this, but this time with endogenous labor.
 % Recall that precautionary savings are about increasing asset holdings as a way for households 
 % to help reduce the probability of the borrowing constraints binding.
-% Now endogenous labor supply means there is another way to avoid reduce the probability of the 
+% Now endogenous labor supply means there is another way to reduce the probability of the
 % borrowing constraint binding by working more when assets are low.
-% We will see that this 'precautionary labor supply' acts as an substitute for precautionary savings.
+% We will see that this 'precautionary labor supply' acts as a substitute for precautionary savings.
 
-% We first solve the model with endogneous labor and then solve again with exogenous labor.
+% We first solve the model with endogenous labor and then solve again with exogenous labor.
 
 % We can then compare the policy functions and the aggregate assets and labor supply for the models 
 % with endogenous vs exogenous labor. We can see how endogenous labor reduces precautionary savings 
@@ -41,7 +41,7 @@ N_j=Params.J; % Number of periods in finite horizon
 Params.beta = 0.96;
 % Preferences
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
 % Prices
@@ -78,7 +78,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 
 %% Grids
@@ -103,9 +103,9 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Notice we still use 'LifeCycleModel8_ReturnFn'
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
@@ -118,7 +118,7 @@ toc
 % Before we plot the life-cycle profiles we have to define how agents are
 % at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, and the median shock
+jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, with z drawn from its stationary distribution
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -167,14 +167,14 @@ AgeConditionalStats_noshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_noshock
 PolicyVals_noshock=PolicyInd2Val_FHorz(Policy_noshock,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
 AllStats_noshock=EvalFnOnAgentDist_AllStats_FHorz_Case1(StationaryDist_noshock, Policy_noshock, FnsToEvaluate, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,simoptions);
 
-%% Parameter to make exogneous labor supply model have the same mean earnings as endogenous labor supply does.
+%% Parameter to make exogenous labor supply model have the same mean earnings as endogenous labor supply does.
 % Households work a fraction of the time. Since the difference in earnings
 % between exogenous and endogenous labor supply is just the multiplying by
 % hours worked it follows that the endogenous labor supply model will
 % have lower mean earnings.
 % Note that the ratio is not given by E[h], because of composition effects
 % (households with endogenous labor work more/less for certain exogenous
-% shocks and at certain ages and asst levels)
+% shocks and at certain ages and asset levels)
 %
 % We will use a parameter to multiply the earnings with exogenous labor, so as to get the same mean earnings.
 Params.meanearningsratio=0.4767/0.9682;
@@ -191,14 +191,14 @@ z_grid=exp(z_grid); % Take exponential of the grid
 [mean_z,~,~,statdist_z]=MarkovChainMoments(z_grid,pi_z); % Calculate the mean of the grid so as can normalise it
 z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is exactly 1)
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, and the median shock
+jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, with z drawn from its stationary distribution
 
 % Switch to exogenous labor supply
 n_d=0; % None
 d_grid=[]; % No decision variables
 % Change return function
 ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,meanearningsratio) ...
-    LifeCycleModel18B_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,meanearningsratio)
+    LifeCycleModel18B_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,meanearningsratio);
 [V_exo, Policy_exo]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 StationaryDist_exo=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy_exo,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 % Change FnsToEvaluate
@@ -219,7 +219,7 @@ jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
 jequaloneDist(1,1)=1; 
 [V_exonoshock, Policy_exonoshock]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 StationaryDist_exonoshock=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy_exonoshock,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% FnsToEvaluate_exo are unchangecd
+% FnsToEvaluate_exo are unchanged
 AgeConditionalStats_exonoshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_exonoshock,Policy_exonoshock,FnsToEvaluate_exo,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 PolicyVals_exonoshock=PolicyInd2Val_FHorz(Policy_exonoshock,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
@@ -258,7 +258,7 @@ subplot(3,1,3); plot(a_grid,PolicyVals(2,:,zind,20),a_grid,PolicyVals_exo(1,:,zi
 title('Policy for aprime at age j=20 (at low asset levels)')
 legend('endo: median z','exo: median z','endo, no shock','exo, no shock')
 xlim([0,0.1])
-% Note: Only younger ages are plotted here. For the reasons explained in Life-Cycle
+% Note: Only younger ages are plotted here. For the reasons explained in Life-Cycle Model 17.
 
 % Plot the aprime policy as a function (of assets) for a given age  (I do a few for different ages)
 figure(3)

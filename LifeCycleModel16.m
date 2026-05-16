@@ -1,6 +1,6 @@
 %% Life-Cycle Model 16 Consumption and Borrowing Constraints 2
 % Households would like to consumption smooth
-% Exogenous shocks, if enough bad shocks in a row occour, can be another
+% Exogenous shocks, if enough bad shocks in a row occur, can be another
 % reason for households to run up against borrowing constraints (we already
 % saw one reason in Life-Cycle Model 15).
 
@@ -17,10 +17,12 @@
 % 'mean' of households will not be running into borrowing constraints due
 % to shocks.
 
-% We will instead simulate a large panel data set and then finding some
-% households in that with a series of bad shocks. You could just
-% simulate a single household given a specific series of shocks and while
-% this is not difficult to code nor is it a standard command.
+% We will instead simulate a large panel data set and then find some
+% households in it with a series of bad shocks. You could alternatively
+% simulate a single household given a specific series of shocks; while
+% this is not difficult to code, the toolkit does not contain a command
+% to do it and you would have to code it yourself (only advantage of
+% hand-coding would be that it is faster).
 
 % From the panel we then look for households that get good shocks for the
 % first fifteen periods and mostly bad shocks for the next ten periods (see
@@ -70,7 +72,7 @@ N_j=Params.J; % Number of periods in finite horizon
 Params.beta = 0.96;
 % Preferences
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
 % Prices
@@ -107,7 +109,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from
@@ -131,9 +133,9 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Notice we still use 'LifeCycleModel8_ReturnFn'
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
@@ -151,7 +153,7 @@ toc
 % at age j=1. We will give them all zero assets. We use the stationary
 % distribution of z.
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, and the median shock
+jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, with z drawn from its stationary distribution
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -174,7 +176,7 @@ FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z) h; % h is fraction of time work
 FnsToEvaluate.earnings=@(h,aprime,a,z,w,kappa_j) w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
 FnsToEvaluate.assets=@(h,aprime,a,z) a; % a is the current asset holdings
 FnsToEvaluate.consumption=@(h,aprime,a,z,agej,Jr,w,kappa_j,r,pension) (agej<Jr)*(w*kappa_j*z*h+(1+r)*a-aprime)+(agej>=Jr)*(pension+(1+r)*a-aprime);
-FnsToEvaluate.marginalutilityofcons=@(h,aprime,a,z,agej,Jr,w,kappa_j,r,pension,sigma) ((agej<Jr)*(w*kappa_j*z*h+(1+r)*a-aprime)+(agej>=Jr)*(pension+(1+r)*a-aprime))^(-sigma); % u(c)=(c^(1-sigma))/(1-sigma), therefore u'(c)=c^(-sigma); note that we are using a seperable utility fn
+FnsToEvaluate.marginalutilityofcons=@(h,aprime,a,z,agej,Jr,w,kappa_j,r,pension,sigma) ((agej<Jr)*(w*kappa_j*z*h+(1+r)*a-aprime)+(agej>=Jr)*(pension+(1+r)*a-aprime))^(-sigma); % u(c)=(c^(1-sigma))/(1-sigma), therefore u'(c)=c^(-sigma); note that we are using a separable utility fn
 FnsToEvaluate.z=@(h,aprime,a,z) z; % Need this to identify the households with a long run of 'bad shocks'
 FnsToEvaluate.totalsavings=@(h,aprime,a,z) aprime; % aprime>=0 is the borrowing constraint
 
@@ -185,7 +187,7 @@ figure(1)
 subplot(3,2,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,2,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(3,2,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 subplot(3,2,4); plot(1:1:Params.J,AgeConditionalStats.consumption.Mean)
@@ -207,7 +209,7 @@ simoptions.numbersims=10^4; % 10^3 is the default value
 InitialDist=jequaloneDist;
 
 SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z, simoptions);
-% Simulates a panel based on PolicyIndexes of 'numbersims' agents of length
+% Simulates a panel based on PolicyIndexes of 'numbersims' agents of length 'simperiods'
 
 % For example
 % SimPanelValues.earnings
@@ -215,7 +217,7 @@ SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,Param
 % size(SimPanelValues.earnings) is [simperiods,numbersims] 
 % (what econometric theory on panel data would typically call T-by-N)
 
-%% Find households with and good 'start' and then lots of 'bad shocks'
+%% Find households with a good 'start' and then lots of 'bad shocks'
 
 % I want a household that does not have a bad shock in first 15 periods
 nobadshocksatfirst=(prod(SimPanelValues.z(1:15,:)>z_grid(2),1)==1);
@@ -229,7 +231,7 @@ sevenormorebadinnext10=(sum(SimPanelValues.z(16:25,:)==z_grid(1),1)>=7);
 
 % Both at once
 likely=(nobadshocksatfirst==0).*(sevenormorebadinnext10==1);
-sum(likely) % Couple of hundred canditate households
+sum(likely) % Couple of hundred candidate households
 
 % The indexes for those which satisfy both criteria
 temp=1:1:simoptions.numbersims;

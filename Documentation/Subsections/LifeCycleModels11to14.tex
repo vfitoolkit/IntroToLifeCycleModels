@@ -26,9 +26,9 @@ How do we let the codes know we have two exogenous shocks? First we just set up 
 There are many other things we might want to do with exogenous shocks, both in terms of different kinds of shock process ---AR(1) with parameters that depend on age, AR(1) with gaussian-mixture shocks, VAR(1)---- as well as alternative methods for discretizing shocks ---Tauchen, Rouwenhorst, Tauchen-Hussey. A wide variety of these are demonstrated in Life-Cycle Models Appendix \ref{app:exogshocks}. It also explains all the types of shocks VFI Toolkit recognizes, namely markov exogenous state $z$, and i.i.d. exogenous state $e$, which we have seen, plus semi-exogenous states which won't be seen until Life-Cycle model 29. Additionally it explains how to set up multiple shocks, so for example you might have two markov and three i.i.d. shocks. How to handle that the shocks are correlated, or that the transitions of one shock depend on the other, are also all explain in the various Appendix models. So go check out Life-Cycle Models Appendix \ref{app:exogshocks} for information on how to discretize and handle a wide variety of shock types.
 
 \subsection{Assignment 2: Alternative Utility Functions}
-Because the utility function is coded inside the return function changing it is easy. We will now present a few different utility functions. It is left as an assignment for you to try and implement the 'non-seperable CES utility function' by modifying LifeCylceModel9.m code, and look at how they change the life-cycle profiles. A 'solution' is provided as Assignment2\_{}LifeCycleModel.m.
+Because the utility function is coded inside the return function changing it is easy. We will now present a few different utility functions. It is left as an assignment for you to try and implement the 'non-separable CES utility function' by modifying LifeCylceModel9.m code, and look at how they change the life-cycle profiles. A 'solution' is provided as Assignment2\_{}LifeCycleModel.m.
 
-We can write a generic utility function of consumption and leisure as $u(c,l)$, where leisure can be defined as $l=1-h$, is the fraction of time not worked. The advantage of using leisure rather than hours worked in the utility function is that utility is increasing in leisure, which makes theoretical properties easier to derive; we will no longer need to subtract the disutiliy of hours worked as we did until now.
+We can write a generic utility function of consumption and leisure as $u(c,l)$, where leisure can be defined as $l=1-h$, is the fraction of time not worked. The advantage of using leisure rather than hours worked in the utility function is that utility is increasing in leisure, which makes theoretical properties easier to derive; we will no longer need to subtract the disutility of hours worked as we did until now.
 
 Using this generic utility function we can write the value function problem as,
 \begin{eqnarray*}
@@ -41,27 +41,27 @@ Using this generic utility function we can write the value function problem as,
 \end{eqnarray*}
 notice that $h=1-l$ has been substituted into the budget constraint, and the restriction that $0 \leq h \leq 1$ has been replaced with $0 \leq l \leq 1$; the obvious modifications around replacing $h=1-l$ in the FnsToEvaluate also need to be made.
 
-In the Life-Cycle models we have seen until now we used the 'seperable CES' utility function,
+In the Life-Cycle models we have seen until now we used the 'separable CES' utility function,
 \begin{equation*}
  u(c,l)=\frac{c^{1-\sigma_c}}{1-\sigma_c} + \psi \frac{l^{1-\sigma_l}}{1-\sigma_l}
 \end{equation*}
 note of course that this is not the exact form of the utility function we used until now, but it has the same properitie, just that we are now writing it in terms of $l$ instead of $h$ (you could substitute $1-h$ in place of $l$ here and the properties of the utility function would be the same).\footnote{The exact numbers of utils would differ, but as is well know utility is only defined up to a linear transformation; that is, the utility functions $u()$ and $a+bu()$, where $a$,$b$ are constants, both represent the same preferences. This can be proven in very general terms, see any advanced Microeconomic Theory textbook. If you are unconvinced, write out a basic problem, say one-period lagrangian problem choosing between consumption of two goods, and solve it with both these utility fns, you will see how $a$ disappears when you take derivatives, and then $b$ cancels out because it is in all the marginal utility terms.}
 
-The CES refers to 'constant elasticity of substitution', and the 'seperable' refers to how the (marginal) utility of consumption is independent of leisure (and vice-versa the marginal utility of leisure is independent of consumption).
+The CES refers to 'constant elasticity of substitution', and the 'separable' refers to how the (marginal) utility of consumption is independent of leisure (and vice-versa the marginal utility of leisure is independent of consumption).
 
-One important alternative is 'non-seperable CES' utility, which is given by,
+One important alternative is 'non-separable CES' utility, which is given by,
 \begin{equation*}
  u(c,l)=\frac{(\sigma_1 c^{\sigma_2} + (1-\sigma_1) l^{1-\sigma_2})^{1-\sigma_3}}{1-\sigma_3}
 \end{equation*}
-which also has constant-elasticity-of-substitution, but now the marginal utility of consumption depends on leisure, and vice-versa (take the derivatives and you will see they depend on both). $\sigma_1$ can be understood as a 'share' parameter, in this case it is the share of consumption (versus leisure) in utility. $1/(1-\sigma_2)$ is the elasticity of substitution between $c$ and $l$. $\sigma_3$ is determining the decreasing marginal utility, and will therefore determine things like risk-aversion. Note that you can obviously set $h=1-l$ and solve the model in terms of hours worked, the 'assignment solution' does this: modify life-cycle model 9 to have non-seperable CES utility function.
+which also has constant-elasticity-of-substitution, but now the marginal utility of consumption depends on leisure, and vice-versa (take the derivatives and you will see they depend on both). $\sigma_1$ can be understood as a 'share' parameter, in this case it is the share of consumption (versus leisure) in utility. $1/(1-\sigma_2)$ is the elasticity of substitution between $c$ and $l$. $\sigma_3$ is determining the decreasing marginal utility, and will therefore determine things like risk-aversion. Note that you can obviously set $h=1-l$ and solve the model in terms of hours worked, the 'assignment solution' does this: modify life-cycle model 9 to have non-separable CES utility function.
 
-An important subcase of the 'non-seperable CES' utility function, is given in the limit when $\sigma_2 \to 0$, and we get,
+An important subcase of the 'non-separable CES' utility function, is given in the limit when $\sigma_2 \to 0$, and we get,
 \begin{equation*}
  u(c,l)=\frac{(c^\sigma_1 l^{1-\sigma_1})^{1-\sigma_3}}{1-\sigma_3}
 \end{equation*}
 This is particularly important in models that contain economic growth; see Life-Cycle model 22 for an explanation of why it matters, and of how to include deterministic growth in a model.\footnote{You could call this the Cobb-Douglas utility function. It is the same functional form as the Cobb-Douglas production function,  just that the parameters need some rewriting to make it obvious.}
 
-An alternative non-seperable utility function is GHH preferences.\footnote{Greenwood-Hercowitz-Huffman preferences.} They are easier to write in terms of hours worked,
+An alternative non-separable utility function is GHH preferences.\footnote{Greenwood-Hercowitz-Huffman preferences.} They are easier to write in terms of hours worked,
 \begin{equation*}
  u(c,l)= \frac{ \left(c - \psi \frac{h^{1+\eta}}{1+\eta} \right)^{1-\sigma} }{1-\sigma}
 \end{equation*}
@@ -87,7 +87,7 @@ Implementing this in the codes is as simple as naming the additional parameters,
 \\ $\quad \quad \quad vfoptions.exoticpreferences='EpsteinZin'$
 \\ \noindent You specify the names of the parameters that modifies the Epstein-Zin preferences using \textit{vfoptions.EZriskaversion='phi'}. Because the specification depends on the sign of the utility function, you also need to set \textit{vfoptions.EZpositiveutility}.
 
-Note that with Epstein-Zin preferences we want to seperate out the conditional survival probabilities from the discount factor (this is implicit in the above formulation as $s_j$ does not appear everywhere $\beta$ appears). You can do this when using Epstein-Zin preferences by setting \textit{vfoptions.survivalprobability='sj'} (and not including it in the \textit{DiscountFactorParamNames}).
+Note that with Epstein-Zin preferences we want to separate out the conditional survival probabilities from the discount factor (this is implicit in the above formulation as $s_j$ does not appear everywhere $\beta$ appears). You can do this when using Epstein-Zin preferences by setting \textit{vfoptions.survivalprobability='sj'} (and not including it in the \textit{DiscountFactorParamNames}).
 
 When using Epstein-Zin preferences we have to be careful about how we treat warm-glow of bequests. VFI Toolkit handles this for you, and you just set up \textit{vfoptions.WarmGlowBequestsFn} which depends on next-period endogenous state (on \textit{aprime}). The idea is to use the same thing as your utility function. In this model the utility of consumption is $\frac{c^{1-\sigma}}{1-\sigma}$, and so we use the warm-glow of bequests function $\frac{(1+aprime/wg2)^{1-wg3}}{1-wg3}$, with curvature $wg3$ set equal to $\sigma$ and $wg2$ controlling the degree to which bequests are a luxury good ($\geq 1$; $=1$ would be a normal good). We multiply this by a constant $wg$ to determine the importance of bequests, and  we also use a term so that bequests are only received ten periods after retirement (in line with previous models). Hence our final warm-glow of bequest function is $ \mathbb{I}_{(agej\geq Jr+10)}wg\frac{(1+aprime/wg2)^{1-wg3}}{1-wg3}$.
 Here $wg$ controls the strength of the bequest motive. For an explantion see Appendix \ref{app:EZbequests} which explains how to set up the bequests for Epstein-Zin preferences, as well exactly what the codes are doing.

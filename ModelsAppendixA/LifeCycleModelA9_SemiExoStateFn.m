@@ -1,4 +1,4 @@
-function prob=LifeCycleModelA9_SemiExoStateFn(n,work,nprime,workprime,f,search,probofbirth,probofadult,probjobseperation)
+function prob=LifeCycleModelA9_SemiExoStateFn(n,work,nprime,workprime,f,search,probofbirth,probofadult,probjobseparation)
 
 probn=-1;  % Just a placeholder (one that will cause errors if not overwritten)
 probwork=-1;  % Just a placeholder (one that will cause errors if not overwritten)
@@ -6,9 +6,9 @@ probwork=-1;  % Just a placeholder (one that will cause errors if not overwritte
 % First, probabilites for workprime, which depend on work and search
 if work==1 
     if workprime==0
-        probwork=probjobseperation; % exogenous probability of losing job
+        probwork=probjobseparation; % exogenous probability of losing job
     elseif workprime==1
-        probwork=1-probjobseperation;
+        probwork=1-probjobseparation;
     end
 elseif work==0
     if workprime==0

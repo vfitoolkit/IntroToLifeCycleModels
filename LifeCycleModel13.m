@@ -30,7 +30,7 @@ N_j=Params.J; % Number of periods in finite horizon
 Params.beta = 0.96;
 % Preferences
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
 % Prices
@@ -67,7 +67,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from
@@ -78,7 +78,7 @@ a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, whi
 % First, the AR(1) process z1
 if Params.rho_z<0.99
     [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
-elseif Params.rho_z>=0.99 % Rouwenhourst performs better than Farmer-Toda when the autocorrelation is very high
+elseif Params.rho_z>=0.99 % Rouwenhorst performs better than Farmer-Toda when the autocorrelation is very high
     [z_grid,pi_z]=discretizeAR1_Rouwenhorst(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
 end
 z_grid=exp(z_grid); % Take exponential of the grid
@@ -95,11 +95,11 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Notice we still use 'LifeCycleModel8_ReturnFn'
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
 %% Now solve the value function iteration problem
 disp('Solve for Value fn and Policy fn')
-vfoptions.divideandconquer=1; % Exploit conditional montononicity to speed up codes
+vfoptions.divideandconquer=1; % Exploit conditional monotonicity to speed up codes
 vfoptions.gridinterplayer=1; % interpolate aprime
 vfoptions.ngridinterp=20; % number of points between every two points in a_grid
 tic;
@@ -147,8 +147,10 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 
@@ -156,7 +158,7 @@ figure(1)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 
@@ -187,12 +189,12 @@ InitialDist=StationaryDist(:,:,1);
 SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z, simoptions);
 % Simulates a panel based on PolicyIndexes of 'numbersims' agents of length 'simperiods'
 
-% Lets draw the time series plots of h, earnings and assets for a single household (arbirarily, the 16th household)
+% Lets draw the time series plots of h, earnings and assets for a single household (arbitrarily, the 16th household)
 figure(2)
-subplot(3,1,1); plot(1:1:Params.J,SimPanelValues.fractiontimeworked(:,16)) % Note that we set simperiod so to be of lenght J (which would anyway have been the default)
+subplot(3,1,1); plot(1:1:Params.J,SimPanelValues.fractiontimeworked(:,16)) % Note that we set simoptions.simperiods to be of length J (which would anyway have been the default)
 title('Time Series of one Household: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,SimPanelValues.earnings(:,16))
-title('Time Series of one Household: Labor Earnings (w kappa_j h)')
+title('Time Series of one Household: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,SimPanelValues.assets(:,16))
 title('Time Series of one Household: Assets (a)')
 
@@ -200,8 +202,8 @@ title('Time Series of one Household: Assets (a)')
 figure(3)
 plot(1:1:Params.J,SimPanelValues.earnings(:,1:50))
 
-% Obviously we could run a regression on this similated panel data (which
-% we could then compare to the same regression on emprical panel data)
+% Obviously we could run a regression on this simulated panel data (which
+% we could then compare to the same regression on empirical panel data)
 
 
 
@@ -221,18 +223,18 @@ SimPanelValues2=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,Para
 % period 18) then their time series is going to show NaN for the 8 periods,
 % then 10 values, and then NaN again from period 19 on.
 
-% Lets draw the time series plots of h, earnings and assets for a single household (arbirarily, the 16th household)
-figure(3)
-subplot(3,1,1); plot(1:1:Params.J,SimPanelValues2.fractiontimeworked(:,16)) % Note that we set simperiod so to be of lenght J (which would anyway have been the default)
+% Lets draw the time series plots of h, earnings and assets for a single household (arbitrarily, the 16th household)
+figure(4)
+subplot(3,1,1); plot(1:1:Params.J,SimPanelValues2.fractiontimeworked(:,16)) % Note that we set simoptions.simperiods to be of length J (which would anyway have been the default)
 title('Time Series of one Household: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,SimPanelValues2.earnings(:,16))
-title('Time Series of one Household: Labor Earnings (w kappa_j h)')
+title('Time Series of one Household: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,SimPanelValues2.assets(:,16))
 title('Time Series of one Household: Assets (a)')
 % Note: These only show simperiods, as the rest of the values are NaN and matlab simply omits these
 
 % Now draw the earnings plots for 50 different households
-figure(4)
+figure(5)
 plot(1:1:Params.J,SimPanelValues2.earnings(:,1:50))
 % Note how each line is short as they are each only 10 periods
 

@@ -1,11 +1,11 @@
 %% Life-Cycle Model 22: Deterministic income growth 
-% (with endogneous labor supply and exogenous shocks)
+% (with endogenous labor supply and exogenous shocks)
 % We will consider a (real wage) growth rate of 2%, Params.g=0.02
 %
 % We first solve the 'renormalized model'; see the pdf for an explanation.
 % There are essentially three changes involved: the discount factor and the
 % budget constraint, and the utility function.
-% [Changing the utility function is needed to change from seperable to non-seperable utility]
+% [Changing the utility function is needed to change from separable to non-separable utility]
 % We then simulate panel data using the renormalized model, just as we normally would.
 % We then adjust the panel data adding back in the growth that we had renormalized away.
 %
@@ -107,7 +107,7 @@ DiscountFactorParamNames={'beta','sj','growthdiscount'};
 ReturnFn=@(h,aprime,a,z,w,sigma1,sigma2,g,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
     LifeCycleModel22_ReturnFn(h,aprime,a,z,w,sigma1,sigma2,g,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
@@ -154,9 +154,9 @@ SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,Param
 % size(SimPanelValues.earnings) is [simperiods,numbersims] 
 % (what econometric theory on panel data would typically call T-by-N)
 
-% Lets draw the time series plots of h, earnings and assets for ten households (arbirarily, the first ten)
+% Lets draw the time series plots of h, earnings and assets for ten households (arbitrarily, the first ten)
 figure(1)
-subplot(3,1,1); plot(1:1:Params.J,SimPanelValues.fractiontimeworked(:,16)) % Note that we set simperiod so to be of lenght J (which would anyway have been the default)
+subplot(3,1,1); plot(1:1:Params.J,SimPanelValues.fractiontimeworked(:,16)) % Note that we set simperiod so to be of length J (which would anyway have been the default)
 title('Renormalized Time Series of one Household: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,SimPanelValues.earningshat(:,16))
 title('Renormalized Time Series of one Household: Labor Earnings (what kappa_j h)')
@@ -178,9 +178,9 @@ SimPanelValues.a=SimPanelValues.ahat .* ((1+Params.g).^(1:1:simoptions.simperiod
 % Note: this formula assumes that InitialDist is all age j=1 (it is in the current script, but need not be in general)
 
 % Redraw the exact same plot, but now in the original model with wage growth
-% Lets draw the time series plots of h, earnings and assets for ten households (arbirarily, the first ten)
+% Lets draw the time series plots of h, earnings and assets for ten households (arbitrarily, the first ten)
 figure(2)
-subplot(3,1,1); plot(1:1:Params.J,SimPanelValues.fractiontimeworked(:,16)) % Note that we set simperiod so to be of lenght J (which would anyway have been the default)
+subplot(3,1,1); plot(1:1:Params.J,SimPanelValues.fractiontimeworked(:,16)) % Note that we set simperiod so to be of length J (which would anyway have been the default)
 title('Time Series of one Household: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,SimPanelValues.earnings(:,16))
 title('Time Series of one Household: Labor Earnings (w kappa_j h)')

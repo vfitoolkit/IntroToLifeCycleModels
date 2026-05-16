@@ -19,7 +19,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=201; % Endogenous asset holdings
-n_z=[21,5]; % Exogenous labor productivity units shocks, persistent and transitiory
+n_z=[21,5]; % Exogenous labor productivity units shocks, persistent and transitory
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Parameters
@@ -28,7 +28,7 @@ N_j=Params.J; % Number of periods in finite horizon
 Params.beta = 0.96;
 % Preferences
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
 % Prices
@@ -47,7 +47,7 @@ Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-P
 % persistent AR(1) process on idiosyncratic labor productivity units
 Params.rho_z1=0.9;
 Params.sigma_epsilon_z1=0.02;
-% transitiory iid normal process on idiosyncratic labor productivity units
+% transitory iid normal process on idiosyncratic labor productivity units
 Params.sigma_epsilon_z2=0.2; % Implictly, rho_z2=0
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
@@ -67,7 +67,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from
@@ -78,7 +78,7 @@ a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, whi
 % First, the AR(1) process z1
 if Params.rho_z1<0.99
     [z1_grid,pi_z1]=discretizeAR1_FarmerToda(0,Params.rho_z1,Params.sigma_epsilon_z1,n_z(1));
-elseif Params.rho_z>=0.99 % Rouwenhourst performs better than Farmer-Toda when the autocorrelation is very high
+elseif Params.rho_z>=0.99 % Rouwenhorst performs better than Farmer-Toda when the autocorrelation is very high
     [z1_grid,pi_z1]=discretizeAR1_Rouwenhorst(0,Params.rho_z1,Params.sigma_epsilon_z1,n_z(1));
 end
 z1_grid=exp(z1_grid); % Take exponential of the grid
@@ -87,7 +87,7 @@ z1_grid=z1_grid./mean_z1; % Normalise the grid on z (so that the mean of z is 1)
 % Now the iid normal process z2
 [z2_grid,pi_z2]=discretizeAR1_FarmerToda(0,0,Params.sigma_epsilon_z2,n_z(2));
 z2_grid=exp(z2_grid); % Take exponential of the grid
-mean_z2=pi_z2(1,:)*z2_grid; % Because it is iid, pi_z2 is the stationary distribution (you could just use MarkovChainMoments(), I just wanted to demonstate a handy trick)
+mean_z2=pi_z2(1,:)*z2_grid; % Because it is iid, pi_z2 is the stationary distribution (you could just use MarkovChainMoments(), I just wanted to demonstrate a handy trick)
 z2_grid=z2_grid./mean_z2; % Normalise the grid on z (so that the mean of z is 1)
 % Now combine z1 and z2 together
 z_grid=[z1_grid; z2_grid];
@@ -105,7 +105,7 @@ DiscountFactorParamNames={'beta','sj'};
 ReturnFn=@(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
     LifeCycleModelA11_ReturnFn(h,aprime,a,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
@@ -165,8 +165,10 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 

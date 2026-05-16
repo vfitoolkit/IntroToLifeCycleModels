@@ -78,8 +78,8 @@ Params.benefits=0.3;
 
 % Disutility from search effort
 Params.search_c=2;
-% Exogenous job seperation
-Params.probjobseperation=0.5;
+% Exogenous job separation
+Params.probjobseparation=0.5;
 
 % Age-dependent labor productivity units
 Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-Params.Jr+1)];
@@ -128,12 +128,12 @@ d_grid=[h_grid; f_grid; search_grid]; % stacked column vector
 children_grid=(0:1:(n_semiz(1)-1))';
 work_grid=[0;1];
 
-% Set up the semi-exogneous states
+% Set up the semi-exogenous states
 vfoptions.l_dsemiz=2; % use 'last two' decision variables for the semi-exo states
 vfoptions.n_semiz=n_semiz;
 vfoptions.semiz_grid=[children_grid; work_grid];
 % Define the transition probabilities of the semi-exogenous states
-vfoptions.SemiExoStateFn=@(n,work,nprime,workprime,f,search,probofbirth,probofadult,probjobseperation) LifeCycleModelA9_SemiExoStateFn(n,work,nprime,workprime,f,search,probofbirth,probofadult,probjobseperation);
+vfoptions.SemiExoStateFn=@(n,work,nprime,workprime,f,search,probofbirth,probofadult,probjobseparation) LifeCycleModelA9_SemiExoStateFn(n,work,nprime,workprime,f,search,probofbirth,probofadult,probjobseparation);
 % Inputs to SemiExoStateFn are (semiz,semizprime,d_semiz,...)
 % Where d_semiz is the 'last' decision variable(s) that are the ones which
 % determine transitions of semi-exo states.
@@ -155,7 +155,7 @@ DiscountFactorParamNames={'beta','sj'};
 ReturnFn=@(h,f,search,aprime,a,n,work,z,w,sigma,psi,eta,agej,eta1,eta2,eta3,nbar,childcarec,Jr,pension,r,kappa_j,benefits,search_c) ...
     LifeCycleModelA9_ReturnFn(h,f,search,aprime,a,n,work,z,w,sigma,psi,eta,agej,eta1,eta2,eta3,nbar,childcarec,Jr,pension,r,kappa_j,benefits,search_c);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Solve ValueFnIter')
 vfoptions.verbose=1;
 tic;
@@ -245,8 +245,10 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 
@@ -273,7 +275,7 @@ for f_c=1:n_d(2)
                 for nprime_c=1:n_semiz(1)
                     for workprime_c=1:n_semiz(2)
                         for jj=1:N_j
-                            pi_semiz_J(n_c,work_c,nprime_c,workprime_c,f_c,search_c,jj)=vfoptions.SemiExoStateFn(n_c-1,work_c-1,nprime_c-1,workprime_c-1,f_c-1,search_grid(search_c),Params.probofbirth(jj),Params.probofadult,Params.probjobseperation); % Note: the -1 turn the index into the value
+                            pi_semiz_J(n_c,work_c,nprime_c,workprime_c,f_c,search_c,jj)=vfoptions.SemiExoStateFn(n_c-1,work_c-1,nprime_c-1,workprime_c-1,f_c-1,search_grid(search_c),Params.probofbirth(jj),Params.probofadult,Params.probjobseparation); % Note: the -1 turn the index into the value
                         end
                     end
                 end

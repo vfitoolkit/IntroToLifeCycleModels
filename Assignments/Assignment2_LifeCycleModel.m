@@ -1,5 +1,5 @@
-%% Assignment 2: Non-seperable preferences
-% Modifies Life-Cycle Model 9 to use non-seperable CES utility function
+%% Assignment 2: Non-separable preferences
+% Modifies Life-Cycle Model 9 to use non-separable CES utility function
 % The relevant changes are
 % Lines 31-33: set preference parametesr
 % Lines 93-94: change return function (only change is the preference parameter inputs and the formula for the utility function)
@@ -67,7 +67,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=2; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=2; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from
@@ -78,7 +78,7 @@ a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, whi
 % First, the AR(1) process z1
 if Params.rho_z<0.85
     [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
-elseif Params.rho_z>=0.85 % Rouwenhourst performs better than Tauchen when the autocorrelation is high
+elseif Params.rho_z>=0.85 % Rouwenhorst performs better than Tauchen when the autocorrelation is high
     [z_grid,pi_z]=discretizeAR1_Rouwenhorst(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
 end
 z_grid=exp(z_grid); % Take exponential of the grid
@@ -97,7 +97,7 @@ DiscountFactorParamNames={'beta','sj'};
 ReturnFn=@(h,aprime,a,z,w,sigma1,sigma2,sigma3,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
     Assignment2_ReturnFn(h,aprime,a,z,w,sigma1,sigma2,sigma3,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
@@ -248,8 +248,10 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 

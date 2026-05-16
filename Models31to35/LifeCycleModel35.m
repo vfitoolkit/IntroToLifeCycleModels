@@ -70,7 +70,7 @@ simoptions.refine_d=vfoptions.refine_d;
 Params.f_htc=0; % transaction cost of buying/selling house (is a percent of h+prime)
 % Params.minhouse % set below, is the minimum value of house that can be purchased
 Params.rentprice=0.3; % I figured setting rent a decent fraction of income is sensible
-Params.f_coll=0; % collateral contraint (fraction of house value that can be borrowed)
+Params.f_coll=0; % collateral constraint (fraction of house value that can be borrowed)
 Params.houseservices=0.3; % housing services as a fraction of house value
 
 % Discount rate
@@ -181,7 +181,7 @@ ReturnFn=@(savings,hprime,h,a,z,w,sigma,agej,Jr,pension,kappa_j,sigma_h,f_htc,mi
     LifeCycleModel35_ReturnFn(savings,hprime,h,a,z,w,sigma,agej,Jr,pension,kappa_j,sigma_h,f_htc,minhouse,rentprice,f_coll,houseservices)
 % vfoptions.refine_d: only (d1,d3,..) are input to ReturnFn [this model has no d1, so here just d3]
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions.verbose=1;
 tic;
@@ -209,7 +209,7 @@ size(Policy)
 
 % We can plot V as a 3d plot (surf is matlab command for 3d plot)
 % Which z value should we plot? I will plot the median
-zind=floor(n_z+1)/2; % This will be the median
+zind=floor((n_z+1)/2); % This will be the median
 figure(1)
 subplot(2,1,1); surf(asset_grid*ones(1,Params.J),ones(n_a(2),1)*(1:1:Params.J),reshape(V(1,:,zind,:),[n_a(2),Params.J]))
 title('Value function: median value of z')
@@ -315,8 +315,10 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 

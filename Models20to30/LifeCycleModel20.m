@@ -50,7 +50,7 @@ N_j=Params.J; % Number of periods in finite horizon
 Params.beta = 0.96;
 % Preferences
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
 % Prices
@@ -84,7 +84,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 
 %% Grids
@@ -103,7 +103,7 @@ d_grid=h_grid;
 % In this example, agej obviously depends on age
 vfoptions.ExogShockFn=@(agej,Jr) LifeCycleModel20_ExogShockFn(agej,Jr);
 simoptions.ExogShockFn=vfoptions.ExogShockFn;
-% Both value function and simulations need to know about the age-dependence exogneous shocks
+% Both value function and simulations need to know about the age-dependence exogenous shocks
 
 % We will evaluate the ExogShockFn at agej=1, just because I want to use
 % the stationary distribtion as the initial distribution for agents.
@@ -120,7 +120,7 @@ DiscountFactorParamNames={'beta','sj'};
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
     LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 % vfoptions=struct(); % Just using the defaults.
 tic;

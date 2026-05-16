@@ -67,7 +67,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from
@@ -100,7 +100,7 @@ ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
 % Hence, we have (aprime,a,z,...), and everything after this is
 % interpreted to be a parameter.
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
@@ -126,7 +126,7 @@ size(Policy)
 
 % We can plot V as a 3d plot (surf is matlab command for 3d plot)
 % Which z value should we plot? I will plot the median
-zind=floor(n_z+1)/2; % This will be the median
+zind=floor((n_z+1)/2); % This will be the median
 figure(1)
 subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(V(:,zind,:),[n_a,Params.J]))
 title('Value function: median value of z')
@@ -146,7 +146,7 @@ subplot(5,1,2); plot(a_grid,V(:,1,20),a_grid,V(:,zind,20),a_grid,V(:,end,20)) % 
 title('Value fn at age j=20')
 subplot(5,1,3); plot(a_grid,V(:,1,45),a_grid,V(:,zind,45),a_grid,V(:,end,45)) % j=45
 title('Value fn at age j=45')
-subplot(5,1,4); plot(a_grid,V(:,1,46),a_grid,V(:,end,46),a_grid,V(:,end,46)) % j=46
+subplot(5,1,4); plot(a_grid,V(:,1,46),a_grid,V(:,zind,46),a_grid,V(:,end,46)) % j=46
 title('Value fn at age j=46 (first year of retirement)')
 subplot(5,1,5); plot(a_grid,V(:,1,81),a_grid,V(:,zind,81),a_grid,V(:,end,81)) % j=81
 title('Value fn at age j=81')
@@ -154,7 +154,7 @@ xlabel('Assets (a)')
 
 % Convert the policy function to values (rather than indexes).
 % Note that the only policy is next period assets (aprime). 
-% Policy(1,:,:,:) is is aprime [as function of (a,z,j)]
+% Policy(1,:,:,:) is aprime [as function of (a,z,j)]
 % Plot as a 3d plot, again I arbitrarily choose the median value of z
 figure(3)
 simoptions=struct(); % use defaults
@@ -202,7 +202,7 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 % is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
+% Like with return function, we have to include (aprime,a,z) as first
 % inputs, then just any relevant parameters.
 FnsToEvaluate.earnings=@(aprime,a,z,w,kappa_j) w*kappa_j*z; % z is the 'stochastic endowment' or 'exogenous earnings'
 FnsToEvaluate.assets=@(aprime,a,z) a; % a is the current asset holdings
@@ -214,10 +214,12 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
+%% Plot the life cycle profiles of earnings and assets
 
 figure(5)
 subplot(2,1,1); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
@@ -226,6 +228,6 @@ subplot(2,1,2); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 % Note: log(z) is AR(1) with mean 0, so z has mean 1. Hence we can see the
 % life-cycle profile of earnings showing z going from initial value of z
-% and converging to it's mean of 1 as an AR(1) (in logs).
+% and converging to its mean of 1 as an AR(1) (in logs).
 
 

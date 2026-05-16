@@ -1,5 +1,5 @@
 %% Life-Cycle Model 12: Epstein-Zin preferences
-% Epstein-Zin preferences use seperate parameters to determine risk aversion and the intertemporal elasticity of substitution.
+% Epstein-Zin preferences use separate parameters to determine risk aversion and the intertemporal elasticity of substitution.
 
 %% Use Epstein-Zin preferences. I have put all the lines that relate to Epstein-Zin preferences together to simplify reading.
 % There are essentially three parts to using Epstein-Zin preferences.
@@ -21,7 +21,7 @@ vfoptions.EZriskaversion='phi'; % Name of the relative risk aversion parameter
 Params.phi=-1;
 
 % 3. Minor adjustment to 'discount factors' and 'return function'.
-% To be able to use a warm-glow-of-bequests with Epstein-Zin preferences we have to distingush
+% To be able to use a warm-glow-of-bequests with Epstein-Zin preferences we have to distinguish
 % conditional survival probabilities from the regular discount factor. 
 % So below the discount factor is now just beta, and we add
 % vfoptions.survivalprobability='sj'
@@ -30,14 +30,14 @@ Params.phi=-1;
 % 4. Warm-glow of bequests
 % Using warm-glow of bequests together with EZ preferences is subtle, so dealing with them has been mostly automated.
 % Need to define two things (if you don't want bequests you simply do not define these)
-vfoptions.WarmGlowBequestsFn=@(aprime,wg1,wg2,wg3,agej,Jr) (agej>=Jr+10)*wg1*((1+aprime/wg2)^(1-wg3))/(1-wg3); % First input arguement must be aprime, after than can be any parameters
+vfoptions.WarmGlowBequestsFn=@(aprime,wg1,wg2,wg3,agej,Jr) (agej>=Jr+10)*wg1*((1+aprime/wg2)^(1-wg3))/(1-wg3); % First input argument must be aprime, after that can be any parameters
 % Comment: Loosely speaking you want the WarmGlowBequestsFn to output the 'same'
 % thing as the return fn. Our utility function has (c^(1-sigma))/(1-sigma)
 % and hence we set the warmglow curvature wg3 equal to sigma, applied to the
 % luxury-good form ((1+aprime/wg2)^(1-wg3))/(1-wg3). We can
 % then control the importance of the warm-glow of bequests by multiplying
 % it by a constant, here called wg1. Note that to keep this in line with previous models we
-% also include a term so that the warm-glow of bequests in only non-zero
+% also include a term so that the warm-glow of bequests is only non-zero
 % once we are 10 periods into the retirement, hence the (agej>=Jr+10)
 % We declare the value of 'wg1' below (there is also a comment on how to interpret wg1).
 % Comment: If a parameter in the WarmGlowBequestsFn depends on age, then it is the last period of life
@@ -82,7 +82,7 @@ N_j=Params.J; % Number of periods in finite horizon
 % Discount rate
 Params.beta = 0.96;
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
 % Prices
@@ -119,7 +119,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=10; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 % Note: wg1 can be interpreted as the target for the ratio of terminal wealth to terminal 
 % consumption (terminal meaning at end of the last period, period J). See pdf for explanation.
 
@@ -132,7 +132,7 @@ a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, whi
 % First, the AR(1) process z
 if Params.rho_z<0.99
     [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
-elseif Params.rho_z>=0.99 % Rouwenhourst performs better than Farmer-Toda when the autocorrelation is very high
+elseif Params.rho_z>=0.99 % Rouwenhorst performs better than Farmer-Toda when the autocorrelation is very high
     [z_grid,pi_z]=discretizeAR1_Rouwenhorst(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
 end
 z_grid=exp(z_grid); % Take exponential of the grid
@@ -154,12 +154,10 @@ vfoptions.survivalprobability='sj';
 % fn as it has to be treated specially when using Epstein-Zin preferences.
 % Note that the vfoptions.EZriskaversion parameter modifies this and makes it Epstein-Zin preferences.
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j) ...
-    LifeCycleModel12_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j)
+    LifeCycleModel12_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
-% vfoptions=struct(); % Just using the defaults.
-vfoptions.lowmemory=1
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -177,19 +175,13 @@ size(Policy)
 % The n_a,n_z,N_j represent the state on which the decisions/policys
 % depend, and there is one decision for each decision variable 'd' and each endogenous state variable 'a'
 
-% Check for hitting top of asset grid
-temp=reshape(max(max(Policy(2,:,:,:),[],3),[],2),[1,N_j])
-
-temp=reshape(max(max(Policy(1,:,:,:),[],3),[],2),[1,N_j])
-
-
 %% Let's take a quick look at what we have calculated, namely V and Policy
 
 % The value function V depends on the state, so now it depends on both asset holdings and age.
 
 % We can plot V as a 3d plot (surf is matlab command for 3d plot)
 % Which z value should we plot? I will plot the median
-zind=floor(n_z+1)/2; % This will be the median
+zind=floor((n_z+1)/2); % This will be the median
 figure(1)
 subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(V(:,zind,:),[n_a,Params.J]))
 title('Value function: median value of z')
@@ -207,45 +199,20 @@ title('Value fn at age j=1')
 legend('min z','median z','max z') % Just include the legend once in the top subplot
 subplot(5,1,2); plot(a_grid,V(:,1,20),a_grid,V(:,zind,20),a_grid,V(:,end,20)) % j=20
 title('Value fn at age j=20')
-subplot(5,1,3); plot(a_grid,V(:,1,79),a_grid,V(:,zind,79),a_grid,V(:,end,79)) % j=79 % 45
+subplot(5,1,3); plot(a_grid,V(:,1,79),a_grid,V(:,zind,79),a_grid,V(:,end,79)) % j=79
 title('Value fn at age j=79')
-subplot(5,1,4); plot(a_grid,V(:,1,80),a_grid,V(:,end,80),a_grid,V(:,end,80)) % j=80 % 46
-title('Value fn at age j=80 (first year of retirement)')
+subplot(5,1,4); plot(a_grid,V(:,1,80),a_grid,V(:,zind,80),a_grid,V(:,end,80)) % j=80
+title('Value fn at age j=80 (near end of life)')
 subplot(5,1,5); plot(a_grid,V(:,1,81),a_grid,V(:,zind,81),a_grid,V(:,end,81)) % j=81
 title('Value fn at age j=81')
 xlabel('Assets (a)')
 
-
-figure(2)
-subplot(5,2,1); plot(a_grid,V(:,1,60),a_grid,V(:,zind,60),a_grid,V(:,end,60)) % j=1
-title('Value fn at age j=60')
-legend('min z','median z','max z') % Just include the legend once in the top subplot
-subplot(5,2,2); plot(a_grid,V(:,1,65),a_grid,V(:,zind,65),a_grid,V(:,end,65)) % j=20
-title('Value fn at age j=65')
-subplot(5,2,3); plot(a_grid,V(:,1,70),a_grid,V(:,zind,70),a_grid,V(:,end,70)) % j=79 % 45
-title('Value fn at age j=70')
-subplot(5,2,4); plot(a_grid,V(:,1,72),a_grid,V(:,end,72),a_grid,V(:,end,72)) % j=80 % 46
-title('Value fn at age j=72')
-subplot(5,2,5); plot(a_grid,V(:,1,74),a_grid,V(:,zind,74),a_grid,V(:,end,74)) % j=81
-title('Value fn at age j=74')
-subplot(5,2,6); plot(a_grid,V(:,1,76),a_grid,V(:,zind,76),a_grid,V(:,end,76)) % j=1
-title('Value fn at age j=76')
-subplot(5,2,7); plot(a_grid,V(:,1,78),a_grid,V(:,zind,78),a_grid,V(:,end,78)) % j=20
-title('Value fn at age j=78')
-subplot(5,2,8); plot(a_grid,V(:,1,79),a_grid,V(:,zind,79),a_grid,V(:,end,79)) % j=79 % 45
-title('Value fn at age j=79')
-subplot(5,2,9); plot(a_grid,V(:,1,80),a_grid,V(:,end,80),a_grid,V(:,end,80)) % j=80 % 46
-title('Value fn at age j=80')
-subplot(5,2,10); plot(a_grid,V(:,1,81),a_grid,V(:,zind,81),a_grid,V(:,end,81)) % j=81
-title('Value fn at age j=81')
-xlabel('Assets (a)')
 
 % Convert the policy function to values (rather than indexes).
 % Note that there is one policy for hours worked (h), and another for next period assets (aprime). 
 % Policy(1,:,:,:) is h, Policy(2,:,:,:) is aprime [as function of (a,z,j)]
 % Plot both as a 3d plot, again I arbitrarily choose the median value of z
 figure(3)
-simoptions=struct();
 PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
 subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,zind,:),[n_a,Params.J]))
 title('Policy function: fraction of time worked (h), median z')
@@ -302,7 +269,7 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
-% simoptions=struct(); % Use the defaults (Epstein-Zin preferences affect the Policy, but once we have that they are irrelevant, except for welfare calculations)
+simoptions=struct(); % Use the defaults (Epstein-Zin preferences affect the Policy, but once we have that they are irrelevant, except for welfare calculations)
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 % Again, we will explain in a later model what the stationary distribution
 % is, it is not important for our current goal of graphing the life-cycle profile
@@ -321,8 +288,10 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 
@@ -330,7 +299,7 @@ figure(5)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

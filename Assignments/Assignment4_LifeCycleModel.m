@@ -74,7 +74,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from
@@ -85,7 +85,7 @@ a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, whi
 % First, the AR(1) process z1
 if Params.rho_z<0.99
     [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
-elseif Params.rho_z>=0.99 % Rouwenhourst performs better than Farmer-Toda when the autocorrelation is very high
+elseif Params.rho_z>=0.99 % Rouwenhorst performs better than Farmer-Toda when the autocorrelation is very high
     [z_grid,pi_z]=discretizeAR1_Rouwenhorst(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
 end
 z_grid=exp(z_grid); % Take exponential of the grid
@@ -103,7 +103,7 @@ DiscountFactorParamNames={'beta','sj','growthdiscount'};
 ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,g) ...
     Assignment4_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,g)
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
@@ -152,7 +152,7 @@ SimPanelValues=SimPanelValues_FHorz_Case1(InitialDist,Policy,FnsToEvaluate,Param
 % size(SimPanelValues.earnings) is [simperiods,numbersims] 
 % (what econometric theory on panel data would typically call T-by-N)
 
-% Lets draw the time series plots of h, earnings and assets for ten households (arbirarily, the first ten)
+% Lets draw the time series plots of h, earnings and assets for ten households (arbitrarily, the first ten)
 figure(1)
 subplot(2,1,1); plot(1:1:Params.J,SimPanelValues.earningshat(:,16))
 title('Renormalized Time Series of one Household: Labor Earnings (what kappa_j h)')
@@ -172,7 +172,7 @@ SimPanelValues.a=SimPanelValues.ahat .* ((1+Params.g).^(1:1:simoptions.simperiod
 % Note: this formula assumes that InitialDist is all age j=1 (it is in the current script, but need not be in general)
 
 % Redraw the exact same plot, but now in the original model with wage growth
-% Lets draw the time series plots of h, earnings and assets for ten households (arbirarily, the first ten)
+% Lets draw the time series plots of h, earnings and assets for ten households (arbitrarily, the first ten)
 figure(2)
 subplot(2,1,1); plot(1:1:Params.J,SimPanelValues.earnings(:,16))
 title('Time Series of one Household: Labor Earnings (w kappa_j h)')

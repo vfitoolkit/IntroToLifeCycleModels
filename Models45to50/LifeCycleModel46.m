@@ -45,7 +45,7 @@ N_j=Params.J; % Number of periods in finite horizon
 Params.beta = 0.96;
 % Preferences
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
 % Prices
@@ -82,7 +82,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 
 %% Grids
@@ -207,8 +207,10 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 
@@ -226,7 +228,7 @@ title('Life Cycle Profile (pre-calibration): Assets (a)')
 % We will estimate three preference parameters.
 % Preferences
 % Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-% Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+% Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 % Params.psi = 10; % Weight on leisure
 
 % As targets, we will use the age-conditional mean earnings.
@@ -234,7 +236,7 @@ title('Life Cycle Profile (pre-calibration): Assets (a)')
 % values are sigma=2, eta=1.5, psi=10. 
 
 % Obviously we will want to give a different initial guess for these parameters.
-% The contents of Params (as passed as an input the the estimtion command below)
+% The contents of Params (as passed as an input to the estimation command below)
 % are used as initial guesses for the parameters to be estimated, so we can
 % just set some initial guesses as
 Params.sigma=1.5;

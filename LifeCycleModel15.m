@@ -1,6 +1,6 @@
 %% Life-Cycle Model 15: Consumption and Borrowing Constraints 1
 % Households would like to consumption smooth
-% Because their income is hump-shaped in age (increasing until aroung ages 45-55, when it peaks and 
+% Because their income is hump-shaped in age (increasing until around ages 45-55, when it peaks and 
 % then dips slightly until retirement) they would like to shift some of this income to consume when young.
 % This means they would like to borrow when young.
 % Borrowing constraints (a lower bound on assets) mean that they cannot do this.
@@ -22,12 +22,12 @@
 % high depends on how long borrowing constraint is expected to continue to
 % bind).
 
-% How important in borrowing? And how does it change things?
+% How important is borrowing? And how does it change things?
 % To make borrowing possible, and hence to be able to see how important it
 % is, we need to change the asset grid to allow negative assets. We will
-% then enforce the borrowing contraint by using a parameter via the return
+% then enforce the borrowing constraint by using a parameter via the return
 % function (Params.borrowingconstraint). Have added some extra points to
-% assets cover these negative values (and generally lots of points to make 
+% assets to cover these negative values (and generally lots of points to make
 % changes in consumption stand out more). Note that we therefore need to modify
 % the code to make every household start with zero assets as this is no
 % longer the first grid point in a_grid (which is what was done in earlier
@@ -35,7 +35,7 @@
 % same impact as loosening the borrowing constraint.
 
 % You can change Params.borrowingconstraint to make more borrowing
-% possible, notice that if you set it so -1 or -5 the consumption gets
+% possible, notice that if you set it to -1 or -5 the consumption gets
 % smoother and if you set the borrowing constraint to -10 then consumption
 % is essentially perfectly smoothed and looks like a straight line (note that we fix 
 % the y-axis on the graphs of the life-cycle profiles for consumption and marginal 
@@ -54,7 +54,8 @@
 % perfectly flat. Specifically beta=1/(1+r) will make consumption perfectly
 % flat [You could show this by deriving the 'consumption euler eqn' and
 % noting that constant consumption requires beta*(1+r)=1]
-% If you want to see this 'flat' consumption 
+% If you want to see this 'flat' consumption, uncomment the line that sets
+% Params.r=1/Params.beta-1; below.
 
 % Comment: a vaguely related concept is the 'natural borrowing limit' which is the amount 
 % that will never bind under the requirement that you die with (next period) assets 
@@ -68,9 +69,9 @@
 % every increasing debt), but has otherwise no effect on the remaining 
 % solution. Note that if the model has a borrowing constraint, then it is
 % irrelevant if we assume a natural borrowing limit. Note also that if you
-% do set a borrowing constaint below the natural borrowing limit, then it
+% do set a borrowing constraint below the natural borrowing limit, then it
 % will have no impact (other than eliminating the solution the natural
-% borrowing limit eliminates, that were households borrow ever increasing
+% borrowing limit eliminates, where households borrow ever increasing
 % amounts).
 
 
@@ -141,11 +142,11 @@ d_grid=[];
 DiscountFactorParamNames={'beta'};
 
 % Add r to the inputs (in some sense we add a and aprime, but these were already required, if previously irrelevant)
-% Notice change to 'LifeCycleModel5_ReturnFn'
+% Notice change to 'LifeCycleModel15_ReturnFn'
 ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,borrowingconstraint) ...
-    LifeCycleModel15_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,borrowingconstraint)
+    LifeCycleModel15_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,borrowingconstraint);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
@@ -175,7 +176,7 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 % is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
+% Like with return function, we have to include (aprime,a,z) as first
 % inputs, then just any relevant parameters.
 FnsToEvaluate.earnings=@(aprime,a,z,w,kappa_j) w*kappa_j;
 FnsToEvaluate.assets=@(aprime,a,z) a; % a is the current asset holdings
@@ -187,10 +188,12 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
+%% Plot the life cycle profiles of consumption, marginal utility, earnings, and assets
 
 figure(1)
 subplot(4,1,1); plot(1:1:Params.J,AgeConditionalStats.consumption.Mean)
@@ -200,7 +203,7 @@ subplot(4,1,2); plot(1:1:Params.J,AgeConditionalStats.marginalutilityofcons.Mean
 title('Life Cycle Profile: Marginal Utility of Consumption (u''(c))')
 ylim([0 3]) % Fix this so that can more easily see how drops when changing the borrowing constraint
 subplot(4,1,3); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j)')
 subplot(4,1,4); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

@@ -31,7 +31,7 @@ N_j=Params.J; % Number of periods in finite horizon
 Params.beta = 0.96;
 % Preferences
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
 % Prices
@@ -68,7 +68,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from
@@ -79,7 +79,7 @@ a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, whi
 % First, the AR(1) process z1
 if Params.rho_z<0.99
     [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
-elseif Params.rho_z>=0.99 % Rouwenhourst performs better than Farmer-Toda when the autocorrelation is very high
+elseif Params.rho_z>=0.99 % Rouwenhorst performs better than Farmer-Toda when the autocorrelation is very high
     [z_grid,pi_z]=discretizeAR1_Rouwenhorst(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
 end
 z_grid=exp(z_grid); % Take exponential of the grid
@@ -96,9 +96,9 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Notice we still use 'LifeCycleModel8_ReturnFn'
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
@@ -142,16 +142,18 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 
 figure(1)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
-title('Life Cycle Profile, Mean:Fraction Time Worked (h)')
+title('Life Cycle Profile, Mean: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile, Mean: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile, Mean: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile, Mean: Assets (a)')
 
@@ -170,7 +172,7 @@ figure(2)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Variance)
 title('Life Cycle Profile, Variance: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Variance)
-title('Life Cycle Profile, Variance: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile, Variance: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Variance)
 title('Life Cycle Profile, Variance: Assets (a)')
 xlabel('Age j')
@@ -189,7 +191,7 @@ figure(3)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats_npoints10.fractiontimeworked.QuantileMeans)
 title('Life Cycle Profile, Decile Means: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats_npoints10.earnings.QuantileMeans)
-title('Life Cycle Profile, Decile Means: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile, Decile Means: Labor Earnings (w kappa_j z h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats_npoints10.assets.QuantileMeans)
 title('Life Cycle Profile, Decile Means: Assets (a)')
 xlabel('Age j')
@@ -202,7 +204,7 @@ AgeConditionalStats2=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEv
 % We can plot the life-cycle profiles of the age-conditional Gini coefficients
 figure(4)
 subplot(2,1,1); plot(1:1:Params.J,AgeConditionalStats2.earnings.Gini)
-title('Life Cycle Profile, Gini: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile, Gini: Labor Earnings (w kappa_j z h)')
 subplot(2,1,2); plot(1:1:Params.J,AgeConditionalStats2.assets.Gini)
 title('Life Cycle Profile, Gini: Assets (a)')
 xlabel('Age j')
@@ -217,7 +219,7 @@ AgeConditionalStats_5yrs=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,Fns
 
 figure(5)
 subplot(2,1,1); plot(1:5:Params.J,AgeConditionalStats_5yrs.earnings.Gini)
-title('Life Cycle Profile, Gini: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile, Gini: Labor Earnings (w kappa_j z h)')
 subplot(2,1,2); plot(1:5:Params.J,AgeConditionalStats_5yrs.assets.Gini)
 title('Life Cycle Profile, Gini: Assets (a)')
 xlabel('Age j, grouped into 5 year age bins')
@@ -231,7 +233,7 @@ AgeConditionalStats_WorkingAgeRetired=LifeCycleProfiles_FHorz_Case1(StationaryDi
 % zero in the following graphs.
 figure(6)
 subplot(2,1,1); plot([1,Params.Jr],[AgeConditionalStats_WorkingAgeRetired.earnings.Gini(1),0])
-title('Life Cycle Profile, Gini: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile, Gini: Labor Earnings (w kappa_j z h)')
 subplot(2,1,2); plot([1,Params.Jr],AgeConditionalStats_WorkingAgeRetired.assets.Gini)
 title('Life Cycle Profile, Gini: Assets (a)')
 

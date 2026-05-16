@@ -11,6 +11,6 @@ if c>0
     F=(c^(1-sigma))/(1-sigma) -psi*(h^(1+eta))/(1+eta); % The utility function
 end
 
-% With Epstein-Zin preferences, warm-glow of bequests has to be treated specially/seperately
+% With Epstein-Zin preferences, warm-glow of bequests has to be treated specially/separately
 
 end

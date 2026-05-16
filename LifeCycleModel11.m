@@ -4,7 +4,7 @@
 % VFI Toolkit distinguishes markov shocks, z, from i.i.d. shocks, e.
 % This allows the codes to run faster by taking advantage of the fact that
 % i.i.d. variables are 'simpler'.
-% In this example we will have on markov shock, z, which will be a
+% In this example we will have one markov shock, z, which will be a
 % discretized AR(1) process, and one i.i.d. shock, e, which will be a
 % discretized i.i.d. Normal distribution.
 % The basic setup of VFI Toolkit is based around decision variables, d, standard
@@ -15,7 +15,7 @@
 % Adding an i.i.d. shock increases the 'action space' of the model, so we
 % need to modify the ReturnFn and FnsToEvaluate inputs to start with 
 % (h,aprime,a,z,e,...), adding the i.i.d. shock e. Note, VFI Toolkit always
-% uses the ordering of 'markov exogenous states' first and 'iid exogneous
+% uses the ordering of 'markov exogenous states' first and 'iid exogenous
 % states' after them.
 
 %% How does VFI Toolkit think about this?
@@ -35,7 +35,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=201; % Endogenous asset holdings
-n_z=21; % Exogenous labor productivity units shocks, persistent and transitiory
+n_z=21; % Exogenous labor productivity units shocks, persistent and transitory
 n_e=3;
 N_j=Params.J; % Number of periods in finite horizon
 
@@ -45,7 +45,7 @@ N_j=Params.J; % Number of periods in finite horizon
 Params.beta = 0.96;
 % Preferences
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
 % Prices
@@ -64,7 +64,7 @@ Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-P
 % persistent AR(1) process on idiosyncratic labor productivity units
 Params.rho_z=0.9;
 Params.sigma_epsilon_z=0.02;
-% transitiory iid normal process on idiosyncratic labor productivity units
+% transitory iid normal process on idiosyncratic labor productivity units
 Params.sigma_epsilon_e=0.2; % Implictly, rho_e=0
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
@@ -84,7 +84,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from
@@ -102,7 +102,7 @@ z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is 1)
 [e_grid,pi_e]=discretizeAR1_FarmerToda(0,0,Params.sigma_epsilon_e,n_e);
 e_grid=exp(e_grid); % Take exponential of the grid
 pi_e=pi_e(1,:)'; % Because it is iid, the distribution is just the first row (all rows are identical). We use pi_e as a column vector for VFI Toolkit to handle iid variables.
-mean_e=pi_e'*e_grid; % Because it is iid, pi_e is the stationary distribution (you could just use MarkovChainMoments(), I just wanted to demonstate a handy trick)
+mean_e=pi_e'*e_grid; % Because it is iid, pi_e is the stationary distribution (you could just use MarkovChainMoments(), I just wanted to demonstrate a handy trick)
 e_grid=e_grid./mean_e; % Normalise the grid on z (so that the mean of e is 1)
 
 % To use e variables we have to put them into the vfoptions and simoptions
@@ -123,7 +123,7 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Notice change to 'LifeCycleModel11_ReturnFn', and now input z and e.
 ReturnFn=@(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)...
-    LifeCycleModel11_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel11_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 % Important change: we now have e as the fifth input to the ReturnFn, the
 % action space of our model has increased.
 % The first inputs are always the relevant 'action space' for our model, which in
@@ -144,7 +144,7 @@ ReturnFn=@(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,
 % i.i.d. exogenous states, in this case the 'action space' would be
 % (h,aprime,a,e,...).
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
@@ -162,8 +162,8 @@ size(Policy)
 [length(n_d)+length(n_a),n_a,n_z,n_e,N_j]
 % The n_a,n_z,n_e,N_j represent the state on which the decisions/policys
 % depend, and there is one decision for each decision variable 'd' and each
-% endogenous state variable 'a', and one for the markov exogenous state variable
-% 'z', and one for the markov exogenous state variable 'e'.
+% endogenous state variable 'a', one for the markov exogenous state variable
+% 'z', and one for the i.i.d. exogenous state variable 'e'.
 
 %% We won't plot the Value and Policy fn, but thinking out how you would might be a good way to check you understand the form of V and Policy
 
@@ -190,7 +190,7 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 % is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
+% Like with return function, we have to include (h,aprime,a,z,e) as first
 % inputs, then just any relevant parameters.
 FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z,e) h; % h is fraction of time worked
 FnsToEvaluate.earnings=@(h,aprime,a,z,e,w,kappa_j) w*kappa_j*h*z*e; % w*kappa_j*h*z*e is the labor earnings
@@ -203,8 +203,10 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 
@@ -212,7 +214,7 @@ figure(1)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j h z e)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

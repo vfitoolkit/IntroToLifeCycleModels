@@ -60,7 +60,7 @@ Params.Jr=66-Params.agejshifter; % Age 65 is last working age, age 66 is retired
 
 % Set up taxes, income floor and pensions
 % IncomeTax=tau1+tau2*log(Income)*Income, where $IncomeTax$ is the amount paid by a household with $Income$.
-% This functional form is found to have a good emprical fit to the US income tax system by GunerKaygusuvVentura2014.
+% This functional form is found to have a good empirical fit to the US income tax system by GunerKaygusuvVentura2014.
 Params.tau1=0.099;
 Params.tau2=0.035;
 % Pensions
@@ -86,7 +86,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 Params.Jbeq=N_j; % Age from which warm-glow of bequests is received
 Params.wg1=4; % (relative) importance of bequests
 Params.wg2=6.8; % controls how much bequests are viewed as a 'luxury good'
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 %% Earnings process: parameters and discretization
 % Model 5 of  Guvenen, Karahan, Ozkan & Song (2021). All parameter values are taken from there.
@@ -219,7 +219,7 @@ ReturnFn=@(aprime,a,z1,upsilon,e,alpha,w,sigma,agej,Jr,pension,incomefloor,r,kap
 % We have no decision variable, one standard endogenous state, two markovs
 % and an i.i.d, so inputs start with (aprime,a,upsilon,z,e,...)
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 vfoptions.divideandconquer=1; % exploit monotonicity
 disp('Solving ValueFnIter')
 tic;
@@ -297,8 +297,10 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1_PType(StationaryDist,Policy,Fn
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 

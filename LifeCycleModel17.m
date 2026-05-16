@@ -1,12 +1,12 @@
 %% Life-Cycle Model 17: Precautionary Savings (with exogenous earnings)
 % Stochastic shocks create a risk of hitting the borrowing constraint (as seen in Life-Cycle model 16). 
-% Because households dislike hitting the borrowing contraint they take action to avoid it in the form 
+% Because households dislike hitting the borrowing constraint they take action to avoid it in the form 
 % of higher savings, and this is called 'precautionary savings'. We will solve a model with exogenous 
 % labor twice, once with exogenous shocks and once without. 
 
 % We will see precautionary savings in two ways. First, we look directly at
 % the policy functions for next period assets, and see how they differ when
-% their are shocks. Second, we will look at life-cycle profiles and see how
+% there are shocks. Second, we will look at life-cycle profiles and see how
 % precautionary savings leads to higher average assets.
 
 % We keep the expected value of earnings in the model with shocks to be exactly equal
@@ -14,7 +14,8 @@
 % the shocks, not that they change what happens on average.
 
 % To better see the precautionary savings we largely disable other motives
-% for savings by flattening the 
+% for savings by flattening the consumption profile (via setting
+% Params.r=1/Params.beta-1; below, which makes desired consumption flat).
 
 % Comment: Precautionary savings are much cleaner/more easily observed, in
 % models with either just one period or with infinite periods. In a
@@ -27,7 +28,7 @@
 %
 % No decision variable. Can set n_d=[], d_grid=[]
 % One endogenous state variable: a, assets (total household savings)
-% One stochastic exogenous state variable: z, an two-state process, a stochastic endowment representing employment and unemployment
+% One stochastic exogenous state variable: z, an AR(1) process (in logs) discretized to 3 states, a stochastic endowment on labor productivity units
 % Age: j
 
 %% Begin setting up to use VFI Toolkit to solve
@@ -84,7 +85,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 % Warm glow of bequest
 Params.wg1=0.05; % (relative) importance of bequests
 Params.wg2=0.3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
-Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropraite parameter values for the warm glow
+Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from
@@ -105,9 +106,9 @@ DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModel10_ReturnFn'
 ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel10_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
+    LifeCycleModel10_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
@@ -138,7 +139,7 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 % is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
+% Like with return function, we have to include (aprime,a,z) as first
 % inputs, then just any relevant parameters.
 FnsToEvaluate.earnings=@(aprime,a,z,w,kappa_j) w*kappa_j*z; % z is the 'stochastic endowment' or 'exogenous earnings'
 FnsToEvaluate.assets=@(aprime,a,z) a; % a is the current asset holdings
@@ -157,7 +158,7 @@ pi_z_noshock=1;
 % Run the parts of the model that change
 [V_noshock, Policy_noshock]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z_noshock,N_j, d_grid, a_grid, z_grid_noshock, pi_z_noshock, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 jequaloneDist=zeros(n_a,n_z_noshock,'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,1)=1; % All agents start with zero assets, and the median shock
+jequaloneDist(1,1)=1; % All agents start with zero assets (no shock variant)
 StationaryDist_noshock=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy_noshock,n_d,n_a,n_z_noshock,N_j,pi_z_noshock,Params,simoptions);
 % Calculate the same life-cycle profiles, but without shock
 AgeConditionalStats_noshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_noshock,Policy_noshock,FnsToEvaluate,Params,[],n_d,n_a,n_z_noshock,N_j,d_grid,a_grid,z_grid_noshock,simoptions);
@@ -168,7 +169,7 @@ PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
 PolicyVals_noshock=PolicyInd2Val_FHorz(Policy_noshock,n_d,n_a,n_z_noshock,N_j,d_grid,a_grid,vfoptions);
 
 % Plot the aprime policy as a function (of assets) for a given age  (I do a few for different ages)
-zind=floor(n_z+1)/2; % This will be the median
+zind=floor((n_z+1)/2); % This will be the median
 figure(1)
 subplot(2,1,1); plot(a_grid,PolicyVals(1,:,1,1),a_grid,PolicyVals(1,:,zind,1),a_grid,PolicyVals(1,:,end,1),a_grid,PolicyVals_noshock(1,:,1,1)) % j=1
 title('Policy for aprime at age j=1 (at low asset levels)')

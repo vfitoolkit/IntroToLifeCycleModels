@@ -118,7 +118,7 @@ DiscountFactorParamNames={'beta','sj'};
 ReturnFn=@(aprime,a,clag,z,w,sigma,agej,Jr,pension,r,kappa_j,lambda,mu,upsilon,theta) ...
     LifeCycleModel38_ReturnFn(aprime,a,clag,z,w,sigma,agej,Jr,pension,r,kappa_j,lambda,mu,upsilon,theta);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
@@ -130,7 +130,7 @@ toc
 
 % We can plot V as a 3d plot (surf is matlab command for 3d plot)
 % Which z value should we plot? I will plot the median
-zind=floor(n_z+1)/2; % This will be the median
+zind=floor((n_z+1)/2); % This will be the median
 figure(1)
 subplot(3,1,1); surf(asset_grid*ones(1,n_a(2)),ones(n_a(1),1)*clag_grid',V(:,:,zind,20))
 title('Value function: median value of z, age 20')
@@ -203,8 +203,10 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 
 % For example
 % AgeConditionalStats.earnings.Mean
-% There are things other than Mean, but in our current deterministic model
-% in which all agents are born identical the rest are meaningless.
+% There are things other than Mean (Median, Gini, percentiles, etc.); in
+% earlier deterministic models all agents were identical at each age so
+% those were trivial, but now that we have an idiosyncratic shock z they
+% are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 

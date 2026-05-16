@@ -28,7 +28,7 @@ N_j=Params.J; % Number of periods in finite horizon
 Params.beta = 0.96;
 % Preferences
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
 % Prices
@@ -61,7 +61,7 @@ DiscountFactorParamNames={'beta'};
 ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r)... 
     LifeCycleModel3_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
@@ -106,10 +106,12 @@ subplot(5,1,5); plot(a_grid,V(:,81)) % j=81
 title('Value fn at age j=81')
 xlabel('Assets (a)')
 
-% Convert the policy function to values (rather than indexes).
-% Note that there is one policy for hours worked (h), and another for next period assets (aprime). 
-% Policy(1,:,:) is h, Policy(2,:,:) is aprime [as function of (a,j)]
-% Plot both as a 3d plot.
+% Plot the policy function (the chosen values of h and aprime at each (a,j)).
+% Policy by default stores grid-point *indexes*, not the values themselves,
+% so we use the toolkit helper PolicyInd2Val_FHorz() to convert them
+% into actual h and aprime values. This is what you will use in practice -- it
+% generalises to more decision variables, multiple endogenous states, etc.
+% Note: Policy(1,:,:) is h, Policy(2,:,:) is aprime, both as a function of (a,j).
 figure(3)
 PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
 subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,:),[n_a,Params.J]))
@@ -147,4 +149,19 @@ title('Policy for aprime at age j=46 (first year of retirement)')
 subplot(5,2,10); plot(a_grid,PolicyVals(2,:,81)) % j=81
 title('Policy for aprime at age j=81')
 xlabel('Assets (a)')
+
+% To see what PolicyInd2Val_FHorz() is doing under the hood, we can
+% do the index-to-value conversion by hand: index into d_grid for the
+% decision-variable indexes in Policy(1,:,:) and into a_grid for the
+% next-period-asset indexes in Policy(2,:,:). This gives the same plots,
+% but only works because this model is simple and so the contents of Policy
+% are simple; doing this manually becomes tricky in more advanced models
+% and it is recommended you always use PolicyInd2Val_FHorz().
+figure(5)
+subplot(2,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(d_grid(Policy(1,:,:)),[n_a,Params.J]))
+title('Policy function: fraction of time worked (h)')
+xlabel('Assets (a)'); ylabel('Age j'); zlabel('Fraction of Time Worked (h)')
+subplot(2,1,2); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(a_grid(Policy(2,:,:)),[n_a,Params.J]))
+title('Policy function: next period assets (aprime)')
+xlabel('Assets (a)'); ylabel('Age j'); zlabel('Next period assets (aprime)')
 

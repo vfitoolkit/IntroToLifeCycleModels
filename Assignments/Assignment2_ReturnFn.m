@@ -12,7 +12,7 @@ else % Retirement
 end
 
 if c>0
-    F=((sigma1*c^sigma2 +(1-sigma1)*((1-h)^(1-sigma2)))^(1-sigma3))/(1-sigma3); % Non-seperable utility function
+    F=((sigma1*c^sigma2 +(1-sigma1)*((1-h)^(1-sigma2)))^(1-sigma3))/(1-sigma3); % Non-separable utility function
 end
 
 % add the warm glow to the return, but only near end of life

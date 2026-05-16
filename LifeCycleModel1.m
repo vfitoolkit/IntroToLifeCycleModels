@@ -82,7 +82,7 @@ ReturnFn=@(h,aprime,a,w,sigma,psi,eta)...
 % next period endogenous state directly. Hence why we have both of (..,aprime,a,..)
 % in the ReturnFn.
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
+%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
 disp('Test ValueFnIter')
 vfoptions=struct(); % Just using the defaults.
 tic;
