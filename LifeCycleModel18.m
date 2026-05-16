@@ -147,9 +147,9 @@ FnsToEvaluate.consumption=@(h,aprime,a,z,agej,Jr,w,kappa_j,r,pension) (agej<Jr)*
 AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 %% Before changing model calculate PolicyVals
-PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
+PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
 % And aggregate variables
-AggVars=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist, Policy, FnsToEvaluate, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,simoptions);
+AllStats=EvalFnOnAgentDist_AllStats_FHorz_Case1(StationaryDist, Policy, FnsToEvaluate, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,simoptions);
 
 %% Solve endogenous labor supply again, but now with no shocks
 store_n_z=n_z; % Need n_z later to do exogenous labor with shocks
@@ -164,8 +164,8 @@ StationaryDist_noshock=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamN
 % FnsToEvaluate are unchanged
 AgeConditionalStats_noshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_noshock,Policy_noshock,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
-PolicyVals_noshock=PolicyInd2Val_Case1_FHorz(Policy_noshock,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
-AggVars_noshock=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist_noshock, Policy_noshock, FnsToEvaluate, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,simoptions);
+PolicyVals_noshock=PolicyInd2Val_FHorz(Policy_noshock,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
+AllStats_noshock=EvalFnOnAgentDist_AllStats_FHorz_Case1(StationaryDist_noshock, Policy_noshock, FnsToEvaluate, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,simoptions);
 
 %% Parameter to make exogneous labor supply model have the same mean earnings as endogenous labor supply does.
 % Households work a fraction of the time. Since the difference in earnings
@@ -208,8 +208,8 @@ FnsToEvaluate_exo.consumption=@(aprime,a,z,agej,Jr,w,kappa_j,r,pension,meanearni
 
 AgeConditionalStats_exo=LifeCycleProfiles_FHorz_Case1(StationaryDist_exo,Policy_exo,FnsToEvaluate_exo,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
-PolicyVals_exo=PolicyInd2Val_Case1_FHorz(Policy_exo,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
-AggVars_exo=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist_exo, Policy_exo, FnsToEvaluate_exo, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,simoptions);
+PolicyVals_exo=PolicyInd2Val_FHorz(Policy_exo,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
+AllStats_exo=EvalFnOnAgentDist_AllStats_FHorz_Case1(StationaryDist_exo, Policy_exo, FnsToEvaluate_exo, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,simoptions);
 
 %% Solve a third time, this time with exogenous labor supply and no shocks (deterministic model)
 n_z=1;
@@ -222,8 +222,8 @@ StationaryDist_exonoshock=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsPar
 % FnsToEvaluate_exo are unchangecd
 AgeConditionalStats_exonoshock=LifeCycleProfiles_FHorz_Case1(StationaryDist_exonoshock,Policy_exonoshock,FnsToEvaluate_exo,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
-PolicyVals_exonoshock=PolicyInd2Val_Case1_FHorz(Policy_exonoshock,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
-AggVars_exonoshock=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist_exonoshock, Policy_exonoshock, FnsToEvaluate_exo, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,simoptions);
+PolicyVals_exonoshock=PolicyInd2Val_FHorz(Policy_exonoshock,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
+AllStats_exonoshock=EvalFnOnAgentDist_AllStats_FHorz_Case1(StationaryDist_exonoshock, Policy_exonoshock, FnsToEvaluate_exo, Params, [], n_d, n_a, n_z,N_j, d_grid, a_grid, z_grid,simoptions);
 
 %% Plot the savings policies at low asset levels for the three models to see precautionary spending
 
@@ -294,26 +294,26 @@ xlim([0,0.1])
 %%
 fprintf(' \n')
 fprintf('Endogenous labor supply: \n')
-fprintf('   Aggregate labor supply: %8.4f \n',AggVars.fractiontimeworked.Mean)
-fprintf('   Aggregate earnings:     %8.4f \n',AggVars.earnings.Mean)
-fprintf('   Aggregate assets:       %8.4f \n',AggVars.assets.Mean)
-fprintf('   Capital/Income Ratio:   %8.4f \n',AggVars.assets.Mean/AggVars.earnings.Mean)
+fprintf('   Aggregate labor supply: %8.4f \n',AllStats.fractiontimeworked.Mean)
+fprintf('   Aggregate earnings:     %8.4f \n',AllStats.earnings.Mean)
+fprintf('   Aggregate assets:       %8.4f \n',AllStats.assets.Mean)
+fprintf('   Capital/Income Ratio:   %8.4f \n',AllStats.assets.Mean/AllStats.earnings.Mean)
 fprintf('Endogenous labor supply, no shocks: \n')
-fprintf('   Aggregate labor supply: %8.4f \n',AggVars_noshock.fractiontimeworked.Mean)
-fprintf('   Aggregate earnings:     %8.4f \n',AggVars_noshock.earnings.Mean)
-fprintf('   Aggregate assets:       %8.4f \n',AggVars_noshock.assets.Mean)
-fprintf('   Capital/Income Ratio:   %8.4f \n',AggVars_noshock.assets.Mean/AggVars_noshock.earnings.Mean)
+fprintf('   Aggregate labor supply: %8.4f \n',AllStats_noshock.fractiontimeworked.Mean)
+fprintf('   Aggregate earnings:     %8.4f \n',AllStats_noshock.earnings.Mean)
+fprintf('   Aggregate assets:       %8.4f \n',AllStats_noshock.assets.Mean)
+fprintf('   Capital/Income Ratio:   %8.4f \n',AllStats_noshock.assets.Mean/AllStats_noshock.earnings.Mean)
 fprintf('Exogenous labor supply: \n')
-fprintf('   Aggregate earnings:     %8.4f \n',AggVars_exo.earnings.Mean)
-fprintf('   Aggregate assets:       %8.4f \n',AggVars_exo.assets.Mean)
-fprintf('   Capital/Income Ratio:   %8.4f \n',AggVars_exo.assets.Mean/AggVars_exo.earnings.Mean)
+fprintf('   Aggregate earnings:     %8.4f \n',AllStats_exo.earnings.Mean)
+fprintf('   Aggregate assets:       %8.4f \n',AllStats_exo.assets.Mean)
+fprintf('   Capital/Income Ratio:   %8.4f \n',AllStats_exo.assets.Mean/AllStats_exo.earnings.Mean)
 fprintf('Exogenous labor supply, no shocks: \n')
-fprintf('   Aggregate earnings:     %8.4f \n',AggVars_exonoshock.earnings.Mean)
-fprintf('   Aggregate assets:       %8.4f \n',AggVars_exonoshock.assets.Mean)
-fprintf('   Capital/Income Ratio:   %8.4f \n',AggVars_exonoshock.assets.Mean/AggVars_exonoshock.earnings.Mean)
+fprintf('   Aggregate earnings:     %8.4f \n',AllStats_exonoshock.earnings.Mean)
+fprintf('   Aggregate assets:       %8.4f \n',AllStats_exonoshock.assets.Mean)
+fprintf('   Capital/Income Ratio:   %8.4f \n',AllStats_exonoshock.assets.Mean/AllStats_exonoshock.earnings.Mean)
 fprintf(' \n')
 fprintf(' \n')
-fprintf('Ratio of earnings of endogenous labor supply model to exogenous labor supply model: %8.4f \n', AggVars.earnings.Mean/AggVars_exo.earnings.Mean)
+fprintf('Ratio of earnings of endogenous labor supply model to exogenous labor supply model: %8.4f \n', AllStats.earnings.Mean/AllStats_exo.earnings.Mean)
 
 
 

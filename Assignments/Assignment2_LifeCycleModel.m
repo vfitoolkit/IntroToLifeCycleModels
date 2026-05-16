@@ -163,7 +163,7 @@ xlabel('Assets (a)')
 % Plot both as a 3d plot.
 figure(3)
 simoptions=struct(); % Use the default options
-PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
+PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
 subplot(2,2,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,1,:),[n_a,Params.J]))
 title('Policy function: fraction of time worked (h), z=employed')
 xlabel('Age j')

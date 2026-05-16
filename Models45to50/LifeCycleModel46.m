@@ -274,7 +274,7 @@ TargetMoments.AgeConditionalStats.fractiontimeworked.Mean=AgeConditionalStats.fr
 % Within these you must follow the structure that you get when you run the commands
 % AgeConditionalStats=LifeCycleProfiles_FHorz_Case1()
 % and
-% AllStats=EvalFnOnAgentDist_AggVars_FHorz_Case1()
+% AllStats=EvalFnOnAgentDist_AllStats_FHorz_Case1()
 
 % Note, targeting the retirement earnings would be silly, as the parameters
 % are irrelevant to them. So let's drop them from what we want to estimate.

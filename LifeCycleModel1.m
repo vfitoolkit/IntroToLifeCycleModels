@@ -25,7 +25,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
 n_d=51; % Endogenous labour choice (fraction of time worked)
-n_a=1; % Codes require an endogeneous state, but by making it only one grid point it is essentially irrelevant
+n_a=1; % Codes require an endogenous state, but by making it only one grid point it is essentially irrelevant
 n_z=0; % This is how the VFI Toolkit thinks about deterministic models
 N_j=Params.J; % Number of periods in finite horizon
 
@@ -35,7 +35,7 @@ N_j=Params.J; % Number of periods in finite horizon
 Params.beta = 0.96;
 % Preferences
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasty)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
 Params.w=1; % Wage
@@ -64,12 +64,12 @@ DiscountFactorParamNames={'beta'};
 % period version of this aprime. We don't have an exogenous state so we set
 % n_z=0.
 % So 'decision variables, next period endogenous states, this period
-% endogenous states becomes
+% endogenous states' becomes
 % (h,aprime,a)
 % After this we can put the parameters.
 
 % To understand how to create the ReturnFn, look inside
-% 'LifeCycleModel1_ReturnFn' (you can right-click on it's name below and click 'Open LifeCycleModel1_ReturnFn')
+% 'LifeCycleModel1_ReturnFn' (you can right-click on its name below and click 'Open LifeCycleModel1_ReturnFn')
 % We then just have to make the @() contain exactly the same inputs as
 % 'LifeCycleModel1_ReturnFn', and then give the parameter names.
 ReturnFn=@(h,aprime,a,w,sigma,psi,eta)...
@@ -79,7 +79,7 @@ ReturnFn=@(h,aprime,a,w,sigma,psi,eta)...
 % VFI Toolkit will automatically look in 'Params' to find the values of these parameters.
 
 % A standard endogenous state in VFI Toolkit is one where you can choose
-% next period endogneous state directly. Hence why we have both of (..,aprime,a,..)
+% next period endogenous state directly. Hence why we have both of (..,aprime,a,..)
 % in the ReturnFn.
 
 %% Now solve the value function iteration problem, just to check that things are working before we go to General Equilbrium
@@ -116,24 +116,30 @@ xlabel('Age in Years')
 % is the 'present discounted utility'. Just like utility is only defined up
 % to a linear transformation so is the value function. So we could add a
 % constant to the utility function (or multiply it by a constant) without
-% changing the parameters it represents. As a result it is not important
-% that utility is negative (we could just a big constant and make it
+% changing the preferences it represents. As a result it is not important
+% that utility is negative (we could just add a big constant and make it
 % positive) and the same follows for the value function.
 
-% Plot the policy function, which represents the (grid points relating to) values of h.
+% Plot the policy function (the values of h chosen at each age).
+% Policy by default stores grid-point *indexes*, not the values themselves,
+% so we use the toolkit helper PolicyInd2Val_FHorz() to convert them
+% into the actual h values. This is what you will use in practice -- it
+% generalises to more decision variables, multiple endogenous states, etc.
 figure(2)
-plot(1:1:Params.J,h_grid(Policy(1,:,:))) % Notice how it is h_grid(Policy), this turns grid point index into actual values of h
+PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
+plot(1:1:Params.J,shiftdim(PolicyVals(1,:,:),2))
 title('Policy function: fraction of time worked (h)')
 xlabel('Age j')
-% Looks a bit silly, people of every age work exact same amount. This will change in future models.
-% Note: Policy be default contains the indexes of the choices
-% So h_grid(Policy) is the values relating to those indexes
+% Looks a bit silly, people of every age work exactly the same amount. This will change in future models.
 
-% There is actually also a command for converting Policy into policy values (rather than policy indexes, which is default)
+% To see what PolicyInd2Val_FHorz() is doing under the hood, we can
+% do the index-to-value conversion by hand: just index into h_grid using
+% Policy. This gives the same plot, but only works because this model is
+% simple and so the contents of Policy are simple; doing this manually
+% becomes tricky in more advanced models and it is recommended you always
+% use PolicyInd2Val_FHorz().
 figure(3)
-simoptions=struct(); % use defaults
-PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
-plot(1:1:Params.J,shiftdim(PolicyVals(1,:,:),2))
+plot(1:1:Params.J,h_grid(Policy(1,:,:))) % h_grid(Policy) turns grid point index into actual values of h
 title('Policy function: fraction of time worked (h)')
 xlabel('Age j')
 

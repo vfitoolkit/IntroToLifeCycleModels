@@ -223,7 +223,7 @@ size(Policy)
 zind=ceil(n_z/2);
 hind=ceil(n_a(2)/2);
 figure(3)
-PolicyVals=PolicyInd2Val_Case1_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,simoptions);
+PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
 subplot(2,1,1); surf(asset_grid*ones(1,Params.J),ones(n_a(1),1)*(1:1:Params.J),reshape(PolicyVals(1,:,hind,zind,:),[n_a(1),Params.J]))
 title('Policy function: study decision, median h, median z')
 xlabel('Assets (a)')

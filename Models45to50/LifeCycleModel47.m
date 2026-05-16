@@ -298,7 +298,7 @@ TargetMoments.AgeConditionalStats.earnings.Mean=[MeanEarningsProfile_CFE; nan(N_
 % Within these you must follow the structure that you get when you run the commands
 % AgeConditionalStats=LifeCycleProfiles_FHorz_Case1()
 % and
-% AllStats=EvalFnOnAgentDist_AggVars_FHorz_Case1()
+% AllStats=EvalFnOnAgentDist_AllStats_FHorz_Case1()
 
 %% Third, we need a weighting matrix.
 % We start by using the identity matrix.

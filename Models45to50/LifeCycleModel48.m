@@ -256,7 +256,7 @@ TargetMoments.AgeConditionalStats.earnings.Mean=log(AgeConditionalStats.earnings
 % Within these you must follow the structure that you get when you run the commands
 % AgeConditionalStats=LifeCycleProfiles_FHorz_Case1()
 % and
-% AllStats=EvalFnOnAgentDist_AggVars_FHorz_Case1()
+% AllStats=EvalFnOnAgentDist_AllStats_FHorz_Case1()
 
 % We want to modify these targets.
 % First, target the log of the moments (note that we already did log() in the target moments)
