@@ -1,22 +1,13 @@
-%% Life-Cycle Model 24: Using Permanent Type to model fixed-effects
-% The exogenous process on labor efficiency units now uses an approach common in the literature:
-% Labor efficiency units are a combination of four components:
-% 1) kappa_j, a deterministic profile of age
-% 2) z, a persistent markov shock
-% 3) e, a transitory i.i.d. shock
-% 4) alpha_i, a fixed effect
+%% Life-Cycle Model 24: Using Names for Permanent Types: patient and impatient
+% Builds on Life-Cycle Model 11.
+% Two permanent types of agent we will call 'patient' and 'impatient'
+% Only difference is the value of beta, the discount factor parameter.
 %
-% All of these were already present in Life-Cycle Model 11, except the fixed-effect alpha_i
-%
-% We want to have five different possible values of alpha_i, and to do this we use the 'permanent type', PType, feature.
-%
-% We here use the easiest approach, we will create alpha_i as a vector with
-% five values. And set N_i=5 (N_i is the number of permanent types). The
-% codes will automatically realise that because alpha_i has N_i values it
-% is different by permanent type.
+% We can treat the permanent types by name, and then VFI Toolkit will do
+% everything based on these agent permanent type names.
 %
 % To compute the agent distribution we need to say how many agents are of
-% each type. We denote this 'alphadist' and it is a vector of weights that
+% each type. We denote this 'betadist' and it is a vector of weights that
 % sum to one (we need to put the name of this in PTypeDistParamNames, like
 % we would for a discount factor in DiscountFactorParamNames).
 %
@@ -26,7 +17,14 @@
 %
 % Model statistics, like the life-cycle profiles we calculate here, are
 % reported both for each permanent type (that is to say, conditional on the
-% permanent type), and 'grouped' across the permanent types. 
+% permanent type), and 'grouped' across the permanent types. Notice how
+% VFI Toolkit automatically uses the names we gave the permanent types when
+% generating results.
+%
+% Compared to Life-Cycle Model 23:
+% We use Names_i everywhere we had N_i.
+% Names_i contains the two names of our agents.
+% The only difference between the two agents is their value of the discount factor parameter beta.
 
 %% How does VFI Toolkit think about this?
 %
@@ -34,7 +32,7 @@
 % One endogenous state variable: a, assets (total household savings)
 % Two stochastic exogenous state variables: z and e, persistent and transitory shocks to labor efficiency units, respectively
 % Age: j
-% Permanent types: i
+% Permanent types: i (called 'patient' and 'impatient')
 
 %% Begin setting up to use VFI Toolkit to solve
 % Lets model agents from age 20 to age 100, so 81 periods
@@ -47,27 +45,28 @@ n_d=51; % Endogenous labour choice (fraction of time worked)
 n_a=201; % Endogenous asset holdings
 n_z=21; % Exogenous labor productivity units shocks, persistent and transitory
 n_e=3;
-N_i=5; % Permanent type of agents
+Names_i={'patient','impatient'}; % Permanent type of agents
 N_j=Params.J; % Number of periods in finite horizon
 
 %% The parameter that depends on the permanent type
-% Fixed-effect (parameter that varies by permanent type)
-Params.alpha_i=exp([0.5,0.3,0,-0.3,-0.5]); % Roughly: increase earnings by 50%, 30%, 0, -30%, -50%
-
-% This is only separate from the other parameters to make it easier to see
-% what has changed in the codes.
+% Discount rate
+Params.beta.patient = 0.96;
+Params.beta.impatient = 0.9;
+% Note that the impatient types value the future less (hence the choice of names)
 
 %% How many of each permanent type are there
-PTypeDistParamNames={'alphadist'};
-Params.alphadist=[0.1,0.2,0.4,0.1,0.2]; % Must sum to one
+PTypeDistParamNames={'betadist'};
+Params.betadist=[0.6,0.4]; % Must sum to one
+% Note: implicitly, these weights are in the same order as Names_i
+
 % Note: this is not relevant to solving the value function, but is needed for
 % stationary distribution. It then gets encoded into the StationaryDist and
 % so is not needed for things like life-cycle profiles.
 
 %% Parameters
 
-% Discount rate
-Params.beta = 0.96;
+% Params.beta has been declared above
+
 % Preferences
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
 Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
@@ -148,27 +147,27 @@ d_grid=h_grid;
 %% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
-% Notice: have added alpha_i to inputs (relative to Life-Cycle Model 11 which this extends)
-ReturnFn=@(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,alpha_i,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel24_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,alpha_i,kappa_j,wg1,wg2,wg3,beta,sj);
+% Notice: just uses LifeCycleModel11_ReturnFn.
+ReturnFn=@(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
+    LifeCycleModel11_ReturnFn(h,aprime,a,z,e,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
 %% Solve the value function iteration problem
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
 tic;
 vfoptions.verbose=1; % Just so we can see feedback on progress
-[V, Policy]=ValueFnIter_Case1_FHorz_PType(n_d,n_a,n_z,N_j,N_i, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, vfoptions);
+[V, Policy]=ValueFnIter_Case1_FHorz_PType(n_d,n_a,n_z,N_j,Names_i, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, vfoptions);
 toc
 
 % V is now a structure containing the value function for each permanent type
 V
 % So for example for permanent type 1, V_i(a,z,e,j)
-size(V.ptype001)
+size(V.patient)
 % Policy likewise depends on type, e.g.,
-size(Policy.ptype001)
+size(Policy.patient)
 % which is the same as
 [length(n_d)+length(n_a),n_a,n_z,n_e,N_j]
-% The other permanent types are numbered through N_i, so the last in our current case is
-% V.ptype005
+% The other permanent types are named according to Names_i, so in our current case is
+% V.impatient
 % The n_a,n_z,n_e,N_j represent the state on which the decisions/policys
 % depend, and there is one decision for each decision variable 'd' and each
 % endogenous state variable 'a', and one for the markov exogenous state variable
@@ -199,76 +198,71 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
-StationaryDist=StationaryDist_Case1_FHorz_PType(jequaloneDist,AgeWeightsParamNames,PTypeDistParamNames,Policy,n_d,n_a,n_z,N_j,N_i,pi_z,Params,simoptions);
+StationaryDist=StationaryDist_Case1_FHorz_PType(jequaloneDist,AgeWeightsParamNames,PTypeDistParamNames,Policy,n_d,n_a,n_z,N_j,Names_i,pi_z,Params,simoptions);
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (h,aprime,a,z,e) as first inputs, then just any relevant parameters.
 FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z,e) h; % h is fraction of time worked
-FnsToEvaluate.earnings=@(h,aprime,a,z,e,w,kappa_j,alpha_i) w*h*kappa_j*alpha_i*z*e; % w*h*kappa_j*alpha_i*z*e is the labor earnings
+FnsToEvaluate.earnings=@(h,aprime,a,z,e,w,kappa_j) w*h*kappa_j*z*e; % w*kappa_j*h*z*e is the labor earnings
 FnsToEvaluate.assets=@(h,aprime,a,z,e) a; % a is the current asset holdings
-FnsToEvaluate.alpha_i=@(h,aprime,a,z,e,alpha_i) alpha_i; % alpha_i is the fixed effect
-FnsToEvaluate.agej=@(h,aprime,a,z,e,agej) agej; % agej is the age
-% notice that we have called these fractiontimeworked, earnings, assets, alpha_i, and agej
-% Have added alpha_i so that we can see how this evaluates differently across the different permanent types of agents
-% Note that alpha_i also appears in the function for earnings
+FnsToEvaluate.beta=@(h,aprime,a,z,e,beta) beta; % beta is the parameter that differs by type
+FnsToEvaluate.agej=@(h,aprime,a,z,e,agej) agej;
+% notice that we have called these fractiontimeworked, earnings, assets, beta, and agej
+% Have added beta so that we can see how this evaluates differently across the different permanent types of agents
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1_PType(StationaryDist, Policy, FnsToEvaluate, Params,n_d,n_a,n_z,N_j,N_i,d_grid, a_grid, z_grid, simoptions);
-
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1_PType(StationaryDist, Policy, FnsToEvaluate, Params,n_d,n_a,n_z,N_j,Names_i,d_grid, a_grid, z_grid, simoptions);
 % By default, this includes both the 'grouped' statistics, like
 % AgeConditionalStats.earnings.Mean
 % Which are calculated across all permanent types of agents.
 % And also the 'conditional on permanent type' statistics, like 
-% AgeConditionalStats.earnings.ptype001.Mean
+% AgeConditionalStats.earnings.patient.Mean
 
 %% Plot the life cycle profiles of earnings, both grouped and for each of the different permanent types
 figure(1)
 plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
 hold on
-plot(1:1:Params.J,AgeConditionalStats.earnings.ptype001.Mean)
-plot(1:1:Params.J,AgeConditionalStats.earnings.ptype002.Mean)
-plot(1:1:Params.J,AgeConditionalStats.earnings.ptype003.Mean)
-plot(1:1:Params.J,AgeConditionalStats.earnings.ptype004.Mean)
-plot(1:1:Params.J,AgeConditionalStats.earnings.ptype005.Mean)
+plot(1:1:Params.J,AgeConditionalStats.earnings.patient.Mean)
+plot(1:1:Params.J,AgeConditionalStats.earnings.impatient.Mean)
 hold off
-title('Life Cycle Profile: Labor Earnings (w*h*kappa_j*alpha_i*z*e)')
-legend('Grouped',['alpha_i=',num2str(Params.alpha_i(1))],['alpha_i=',num2str(Params.alpha_i(2))],['alpha_i=',num2str(Params.alpha_i(3))],['alpha_i=',num2str(Params.alpha_i(4))],['alpha_i=',num2str(Params.alpha_i(5))])
+title('Life Cycle Profile: Labor Earnings (w*h*kappa_j*z*e)')
+legend('Grouped',Names_i{1},Names_i{2})
 
-% Just as an illustration, let's look at the values for alpha_i
+% Just as an illustration, let's look at the values for beta
 % This is included as it helps make clear what exactly is meant by
 % 'grouped' and by the stats conditional on ptype.
 figure(2)
-plot(1:1:Params.J,AgeConditionalStats.alpha_i.Mean)
+plot(1:1:Params.J,AgeConditionalStats.beta.Mean)
 hold on
-plot(1:1:Params.J,AgeConditionalStats.alpha_i.ptype001.Mean)
-plot(1:1:Params.J,AgeConditionalStats.alpha_i.ptype002.Mean)
-plot(1:1:Params.J,AgeConditionalStats.alpha_i.ptype003.Mean)
-plot(1:1:Params.J,AgeConditionalStats.alpha_i.ptype004.Mean)
-plot(1:1:Params.J,AgeConditionalStats.alpha_i.ptype005.Mean)
+plot(1:1:Params.J,AgeConditionalStats.beta.patient.Mean)
+plot(1:1:Params.J,AgeConditionalStats.beta.impatient.Mean)
 hold off
-title('Life Cycle Profile: fixed-effect alpha_i')
-legend('Grouped',['alpha_i=',num2str(Params.alpha_i(1))],['alpha_i=',num2str(Params.alpha_i(2))],['alpha_i=',num2str(Params.alpha_i(3))],['alpha_i=',num2str(Params.alpha_i(4))],['alpha_i=',num2str(Params.alpha_i(5))])
+title('Life Cycle Profile: discount factor beta')
+legend('Grouped',Names_i{1},Names_i{2})
 
 % Notice that the grouped one is just the weighted mean of the individual
 % ones. As can be seen from the following two numbers being the same.
-AgeConditionalStats.alpha_i.Mean(1)
-sum(Params.alpha_i.*Params.alphadist)
+AgeConditionalStats.beta.Mean(1)
+sum([Params.beta.patient,Params.beta.impatient].*Params.betadist)
 
 %% Note that if we want statistics for the distribution as a whole we could use 
-AllStats=EvalFnOnAgentDist_AllStats_FHorz_Case1_PType(StationaryDist, Policy, FnsToEvaluate, Params,n_d,n_a,n_z,N_j,N_i,d_grid, a_grid, z_grid, simoptions);
+AllStats=EvalFnOnAgentDist_AllStats_FHorz_Case1_PType(StationaryDist, Policy, FnsToEvaluate, Params,n_d,n_a,n_z,N_j,Names_i,d_grid, a_grid, z_grid, simoptions);
 
 % Which again includes both aggregate and conditional on permanent type statistics.
 % 'AllStats' covers everything from the mean and standard deviation, to the
 % lorenz curve, to quantiles.
 % Print some output for a few things
 fprintf('The mean asset holdings for the economy are %8.4f \n',AllStats.assets.Mean)
-fprintf('The mean asset holdings for the alpha_i=%8.1f agents are %8.4f (they are %8.4f fraction of all households) \n',Params.alpha_i(1),AllStats.assets.ptype001.Mean,StationaryDist.ptweights(1))
+fprintf('The mean asset holdings for the patient agents are %8.4f (they are %8.4f fraction of all households) \n',AllStats.assets.patient.Mean,StationaryDist.ptweights(1))
+fprintf('The mean asset holdings for the impatient agents are %8.4f (they are %8.4f fraction of all households) \n',AllStats.assets.impatient.Mean,StationaryDist.ptweights(2))
 
 figure(3)
-subplot(2,1,1); plot(AllStats.assets.LorenzCurve)
+subplot(3,1,1); plot(AllStats.assets.LorenzCurve)
 title('Lorenz curve of assets holdings for the economy')
-subplot(2,1,2); plot(AllStats.assets.ptype003.LorenzCurve)
-title(['Lorenz curve of assets holdings amongst agents with alpha_i=',num2str(Params.alpha_i(3))])
+subplot(3,1,2); plot(AllStats.assets.patient.LorenzCurve)
+title('Lorenz curve of assets holdings amongst patient agents')
+subplot(3,1,3); plot(AllStats.assets.impatient.LorenzCurve)
+title('Lorenz curve of assets holdings amongst impatient agents')
 
 % Because AllStats is a structure it is very easy to see all the other
 % kinds of statistics that are calculated as part of it.

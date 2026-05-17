@@ -52,8 +52,8 @@
 % joint-grids instead of stacked column vectors, or we want to have the two
 % shocks probabilities depend on each other, all of this can be done
 % analagous to how we did it for markov shocks.
-% Note: you can find an age-dependent i.i.d shock in Life-Cycle model 27,
-% and you can find correlated i.i.d. shocks in Life-Cycle model 28.
+% Note: you can find an age-dependent i.i.d shock in Life-Cycle model 26,
+% and you can find correlated i.i.d. shocks in Life-Cycle model 27.
 %
 % Note: The above explains e_grid and pi_e with 3 points on e1 and 2 points
 % on e2. The code below uses 5 points on e1 and 3 points on e2. Take a look

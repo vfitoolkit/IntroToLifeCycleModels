@@ -1,72 +1,90 @@
-%% Life-Cycle Model 27: Earnings Dynamics (Gaussian-Mixtures)
-% Solve an exogenous earnings Life-Cycle Model with earnings following the
-% process of Model 5 of Guvenen, Karahan, Ozkan & Song (2021). The earnings
-% are given by w*(1-upsilon)*exp(kappa_j + alpha_i + z1 + e), where upsilon
-% is a binary-valued 'non-employment' shock, kappa_j is a deterministic
-% (quadratic) function of age, alpha_i is a fixed-effect distributed across
-% households as normal distribution, z1 is an AR(1) with gaussian-mixture
-% innovations, and e is an i.i.d. with gaussian-mixture distribution.
-
-% Gaussian-mixtures are 'mixture' of normal/gaussian distributions (here
-% two, but can be more). It can be useful to think of a gaussian-mixture of
-% two normal distributions as happening in two stages (this is not
-% actually true as the gaussian-mixture is a single pdf/cdf, but is a useful 
-% thought), in the first stage we draw a probability p, which tells use that 
-% with p we are in the first of two normal distributions (that make up our 
-% mixture) and with 1-p we are in the second of the two normal distributions. 
-% Then in the second stage we draw from that normal distribution.
+%% Life-Cycle Model 27: Two decision variables (dual-earner household)
+% Model of a household with two people. They share savings but can choose
+% how much each of the two works. Each person has a persistent AR(1) and a
+% transitory iid component to their labor efficiency units. The shocks to
+% each person are correlated.
+%
+% Model shows how to do two decision variables.
+% Model also uses 'joint grids' for the exogenous variables (see Life-Cycle Model A9).
+%
+% Use Farmer-Toda which produces a 'joint grid', as opposed to a cross-product (kronecker) grid.
+% Extends Life-Cycle Model 11, adding the second earner to the household.
+%
+% Notice that while there are, e.g., two deterministic labor productivity
+% earnings as a function of age (one for each earner), we do not use
+% permanent types as both are relevant to the one household.
+%
+% To keep the emphasis on the two decision variables (and the shock
+% processes) we will keep everything else as little changed as possible, so
+% we just add an extra term to the utility function for h2 that is
+% identical to that for h1 (using the same parameters).
+%
+% Note: Typically in practice for this kind of model people want to capture
+% that one spouse might choose not to work. This will almost never happen in the
+% current setup but is easy to get just adding a fixed cost of working to
+% the spouse (include a -fc*(h2>0) term in the budget constraint but
+% modifying the return function, where fc is the fixed cost; you could model it 
+% so the fixed cost is only incurred if both work).
+%
+% This example is a larger model than most, so to still be able to solve it
+% on a gpu with 8gb gpu-memory we use vfoptions.lowmemory=1 (and
+% vfoptions.paroverz=1) so that the value function is solved looping over
+% the e variables but parallel over the z variables.
 
 %% How does VFI Toolkit think about this?
 %
-% Zero decision variables
+% Two decision variable: h1 and h2, labour hours worked by each spouse
 % One endogenous state variable: a, assets (total household savings)
-% Two markov stochastic exogenous state variables: 
-%     z1: persistent shocks to labor efficiency, AR(1) with gaussian-mixture innovations
-%     upsilon: non-employment shock, whose transition probabilities depend on z1
-% One i.i.d. stochastic exogenous state variable: e, transitory shocks to labor efficiency units (which is an i.i.d. gaussian mixture)
+% Four stochastic exogenous state variables: 
+%     z1 and z2, both are AR(1) shocks to labor efficiency units
+%     e1 and e2, both are iid shocks to labor efficiency units
 % Age: j
-% Permanent type: alpha_i, a fixed effect in labor efficiency, distributed across households as a normal distribution
 
 %% Begin setting up to use VFI Toolkit to solve
-% Lets model agents from age 25 to age 100, so 76 periods
+% Lets model agents from age 20 to age 100, so 81 periods
 
-Params.agejshifter=24; % Age 25 minus one. Makes keeping track of actual age easy in terms of model age
-Params.J=100-Params.agejshifter; % =76, Number of period in life-cycle
+Params.agejshifter=19; % Age 20 minus one. Makes keeping track of actual age easy in terms of model age
+Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
-n_d=0; % This is an exogenous labor supply model
-n_a=751; % Endogenous asset holdings
-n_z=[17,2]; % Markov exogenous state: non-employment, and z the AR(1) with gaussian-mixture innovations
-n_e=9; % i.i.d. which has gaussian-mixture distribution
+n_d=[21,21]; % Endogenous labour choice (fraction of time worked)
+n_a=201; % Endogenous asset holdings
+n_z=[3,3]; % Exogenous labor productivity units shock, two of them
+n_e=[3,3];
+vfoptions.n_e=n_e;
 N_j=Params.J; % Number of periods in finite horizon
-
-% Permanent types
-N_i=5;
 
 %% Parameters
 
 % Discount rate
-Params.beta = 0.98;
+Params.beta = 0.96;
 % Preferences
 Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
+Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
+Params.psi = 10; % Weight on leisure
 
 % Prices
-Params.w=731; % Wage
+Params.w=1; % Wage
 Params.r=0.05; % Interest rate (0.05 is 5%)
 
 % Demographics
 Params.agej=1:1:Params.J; % Is a vector of all the agej: 1,2,3,...,J
-Params.Jr=66-Params.agejshifter; % Age 65 is last working age, age 66 is retired
+Params.Jr=46;
 
-% Set up taxes, income floor and pensions
-% IncomeTax=tau1+tau2*log(Income)*Income, where $IncomeTax$ is the amount paid by a household with $Income$.
-% This functional form is found to have a good empirical fit to the US income tax system by GunerKaygusuvVentura2014.
-Params.tau1=0.099;
-Params.tau2=0.035;
 % Pensions
-Params.pension=15400;
-% Income floor (income in non-employment state during working age)
-Params.incomefloor=6400; % Just an initial guess
+Params.pension=0.3;
+
+% Age-dependent labor productivity units
+Params.kappa_j_1=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-Params.Jr+1)];
+Params.kappa_j_2=0.9*[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-Params.Jr+1)]; % Note: person 2 faces lower earnings than person 1
+% AR(1) processes on idiosyncratic labor productivity units with correlated innovations
+Params.rho_z=[0.9,0;0,0.7];
+Params.sigmasq_epsilon_z=[0.0303, 0.0027; 0.0027, 0.0382]; 
+Params.sigma_epsilon_z=sqrt(Params.sigmasq_epsilon_z);
+    % The Farmer-Toda method can discretize a VAR(1) with any (positive semi-definite) variance-covariance matrix.
+% iid processes on idiosyncratic labor units which are correlated
+Params.sigmasq_epsilon_e=[0.1,0.05;0.05,0.1];
+Params.sigma_epsilon_e=sqrt(Params.sigmasq_epsilon_e);
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
 % Most countries have calculations of these (as they are used by the government departments that oversee pensions)
@@ -79,124 +97,35 @@ Params.dj=[0.006879, 0.000463, 0.000307, 0.000220, 0.000184, 0.000172, 0.000160,
     0.016558, 0.018029, 0.019723, 0.021607, 0.023723, 0.026143, 0.028892, 0.031988, 0.035476, 0.039238, 0.043382, 0.047941, 0.052953, 0.058457, 0.064494,...
     0.071107, 0.078342, 0.086244, 0.094861, 0.104242, 0.114432, 0.125479, 0.137427, 0.150317, 0.164187, 0.179066, 0.194979, 0.211941, 0.229957, 0.249020, 0.269112, 0.290198, 0.312231, 1.000000]; 
 % dj covers Ages 0 to 100
-Params.sj=1-Params.dj(25:100); % Conditional survival probabilities
+Params.sj=1-Params.dj(21:101); % Conditional survival probabilities
 Params.sj(end)=0; % In the present model the last period (j=J) value of sj is actually irrelevant
 
 % Warm glow of bequest
-Params.Jbeq=N_j; % Age from which warm-glow of bequests is received
-Params.wg1=4; % (relative) importance of bequests
-Params.wg2=6.8; % controls how much bequests are viewed as a 'luxury good'
+Params.wg1=0.3; % (relative) importance of bequests
+Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
 Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
-
-%% Earnings process: parameters and discretization
-% Model 5 of  Guvenen, Karahan, Ozkan & Song (2021). All parameter values are taken from there.
-
-% Age-dependent labor productivity units
-Params.kappa_j=2.746+0.624*(Params.agej/10)-0.167*(Params.agej/10).^2;
-% Note: agej=age-24, which is what GKOS2021 use. [GKOS2021 normalize agej by 10 so that all the coefficients have similar magnitudes]
-Params.kappa_j(Params.Jr:end)=0; % Now fill in the rest of the retirement ages with zero productivity
-
-% z1: AR(1) process with gaussian-mixture innovations, and initial normal distribution in 'period 0'  
-Params.rho=0.991*ones(1,Params.Jr-1);
-Params.mixprobs_eta=[0.176;1-0.176].*ones(1,Params.Jr-1);
-% Gaussian-mixture innovations
-Params.mu_eta1=-0.524*ones(1,Params.Jr-1);
-% Note mew_eta2 is set to make mean(eta)=0 (from mew_et1 and mixture-probabilities)
-kfttoptions.setmixturemutoenforcezeromean=1; % If missing mean for one of the gaussian mixture innovations this is used to set it so that mean equals zero (assumes the missing one is the 'last' one)
-Params.sigma_eta1=0.113*ones(1,Params.Jr-1);
-Params.sigma_eta2=0.046*ones(1,Params.Jr-1);
-% Initial agej=0 distribution of the life-cycle AR(1) process with gaussian-mixture innovations
-Params.sigma_z0=0.450; % N(0,sigma_z0)
-kfttoptions.initialj0sigma_z=Params.sigma_z0;
-% Now we can set up grids and transtition probabilities for all ages
-Params.sigma_eta=[Params.sigma_eta1;Params.sigma_eta2];
-Params.mu_eta=Params.mu_eta1; % Using kirkbyoptions.setmixturemutoenforcezeromean=1
-% Discretize using KFTT (Kirkby-Farmer-Tanaka-Toda, is an extension of Tanaka-Toda to life-cycle AR(1) processes)
-% Notice we use KFTT command for a 'LifeCycleAR1wGM', the 'wGM' is 'with gaussian-mixture innovations'
-kfttoptions.nSigmas=2; % number of standard deviations for the max and min points of grid used for z1
-fprintf('Discretizing z1 using KFTT quadrature method (discretizeLifeCycleAR1wGM_KFTT) \n')
-[z1_grid_J, pi_z1_J,jequaloneDistz1,otheroutputs_z1] = discretizeLifeCycleAR1wGM_KFTT(0,Params.rho,Params.mixprobs_eta,Params.mu_eta,Params.sigma_eta,n_z(1),Params.Jr-1,kfttoptions); % z_grid_J is n_z(1)-by-J, so z_grid_J(:,j) is the grid for age j
-% pi_z1_J is n_z(1)-by-n_z(1)-by-J, so pi_z1_J(:,:,j) is the transition matrix for age j
-
-% upsilon: non-employment process, follows markov process, whose transition probabilities also depend on z
-Params.lambda=0.016;
-Params.xi=@(agej,z) -2.495-1.037*(agej/10)-5.051*z-1.087*(agej/10)*z;
-Params.prob_upsilon=@(xi) exp(xi)/(1+exp(xi));
-% Need two states, 0 and min(1,exp(lambda))
-% Note that the probabilities, xi, are based on agej and z in the same period (which is next period in the transition matrix)
-% Create grid
-upsilon_grid_J=[zeros(1,Params.Jr-1); min(1,exp(Params.lambda))*ones(1,Params.Jr-1)];
-% pi_upsilon_J cannot be defined independent of pi_z_J, so create the joint transition matrix for (z, upsilon)
-pi_z_J=zeros(n_z(1)*2,n_z(1)*2,Params.Jr-1); % pi_z_J for working ages
-for jj=1:Params.Jr-2
-    for z1_c=1:n_z(1)
-        xi=Params.xi(jj+1,z1_grid_J(z1_c,jj+1));
-        prob_upsilon=Params.prob_upsilon(xi);
-        % Note all that matters for (next period) upsilon is next period z and next period age
-        pi_z_J(1:n_z(1),z1_c,jj)=pi_z1_J(:,z1_c,jj)*(1-prob_upsilon); % Corresponds to upsilon=0
-        pi_z_J(n_z(1)+1:2*n_z(1),z1_c,jj)=pi_z1_J(:,z1_c,jj)*(1-prob_upsilon);  % Corresponds to upsilon=0
-        pi_z_J(1:n_z(1),n_z(1)+z1_c,jj)=pi_z1_J(:,z1_c,jj)*prob_upsilon; % Corresponds to upsilon=min(1,exp(lambda))
-        pi_z_J(n_z(1)+1:2*n_z(1),n_z(1)+z1_c,jj)=pi_z1_J(:,z1_c,jj)*prob_upsilon; % Corresponds to upsilon=min(1,exp(lambda))
-    end
-end
-pi_z_J(:,:,Params.Jr-1)=ones(n_z(1)*2,n_z(1)*2)/(n_z(1)*2); % Note that the agej=Jr-1 transition is irrelevant in any case
-
-% e: i.i.d. with gaussian-mixture distribution
-% This can be done using Farmer-Toda method
-Params.p_e=[0.044;1-0.044];
-Params.mu_e1=0.134;
-Params.mu_e2=-(Params.p_e(1)*Params.mu_e1)/Params.p_e(2); % Rearrange: p.*mu=0
-Params.mu_e=[Params.mu_e1;Params.mu_e2];
-Params.sigma_e1=0.762;
-Params.sigma_e2=0.055;
-Params.sigma_e=[Params.sigma_e1;Params.sigma_e2];
-% Notice we use Farmer-Toda command 'AR1wGM', the 'wGM' is 'with gaussian-mixture innovations'
-farmertodaoptions.nSigmas=2; % number of standard deviations for the max and min points of grid used for z
-farmertodaoptions.method='GMQ'; % grid points specifically for gaussian-mixture distribution
-fprintf('Discretizing e using Farmer-Toda quadrature method (discretizeAR1wGM_FarmerToda) \n')
-[e_grid,pi_e, otheroutputs_e] = discretizeAR1wGM_FarmerToda(0,0,Params.p_e,Params.mu_e,Params.sigma_e,n_e,farmertodaoptions);
-% Note that e is iid, so
-pi_e=pi_e(1,:)';
-
-% Fill in the rest of the retirement ages with zero productivity
-z1_grid_J=[z1_grid_J,zeros(n_z(1),Params.J-Params.Jr+1)];
-upsilon_grid_J=[upsilon_grid_J,zeros(2,Params.J-Params.Jr+1)];
-e_grid_J=[e_grid.*ones(1,Params.Jr-1),zeros(n_e,Params.J-Params.Jr+1)];
-pi_e_J=pi_e*ones(1,Params.J);
-% Put z1 and upsilon together to get z
-z_grid_J=[z1_grid_J; upsilon_grid_J];
-% Fill in the retirement ages with uniform transition probabilities (these are anyway irrelevant)
-temp=pi_z_J;
-pi_z_J=ones(n_z(1)*2,n_z(1)*2,Params.J)/(n_z(1)*2);
-pi_z_J(:,:,1:Params.Jr-1)=temp;
-% Fill in the retirement ages for z with identity matrix (these are anyway irrelevant)
-pi_z_J2=repmat(eye(n_z(1)*2,n_z(1)*2),1,1,Params.J-Params.Jr+1);
-pi_z_J(:,:,Params.Jr:Params.J)=pi_z_J2;
-
-% In this model, we also discretize the parameter alpha_i across permanent
-alphaoptions.nSigmas=1.2; % number of standard deviations for the max and min points of grid used for alpha
-Params.sigma_alpha=0.472;
-fprintf('Discretizing alpha using Farmer-Toda quadrature method (discretizeAR1_FarmerToda) \n')
-[alpha_grid,pi_alpha] = discretizeAR1_FarmerToda(0,0,Params.sigma_alpha,N_i,alphaoptions);
-statdist_alpha=pi_alpha(1,:)'; % Because it is i.i.d., we can just take any row
-Params.alpha=alpha_grid; % Store the values of alpha_i in Params
-% While we are here, put the distribution over permanent types into Params
-% as well and set up 
-Params.statdist_alpha=statdist_alpha;
-PTypeDistParamNames={'statdist_alpha'};
-
-% Note: in this model, we have exp() of the shocks inside the ReturnFn,
-% whereas in most of the earlier models we took the exponential of the grid
-% for the shocks and then could just use the shock directly (without exp()) 
-% in the ReturnFn.
 
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
-a_grid=(10^6)*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
+a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
-% To use e variables we have to put them into the vfoptions and simoptions
-vfoptions.n_e=n_e;
+% First, the AR(1) process on z1 and z2 with correlated innovations.
+% Notice that this is just a VAR(1) process on z1 and z2 (with zeros on the off-diagonals of the auto-correlation matrix)
+% We use the Farmer-Toda method to discretize the VAR(1)
+% Note that for VAR(1), the Farmer-Toda method produces a 'joint grid'
+[z_grid, pi_z]=discretizeVAR1_FarmerToda([0;0],Params.rho_z,Params.sigma_epsilon_z,n_z);
+
+z_grid=exp(z_grid);
+% I skip normalizing this to 1 in the current model (would need to do each of z1 and z2 separately)
+
+% Second, the iid process on e1 and e2 which are correlated
+% Notice that this is just a VAR(1) with zero auto-correlation
+[e_grid, pi_e]=discretizeVAR1_FarmerToda(zeros(2,1),zeros(2,2),Params.sigma_epsilon_e,vfoptions.n_e);
+e_grid=exp(e_grid);
+pi_e=pi_e(1,:)';  % Because it is iid, the distribution is just the first row (all rows are identical). We use pi_e as a column vector for VFI Toolkit to handle iid variables.
+
+% To use e variables we need to put them in vfoptions and simoptions
 vfoptions.e_grid=e_grid;
 vfoptions.pi_e=pi_e;
 simoptions.n_e=vfoptions.n_e;
@@ -204,72 +133,50 @@ simoptions.e_grid=vfoptions.e_grid;
 simoptions.pi_e=vfoptions.pi_e;
 
 % Grid for labour choice
-h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
+h1_grid=linspace(0,1,n_d(1))'; % Notice that it is imposing the 0<=h1<=1 condition implicitly
+h2_grid=linspace(0,1,n_d(2))'; % Notice that it is imposing the 0<=h2<=1 condition implicitly
 % Switch into toolkit notation
-d_grid=h_grid;
-
+d_grid=[h1_grid; h2_grid];
 
 %% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
-% Use 'LifeCycleModel27_ReturnFn', and now input z, upsilon and e.
-ReturnFn=@(aprime,a,z1,upsilon,e,alpha,w,sigma,agej,Jr,pension,incomefloor,r,kappa_j,wg1,wg2,wg3,beta,sj,tau1,tau2,Jbeq)...
-    LifeCycleModel27_ReturnFn(aprime,a,z1,upsilon,e,alpha,w,sigma,agej,Jr,pension,incomefloor,r,kappa_j,wg1,wg2,wg3,beta,sj,tau1,tau2,Jbeq);
-% We have no decision variable, one standard endogenous state, two markovs
-% and an i.i.d, so inputs start with (aprime,a,z1,upsilon,e,...)
+% Notice change to 'LifeCycleModel27_ReturnFn', and now input h1,h2 and z1,z2,e1,e2
+ReturnFn=@(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,wg1,wg2,wg3,beta,sj) ...
+    LifeCycleModel27_ReturnFn(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,wg1,wg2,wg3,beta,sj);
 
 %% Solve the value function iteration problem
-vfoptions.divideandconquer=1; % exploit monotonicity
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
+% Note: on a more powerful GPU you can set lowmemory=0 (which is the default) and things will run faster.
+vfoptions.lowmemory=1;
+vfoptions.paroverz=1;
+vfoptions.verbose=1;
 tic;
-[V, Policy]=ValueFnIter_Case1_FHorz_PType(n_d,n_a,n_z,N_j, N_i, d_grid, a_grid, z_grid_J, pi_z_J, ReturnFn, Params, DiscountFactorParamNames, vfoptions);
+[V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
 
-% V is a structure, with N_i fields.
-% V.ptype001 is now (a,z1,upsilon,e,j). One dimension for each state variable.
+% V is now (a,z1,z2,e1,e2,j). One dimension for each state variable.
 % Compare
-size(V.ptype001)
+size(V)
 % with
-[n_a,n_z,n_e,N_j] % note: n_z is z1 and upsilon
-% they are the same.
-% Policy is similarly a structure, and
-size(Policy.ptype001)
+[n_a,n_z(1),n_z(2),n_e(1),n_e(2),N_j]
+% there are the same.
+% Policy is
+size(Policy)
 % which is the same as
-[length(n_a),n_a,n_z,n_e,N_j] % note: n_z is z1 and upsilon
-% The n_a,n_z,n_e,N_j represent the state on which the decisions/policys
-% depend, and the only action is to choose aprime.
+[length(n_d)+length(n_a),n_a,n_z(1),n_z(2),n_e(1),n_e(2),N_j]
+% The n_a,n_z(1),n_z(2),n_e(1),n_e(2),N_j represent the state on which the decisions/policys
+% depend, and there is one decision for each decision variable 'd' and each
+% endogenous state variable 'a', and one for each exogenous state variable 'z'
 
 %% We won't plot the Value and Policy fn, but thinking out how you would might be a good way to check you understand the form of V and Policy
 
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
-
-% First, sort out the initial distribution over z1 and upsilon
-% Use the period 1 dist of z (from the discretization) with the implied stationary dist of upsilon (conditional on z)
-jequaloneDistz=zeros(n_z(1)*n_z(2),1);
-for z1_c=1:n_z(1)
-    xi=Params.xi(1,z1_grid_J(z1_c,1));
-    prob_upsilon=Params.prob_upsilon(xi);
-    % Note all that matters for (next period) upsilon is next period z and next period age
-    jequaloneDistz(z1_c)=jequaloneDistz1(z1_c)*(1-prob_upsilon); % Corresponds to upsilon=0
-    jequaloneDistz(n_z(1)+z1_c)=jequaloneDistz1(z1_c)*prob_upsilon; % Corresponds to upsilon=min(1,exp(lambda))
-end
-% Now, combine with e: distribute based on dist of e
-jequaloneDistze=zeros(n_z(1)*n_z(2)*n_e,1);
-for e_c=1:n_e
-    jequaloneDistze((1:1:n_z(1)*n_z(2))+(n_z(1)*n_z(2))*(e_c-1))=jequaloneDistz*pi_e(e_c);
-end
-jequaloneDistze=reshape(jequaloneDistze,[n_z,n_e]);
-
-% We will give them all zero assets.
+% Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z,n_e],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,:,:,:)=shiftdim(jequaloneDistze,-1); % All agents start with zero assets, and the distribution over shocks we created just above
-
-% Note: We don't need to put the distribution over permanent types into
-% this, as we already have that from PTypeDistParamNames. If you want you
-% can put the distribution over permanent types into the initial
-% distribution and the codes still work fine.
+jequaloneDist(1,floor((n_z(1)+1)/2),floor((n_z(2)+1)/2),floor((n_e(1)+1)/2),floor((n_e(2)+1)/2))=1; % All agents start with zero assets, and the median shock
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -281,17 +188,21 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
-StationaryDist=StationaryDist_Case1_FHorz_PType(jequaloneDist,AgeWeightsParamNames,PTypeDistParamNames,Policy,n_d,n_a,n_z,N_j,N_i,pi_z_J,Params,simoptions);
+StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (aprime,a,z1,upsilon,e) as first inputs, then just any relevant parameters.
-FnsToEvaluate.earnings=@(aprime,a,z1,upsilon,e,agej,Jr,kappa_j,w,alpha) (agej<Jr)*w*(1-upsilon)*exp(kappa_j+alpha+z1+e); % (agej<Jr)*w*(1-upsilon)*exp(kappa_j+alpha+z1+e) is the labor earnings
-FnsToEvaluate.assets=@(aprime,a,z1,upsilon,e) a; % a is the current asset holdings
-FnsToEvaluate.nonemployment=@(aprime,a,z1,upsilon,e,agej,Jr) (agej<Jr)*upsilon; % upsilon=1 is non-employment
-% notice that we have called these earnings, assets and nonemployment
+% Like with return function, we have to include (h1,h2,aprime,a,z1,z2,e1,e2) as first inputs, then just any relevant parameters.
+FnsToEvaluate.fractiontimeworked=@(h1,h2,aprime,a,z1,z2,e1,e2) h1+h2; % h is fraction of time worked
+FnsToEvaluate.fractiontimeworked1=@(h1,h2,aprime,a,z1,z2,e1,e2) h1; % h is fraction of time worked
+FnsToEvaluate.fractiontimeworked2=@(h1,h2,aprime,a,z1,z2,e1,e2) h2; % h is fraction of time worked
+FnsToEvaluate.earnings=@(h1,h2,aprime,a,z1,z2,e1,e2,w,kappa_j_1,kappa_j_2) w*kappa_j_1*h1*z1*e1+w*kappa_j_2*h2*z2*e2; % w*kappa_j_1*h1*z1*e1 + w*kappa_j_2*h2*z2*e2 is the labor earnings
+FnsToEvaluate.earnings1=@(h1,h2,aprime,a,z1,z2,e1,e2,w,kappa_j_1) w*kappa_j_1*h1*z1*e1; % w*kappa_j_1*h1*z1*e1 is the spouse-1 labor earnings
+FnsToEvaluate.earnings2=@(h1,h2,aprime,a,z1,z2,e1,e2,w,kappa_j_2) w*kappa_j_2*h2*z2*e2; % w*kappa_j_2*h2*z2*e2 is the spouse-2 labor earnings
+FnsToEvaluate.assets=@(h1,h2,aprime,a,z1,z2,e1,e2) a; % a is the current asset holdings
+% notice that we have called these fractiontimeworked, earnings and assets
 
 %% Calculate the life-cycle profiles
-AgeConditionalStats=LifeCycleProfiles_FHorz_Case1_PType(StationaryDist,Policy,FnsToEvaluate,Params,n_d,n_a,n_z,N_j,N_i,d_grid,a_grid,z_grid_J,simoptions);
+AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 % For example
 % AgeConditionalStats.earnings.Mean
@@ -300,94 +211,20 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1_PType(StationaryDist,Policy,Fn
 % those were trivial, but now that we have an idiosyncratic shock z they
 % are meaningful and worth looking at.
 
-%% Plot the life cycle profiles of earnings, assets, and non-employment
-% Plot the age-conditional means for the population as a whole
+%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
 figure(1)
-subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings [w*(1-upsilon)*exp(kappa_j+alpha+z1+e)]')
-subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
+subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
+title('Life Cycle Profile: Fraction Time Worked (h1+h2)')
+subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
+title('Life Cycle Profile: Labor Earnings (w kappa_j_1 h1 z1 e1 + w kappa_j_2 h2 z2 e2)')
+subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
-subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.nonemployment.Mean)
-title('Life Cycle Profile: Fraction in Non-employment (upsilon=1)')
 
-% Plot the mean earnings conditional on permanent types
 figure(2)
-plot(1:1:Params.J,AgeConditionalStats.earnings.ptype001.Mean)
-hold on
-plot(1:1:Params.J,AgeConditionalStats.earnings.ptype002.Mean)
-plot(1:1:Params.J,AgeConditionalStats.earnings.ptype003.Mean)
-plot(1:1:Params.J,AgeConditionalStats.earnings.ptype004.Mean)
-plot(1:1:Params.J,AgeConditionalStats.earnings.ptype005.Mean)
-hold off
-title('Life Cycle Profile by Permanent Type: Labor Earnings [w*(1-upsilon)*exp(kappa_j+alpha+z1+e)]')
-legend('ptype001','ptype002','ptype003','ptype004','ptype005')
-% Note, this graph hardcodes N_i=5
-
-%% This earnings process is better than most alternatives at hitting both 
-% earnings inequality in the cross-section of earnings, and at earnings 
-% inequality in lifetime earnings. So let's produce some stats on both of 
-% these just to see how it is done.
-
-% Cross-sectional inequality is easy
-simoptions.nquantiles=5; % note, simoptions.nquantiles controls number of quantiles, default is ventiles (20)
-AllStats=EvalFnOnAgentDist_AllStats_FHorz_Case1_PType(StationaryDist,Policy,FnsToEvaluate,Params,n_d,n_a,n_z,N_j,N_i,d_grid,a_grid,z_grid_J,simoptions);
-
-% No built-in commands for lifetime earnings inequality, so we will
-% simulate panel data, and then calculate from that.
-simoptions.numbersims=10^4; % number of individuals to simulate panel data for
-% Define lifetime earnings as average yearly earnings across ages 25-55.
-simoptions.nperiods=31; % so only bother simulating the ages up to 55
-SimPanelData=SimPanelValues_FHorz_Case1_PType(jequaloneDist,PTypeDistParamNames,Policy,FnsToEvaluate,Params,n_d,n_a,n_z,N_j,N_i,d_grid,a_grid,z_grid_J,pi_z_J, simoptions);
-% Data on lifetime earnings for US can be found in Guvenen, Kaplan, Song & Weidner (2022)
-% The following code does same thing with our model simulated earnings as GKSW2022 does with US data.
-% First, restrict the sample
-earningsmin=1885; % 2013 dollars
-% According to US Census: 2013 U.S. median house-hold income was $52,250
-scaledearningsmin=earningsmin*(AllStats.earnings.Median/52250); 
-% convert earningsmin so that it is appropriate fraction of median earnings
-% GKSW2022 include households with earnings over a minimum amount (earningsmin)
-KeepIndicator=ones(1,simoptions.numbersims);
-for ii=1:simoptions.numbersims
-    currentearningssim=SimPanelData.earnings(:,ii);
-    count=(SimPanelData.earnings(:,ii)>scaledearningsmin);
-    if sum(count)<15 % GKSW2022 drop those without at least 15 observations meeting the earnings minimum
-        KeepIndicator(ii)=0; % Drop
-    end
-end
-LifetimeEarningsSample=SimPanelData.earnings(:,logical(KeepIndicator));
-% Now, compute the lifetime earnings
-LifetimeEarningsSample=sum(LifetimeEarningsSample,1)/31; % 31 is years (ages 25 to 55)
-% Now, some inequality measures; the following line commented out because
-% LorenzCurve_FromSampleObs is not defined and LorenzCurve_LifetimeEarnings
-% is not used
-% FIXME: LorenzCurve_LifetimeEarnings=LorenzCurve_FromSampleObs(LifetimeEarningsSample);
-% GKSW2022, Figure 8, provide the std dev of log, and the interquartile range
-stddev_logLifetimeEarnings=std(log(LifetimeEarningsSample));
-LifetimeEarningsPercentiles=prctile(LifetimeEarningsSample,[10,25,50,75,90]);
-LifetimeEarnings_P75P25ratio=LifetimeEarningsPercentiles(4)/LifetimeEarningsPercentiles(2);
-LifetimeEarnings_P90P50ratio=LifetimeEarningsPercentiles(5)/LifetimeEarningsPercentiles(3);
-LifetimeEarnings_P50P10ratio=LifetimeEarningsPercentiles(3)/LifetimeEarningsPercentiles(1);
-
-
-% Print to screen a summary of what found about earnings inequality and lifetime earnings inequality.
-% Note, if we want things like the 'share of X percentile', these are
-% essentially already all there in the lorenz curves (which has 100 points
-% by default, equally spaced)
-fprintf('Cross-sectional earnings inequality \n')
-fprintf('Gini: %1.2f \n', AllStats.earnings.Gini)
-fprintf('Share of 1st (bottom) quintile: %2.2f \n', 100*(AllStats.earnings.LorenzCurve(20)))
-fprintf('Share of 2nd quintile: %2.2f \n', 100*(AllStats.earnings.LorenzCurve(40)-AllStats.earnings.LorenzCurve(20)))
-fprintf('Share of 3rd quintile: %2.2f \n', 100*(AllStats.earnings.LorenzCurve(60)-AllStats.earnings.LorenzCurve(40)))
-fprintf('Share of 4th quintile: %2.2f \n', 100*(AllStats.earnings.LorenzCurve(80)-AllStats.earnings.LorenzCurve(60)))
-fprintf('Share of 5th (top) quintile: %2.2f \n', 100*(1-AllStats.earnings.LorenzCurve(80)))
-fprintf('Share of 90-94th percentiles: %2.2f \n', 100*(AllStats.earnings.LorenzCurve(94)-AllStats.earnings.LorenzCurve(89)))
-fprintf('Share of 95-99th percentiles: %2.2f \n', 100*(AllStats.earnings.LorenzCurve(99)-AllStats.earnings.LorenzCurve(94)))
-fprintf('Share of Top 1 percentile: %2.2f \n', 100*(1-AllStats.earnings.LorenzCurve(99)))
-
-fprintf('Lifetime earnings inequality \n')
-fprintf('Std dev of log: %1.2f \n', stddev_logLifetimeEarnings)
-fprintf('Interquartile range %1.2f \n', LifetimeEarnings_P75P25ratio)
-fprintf('P90/P50 ratio: %1.2f \n', LifetimeEarnings_P90P50ratio)
-fprintf('P50/P10 range: %1.2f \n', LifetimeEarnings_P50P10ratio)
-
+subplot(2,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean,1:1:Params.J,AgeConditionalStats.fractiontimeworked1.Mean,1:1:Params.J,AgeConditionalStats.fractiontimeworked2.Mean)
+title('Life Cycle Profile: Fraction Time Worked')
+legend('h1+h2','h1','h2')
+subplot(2,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean,1:1:Params.J,AgeConditionalStats.earnings1.Mean,1:1:Params.J,AgeConditionalStats.earnings2.Mean)
+title('Life Cycle Profile: Labor Earnings')
+legend('household','spouse 1','spouse 2')
 

@@ -1,11 +1,11 @@
-\subsection{Life-Cycle model 26: More Permanent Types}
+\subsection{Life-Cycle model 25: More Permanent Types}
 There are lots of other things you can do with permanent types: different return functions, different number of periods, different exogenous shock processes, and much much more. Hopefully more examples coming soon :D
 
 If there is a particular thing you think would be good to see, please email or use forum:  \href{http://discourse.vfitoolkit.com/}{discourse.vfitoolkit.com}.
 
-The following Life-Cycle model 27 also uses permanent types, for the same purpose of modelling a fixed-effect as was seen in Life-Cycle model 24.
+The following Life-Cycle model 26 also uses permanent types, for the same purpose of modelling a fixed-effect as was seen in Life-Cycle model 23.
 
-\subsection{Life-Cycle model 27: Earnings Dynamics (Gaussian-Mixtures)}
+\subsection{Life-Cycle model 26: Earnings Dynamics (Gaussian-Mixtures)}
 We will now solve an exogenous earnings Life-Cycle Model, but using a more sophisticated earnings process, which the empirical evidence suggests is a better fit for the data. Specifically we will add two features to the persistent AR(1) with a transitory i.i.d. normal that we have seen so far. These two features are: (i) use Gaussian-Mixture distributions instead of normal distributions, for both the i.i.d shocks and also for the innovations to the AR(1) shocks, and (ii) add a non-employment shock, which is a binary shock where one of the two values indicates non-employment.
 
 So this will be an exogenous labor-supply model (as the earnings themselves are exogenous), and will have two markov states ---the AR(1) with Gaussian-Mixture innovations, and the non-employment shock--- and one i.i.d state which has a Gaussian-Mixture distribution. The model additionally has a 'fixed effect' which is modelled as a permanent type, and involves different values of the parameter $\alpha$ which are normally distributed across agents. The parameter values for the process are taken from \cite*{GuvenenKarahanOzkanSong2021}; this is their 'Model 5'. Because their estimates are for ages 25-65, we also change the model to start at $j=1$ representing age 25.
@@ -39,7 +39,7 @@ After $z_j$ has been discretized this is simply a matter of creating a Markov pr
 Summarizing, we can discretize the fixed-effect $\alpha_i$ using the Farmer-Toda method, discretize i.i.d. gaussian-mixture $e$ with the Farmer-Toda method, and discretize the AR(1) with gaussian-mixtures (and an initial normal distribution in period 0) $z1$ using $KFTT$ ($KFTT$ is, like Farmer-Toda, an extension of the Tanaka-Toda method). Once we discretize $z1$ the discretization of $\upsilon$ is 'trivial' (it is a bit of a complicated process, but in principle every step is trivial). Other than the earnings process, the rest of this model is just a simple exogenous labor supply life-cycle model.
 
 
-\subsection{Life-Cycle model 28: Two decision variables (dual-earner household)}
+\subsection{Life-Cycle model 27: Two decision variables (dual-earner household)}
 We solve a model of a household in which there are two people (e.g., a married household). They make a joint decision about how much each will work. This involves two decisions variables for the two labor supply choices. We will set up each household member to have effective hours shocks that are a combination of one AR(1) persistent shock and one i.i.d. shock (as in Life-Cycle model 11), for each person (so two of each for the household). We will also allow for correlation between the persistent shocks of the two household members, and for correlation between the transitory shocks of the two household members. We will also allow different deterministic age-dependent labor efficiency units, $\kappa_j$, for each spouse.
 
 Our household value function now has $z1$ and $e1$ for the first spouse, and $z2$ and $e2$ for the second spouse. We also have $\kappa_{j,1}$ and  $\kappa_{j,2}$. We add a disutility term for each spouses labor supply, but the household has joint consumption.
@@ -65,7 +65,7 @@ A common variation of the model used in practice would add a fixed cost of worki
 Because the household has two labor supply decisions the two spouses are able to insure each other against poor labor market outcomes. This is known as 'intra-household' insurance. If you are interested in this kind of model, see \cite*{OrtigueiraSiassi2013}.
 
 
-\subsection{Life-Cycle model 29: Semi-exogenous state (fertility and children)}
+\subsection{Life-Cycle model 28: Semi-exogenous state (fertility and children)}
 We will modify Life-Cycle model 9 to include a fertility decision and children. This involves adding one decision variable, the fertility, and two semi-exogenous states, the number of infants and the number of children. A semi-exogenous state is an exogenous state the transition probabilities of which depend on a decision variable.\footnote{Not to be confused with a semi-endogenous state, which is an exogenous state the transitions of which depend on an endogenous state. The difference is dependence on an endogenous state versus dependence on a decision variable.} In our case, the transitions around how many infants the household has will depend on the fertility decision.
 
 The modifications to the state variables from Life-cycle model 9 are thus to add a fertility decision, $f$, which takes the values of zero or one. A semi-exogenous state $n_1$, which is the number of infants and takes the values of zero or one. A second semi-exogenous state $n_2$, which is the number of children and can take the values 0,1,2,3.\footnote{This could go higher than 3. When we define the actual transition probabilities you will see that $n_2$ is actually exogenous, but because it will depend on $n_1$ and because $n_1$ is semi-exogenous it 'inherits' this semi-exogeneity from the perspective of the codes.} Let's see the household problem, and after that we will discuss the semi-exogeneity.
@@ -98,7 +98,7 @@ At the bottom of the codes after the model is solved it shows what the transitio
 
 
 \section{Solving Models Faster!}
-\subsection{Life-Cycle model 30: Exploiting Monotonicity for Faster Solutions (Divide-and-Conquer)}
+\subsection{Life-Cycle model 29: Exploiting Monotonicity for Faster Solutions (Divide-and-Conquer)}
 No actual model. Instead just add a single line of code to any of the Life-Cycle Models we have seen so far, namely
 \\ \textit{vfoptions.divideandconquer=1}
 and as a result, it solves more than twice as fast! In fact the model also uses less GPU memory when solving, meaning it is not only faster, but that you can solve bigger models on a given GPU!\footnote{Because of how GPUs parallelize there is an exception, namely for very small models it may actually be slower.}

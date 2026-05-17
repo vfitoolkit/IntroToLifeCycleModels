@@ -71,19 +71,18 @@ LifeCycleModel21
 clear all
 LifeCycleModel22
 
-% There is no model 23 (yet)
-% clear all
-% LifeCycleModel23
+clear all
+LifeCycleModel23
 
 clear all
 LifeCycleModel24
 
-clear all
-LifeCycleModel25
-
-% There is no model 26 (yet)
+% There is no model 25 (yet)
 % clear all
-% LifeCycleModel26
+% LifeCycleModel25
+
+clear all
+LifeCycleModel26
 
 clear all
 LifeCycleModel27
@@ -91,12 +90,9 @@ LifeCycleModel27
 clear all
 LifeCycleModel28
 
-clear all
-LifeCycleModel29
-
-% There is no (longer a) model 30 (anymore)
+% There is no (longer a) model 29 (anymore)
 % clear all
-% LifeCycleModel30
+% LifeCycleModel29
 
 addpath('./Models31to35/')
 

@@ -1,18 +1,26 @@
-function F=LifeCycleModel28_ReturnFn(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,wg1,wg2,wg3,beta,sj)
-% The first seven are the 'always required' decision variables, next period
-% endogenous states, this period endogenous states, exogenous states
-% After that we need all the parameters the return function uses, it
-% doesn't matter what order we put them here.
+function F=LifeCycleModel28_ReturnFn(h,f,aprime,a,n1,n2,z,w,sigma,psi,eta,agej,eta1,eta2,eta3,nbar,hbar,h_c,childcarec,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)
 
 F=-Inf;
+
+infanttime=h_c*n1; % Time cost of infants
+childcarecosts=childcarec*n1*(h>0); % Cost of childcare for infants if working
+
+
 if agej<Jr % If working age
-    c=w*kappa_j_1*z1*e1*h1+w*kappa_j_2*z2*e2*h2+(1+r)*a-aprime; % Add z here
+    c=w*kappa_j*z*h+(1+r)*a-childcarecosts-aprime;
 else % Retirement
     c=pension+(1+r)*a-aprime;
 end
 
-if c>0
-    F=(c^(1-sigma))/(1-sigma) -psi*(h1^(1+eta))/(1+eta)-psi*(h2^(1+eta))/(1+eta); % The utility function
+leisure=hbar-h-infanttime;
+
+consumption_equiv_units=1+0.3*n1+0.5*n2; % I just made this scale up as a placeholder
+
+utility_of_children=eta1*exp(agej-eta3)/(1+exp(agej-eta3)) *(nbar+n1+n2)^eta2;
+
+if c>0 && leisure<1
+    F=((c/consumption_equiv_units)^(1-sigma))/(1-sigma)-psi*((hbar-leisure)^(1+eta2))/(1+eta) +utility_of_children;
+    % F=log(c/consumption_equiv_units)+psi*log(leisure)+utility_of_children;
 end
 
 % add the warm glow to the return, but only near end of life
@@ -24,5 +32,10 @@ if agej>=Jr+10
     % add the warm glow to the return
     F=F+warmglow;
 end
+
+% if f>0
+%     F=F-1;
+% end
+
 
 end

@@ -1,44 +1,26 @@
-%% Life-Cycle Model 28: Two decision variables (dual-earner household)
-% Model of a household with two people. They share savings but can choose
-% how much each of the two works. Each person has a persistent AR(1) and a
-% transitory iid component to their labor efficiency units. The shocks to
-% each person are correlated.
+% Adds fertility and children to 'Life Cycle Model 9' from 'Introduction to Life-Cycle Models'
 %
-% Model shows how to do two decision variables.
-% Model also uses 'joint grids' for the exogenous variables (see Life-Cycle Model A9).
+% Uses what VFI Toolkit call a "semi-exogenous state". An exogenous state that can be influenced by the decision variables.
+% The changes to life-cycle model 9 involve adding a decision variable for 'fertility' which influences the two semi-exogenous 
+% states 'number of infants', n1, and 'number of children', n2.
+% A household that chooses to try and have a child (fertility=1) then has a probability (probofbirth) of having an infant (n1=1) next period.
+% Infants age stochastically into children, and children age stochastically into adults (at which point they disappear from the present household
+% problem). The use of stochastic aging is a trick to reduce the size of the state space of the problem.
 %
-% Use Farmer-Toda which produces a 'joint grid', as opposed to a cross-product (kronecker) grid.
-% Extends Life-Cycle Model 11, adding the second earner to the household.
-%
-% Notice that while there are, e.g., two deterministic labor productivity
-% earnings as a function of age (one for each earner), we do not use
-% permanent types as both are relevant to the one household.
-%
-% To keep the emphasis on the two decision variables (and the shock
-% processes) we will keep everything else as little changed as possible, so
-% we just add an extra term to the utility function for h2 that is
-% identical to that for h1 (using the same parameters).
-%
-% Note: Typically in practice for this kind of model people want to capture
-% that one spouse might choose not to work. This will almost never happen in the
-% current setup but is easy to get just adding a fixed cost of working to
-% the spouse (include a -fc*(h2>0) term in the budget constraint but
-% modifying the return function, where fc is the fixed cost; you could model it 
-% so the fixed cost is only incurred if both work).
-%
-% This example is a larger model than most, so to still be able to solve it
-% on a gpu with 8gb gpu-memory we use vfoptions.lowmemory=1 (and
-% vfoptions.paroverz=1) so that the value function is solved looping over
-% the e variables but parallel over the z variables.
+% At the bottom of this code you can see pi_semiz_J which is what the codes create internally to handle the transitions of the semi-exogenous state
+% that depend on the decision (d) variable, and potentially on age (j). The dependence on age j in the current model comes because probofbirth is an
+% age-dependent parameter.
 
 %% How does VFI Toolkit think about this?
 %
-% Two decision variable: h1 and h2, labour hours worked by each spouse
+% Two decision variable: h and f, labour hours worked and fertility decision
 % One endogenous state variable: a, assets (total household savings)
-% Four stochastic exogenous state variables: 
-%     z1 and z2, both are AR(1) shocks to labor efficiency units
-%     e1 and e2, both are iid shocks to labor efficiency units
+% One stochastic exogenous state variable: z, an AR(1) process (in logs), idiosyncratic shock to labor productivity units
 % Age: j
+%
+% 'Last' decision variable influences the semi-exogenous states: f, fertility decision
+% One semi-exogenous state: infants (number of)
+% One semi-exogenous state: children (number of)
 
 %% Begin setting up to use VFI Toolkit to solve
 % Lets model agents from age 20 to age 100, so 81 periods
@@ -47,20 +29,59 @@ Params.agejshifter=19; % Age 20 minus one. Makes keeping track of actual age eas
 Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
-n_d=[21,21]; % Endogenous labour choice (fraction of time worked)
+n_d=[51,2]; % Endogenous labour choice (fraction of time worked), fertility decision
 n_a=201; % Endogenous asset holdings
-n_z=[3,3]; % Exogenous labor productivity units shock, two of them
-n_e=[3,3];
-vfoptions.n_e=n_e;
+n_semiz=[2,4]; %number of infants, number of children
+n_z=11; %Exogenous labor productivity units shock
 N_j=Params.J; % Number of periods in finite horizon
+
+%% Additional parameters specific to fertility
+Params.Jf=20; % Not actually used for anything, what matters for code is just the probability of birth and this is zero after the Jf-th period
+
+Params.probofbirth=[0.9020, 0.8857, 0.8708, 0.8569, 0.8435, 0.8302, 0.8166, 0.8024, 0.7869, 0.7700, 0.7511, 0.7298, 0.7058, 0.6786, 0.6478, 0.6129, 0.5736, 0.5295, 0.4801, 0.4250, zeros(1,Params.J-Params.Jf)]; % lambda_j, fertility opportunities arrives stochastically in each period with probability lambda_j conditional on decision to have child
+Params.probofchild=1/4; % theta_c, the probability of an infant becoming a child
+Params.probofadult=1/15; % theta_a, the probability of a child becoming an adult
+
+% Utility of children
+Params.eta1=40; % Relative weight of children (vs consumption and leisure)
+Params.eta2=0.437;
+Params.eta3=29-Params.agejshifter; % Roughly the age at which people start wanting to have children
+Params.nbar=2.41;
+
+Params.hbar=1; % total time
+% Time costs of looking after infants
+Params.h_c=0.105; % time cost of infants
+
+% Childcare costs
+Params.childcarec=0.5; % Cost of childcare for infants (paid if working)
+
+% Grids for number of infants and number of children
+infant_grid=[0;1];
+children_grid=(0:1:(n_semiz(2)-1))';
+
+% Set up the semi-exogenous states
+vfoptions.n_semiz=n_semiz;
+vfoptions.semiz_grid=[infant_grid; children_grid];
+% Define the transition probabilities of the semi-exogenous states
+vfoptions.SemiExoStateFn=@(n1,n2,n1prime,n2prime,f,probofbirth,probofchild,probofadult) LifeCycleModel28_SemiExoStateFn(n1,n2,n1prime,n2prime,f,probofbirth,probofchild,probofadult);
+% It is hardcoded that only the 'last' decision variable can influence the transition probabilities of the semi-exogenous states
+% The semi-exogenous states must be included in the return fn, fns to evaluate, etc. The ordering must be that semi-exogenous states come after this period endogenous state(s) and before any markov exogenous states, so (...,a,semiz,z,...)
+
+% We also need to tell simoptions about the semi-exogenous states
+simoptions.n_semiz=vfoptions.n_semiz;
+simoptions.semiz_grid=vfoptions.semiz_grid;
+simoptions.SemiExoStateFn=vfoptions.SemiExoStateFn;
+
+% At the bottom of this code/script there are some lines showing you what
+% pi_semiz_J which is created internally looks like.
 
 %% Parameters
 
 % Discount rate
 Params.beta = 0.96;
 % Preferences
-Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
-Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
+Params.sigma=2; % Coeff of relative risk aversion (curvature of consumption)
+Params.eta=1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
 % Prices
@@ -75,16 +96,10 @@ Params.Jr=46;
 Params.pension=0.3;
 
 % Age-dependent labor productivity units
-Params.kappa_j_1=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-Params.Jr+1)];
-Params.kappa_j_2=0.9*[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-Params.Jr+1)]; % Note: person 2 faces lower earnings than person 1
-% AR(1) processes on idiosyncratic labor productivity units with correlated innovations
-Params.rho_z=[0.9,0;0,0.7];
-Params.sigmasq_epsilon_z=[0.0303, 0.0027; 0.0027, 0.0382]; 
-Params.sigma_epsilon_z=sqrt(Params.sigmasq_epsilon_z);
-    % The Farmer-Toda method can discretize a VAR(1) with any (positive semi-definite) variance-covariance matrix.
-% iid processes on idiosyncratic labor units which are correlated
-Params.sigmasq_epsilon_e=[0.1,0.05;0.05,0.1];
-Params.sigma_epsilon_e=sqrt(Params.sigmasq_epsilon_e);
+Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-Params.Jr+1)];
+% Exogenous shock process: AR1 on labor productivity units
+Params.rho_z=0.9;
+Params.sigma_epsilon_z=0.03;
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
 % Most countries have calculations of these (as they are used by the government departments that oversee pensions)
@@ -105,78 +120,86 @@ Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
 Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
+
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
-% First, the AR(1) process on z1 and z2 with correlated innovations.
-% Notice that this is just a VAR(1) process on z1 and z2 (with zeros on the off-diagonals of the auto-correlation matrix)
-% We use the Farmer-Toda method to discretize the VAR(1)
-% Note that for VAR(1), the Farmer-Toda method produces a 'joint grid'
-[z_grid, pi_z]=discretizeVAR1_FarmerToda([0;0],Params.rho_z,Params.sigma_epsilon_z,n_z);
+% First, the AR(1) process z
+[z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
+z_grid=exp(z_grid); % Take exponential of the grid
+[mean_z,~,~,~]=MarkovChainMoments(z_grid,pi_z); % Calculate the mean of the grid so as can normalise it
+z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is exactly 1)
 
-z_grid=exp(z_grid);
-% I skip normalizing this to 1 in the current model (would need to do each of z1 and z2 separately)
-
-% Second, the iid process on e1 and e2 which are correlated
-% Notice that this is just a VAR(1) with zero auto-correlation
-[e_grid, pi_e]=discretizeVAR1_FarmerToda(zeros(2,1),zeros(2,2),Params.sigma_epsilon_e,vfoptions.n_e);
-e_grid=exp(e_grid);
-pi_e=pi_e(1,:)';  % Because it is iid, the distribution is just the first row (all rows are identical). We use pi_e as a column vector for VFI Toolkit to handle iid variables.
-
-% To use e variables we need to put them in vfoptions and simoptions
-vfoptions.e_grid=e_grid;
-vfoptions.pi_e=pi_e;
-simoptions.n_e=vfoptions.n_e;
-simoptions.e_grid=vfoptions.e_grid;
-simoptions.pi_e=vfoptions.pi_e;
-
-% Grid for labour choice
-h1_grid=linspace(0,1,n_d(1))'; % Notice that it is imposing the 0<=h1<=1 condition implicitly
-h2_grid=linspace(0,1,n_d(2))'; % Notice that it is imposing the 0<=h2<=1 condition implicitly
+% Grid for labour force participation choice
+h_grid=linspace(0,1,n_d(1))'; % Notice that it is imposing the 0<=h<=1 condition implicitly
+% Grid for fertility decision
+f_grid=[0;1];
 % Switch into toolkit notation
-d_grid=[h1_grid; h2_grid];
+d_grid=[h_grid; f_grid];
 
 %% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
-% Notice change to 'LifeCycleModel28_ReturnFn', and now input h1,h2 and z1,z2,e1,e2
-ReturnFn=@(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel28_ReturnFn(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,wg1,wg2,wg3,beta,sj);
+% Use 'LifeCycleModel28_ReturnFn'
+ReturnFn=@(h,f,aprime,a,n1,n2,z,w,sigma,psi,eta,agej,eta1,eta2,eta3,nbar,hbar,h_c,childcarec,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
+    LifeCycleModel28_ReturnFn(h,f,aprime,a,n1,n2,z,w,sigma,psi,eta,agej,eta1,eta2,eta3,nbar,hbar,h_c,childcarec,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 
 %% Solve the value function iteration problem
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
-% Note: on a more powerful GPU you can set lowmemory=0 (which is the default) and things will run faster.
-vfoptions.lowmemory=1;
-vfoptions.paroverz=1;
 vfoptions.verbose=1;
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
 
-% V is now (a,z1,z2,e1,e2,j). One dimension for each state variable.
-% Compare
-size(V)
-% with
-[n_a,n_z(1),n_z(2),n_e(1),n_e(2),N_j]
-% there are the same.
-% Policy is
-size(Policy)
-% which is the same as
-[length(n_d)+length(n_a),n_a,n_z(1),n_z(2),n_e(1),n_e(2),N_j]
-% The n_a,n_z(1),n_z(2),n_e(1),n_e(2),N_j represent the state on which the decisions/policys
-% depend, and there is one decision for each decision variable 'd' and each
-% endogenous state variable 'a', and one for each exogenous state variable 'z'
+%% Look at the fertility decisions
+PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
 
-%% We won't plot the Value and Policy fn, but thinking out how you would might be a good way to check you understand the form of V and Policy
+figure(1)
+% Note: uses max value of z shock
+subplot(6,2,1); plot(a_grid,PolicyVals(2,:,1,1,end,1)) % j=1
+title('Policy for f at age j=1')
+subplot(6,2,3); plot(a_grid,PolicyVals(2,:,1,1,end,5)) % j=5
+title('Policy for f at age j=5')
+subplot(6,2,5); plot(a_grid,PolicyVals(2,:,1,1,end,10)) % j=10
+title('Policy for f at age j=10')
+subplot(6,2,7); plot(a_grid,PolicyVals(2,:,1,1,end,15)) % j=15
+title('Policy for f at age j=15')
+subplot(6,2,9); plot(a_grid,PolicyVals(2,:,1,1,end,20)) % j=20
+title('Policy for f at age j=20')
+subplot(6,2,11); plot(a_grid,PolicyVals(2,:,1,1,end,25)) % j=25
+title('Policy for f at age j=25')
+xlabel('Fertility Decision for Household without Children')
+subplot(6,2,2); plot(a_grid,PolicyVals(2,:,2,1,end,1)) % j=1
+title('Policy for f at age j=1')
+subplot(6,2,4); plot(a_grid,PolicyVals(2,:,2,1,end,5)) % j=5
+title('Policy for f at age j=5')
+subplot(6,2,6); plot(a_grid,PolicyVals(2,:,2,1,end,10)) % j=10
+title('Policy for f at age j=10')
+subplot(6,2,8); plot(a_grid,PolicyVals(2,:,2,1,end,15)) % j=15
+title('Policy for f at age j=15')
+subplot(6,2,10); plot(a_grid,PolicyVals(2,:,2,1,end,20)) % j=20
+title('Policy for f at age j=20')
+subplot(6,2,12); plot(a_grid,PolicyVals(2,:,2,1,end,25)) % j=20
+title('Policy for f at age j=25')
+xlabel('Fertility Decision for Household with Infant')
+% Note that a household with an infant cannot have a second one, so the
+% fertility decision is irrelevant in those states. 
+
+% A look at how the utility of children varies with age
+figure(2)
+plot(exp(Params.agej-Params.eta3)./(1+exp(Params.agej-Params.eta3)))
+xlabel('age j')
+title('How the utility of children varies with age')
+% Note that it is effectively saying no children before agej is close to eta3
 
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
 % Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
-jequaloneDist=zeros([n_a,n_z,n_e],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,floor((n_z(1)+1)/2),floor((n_z(2)+1)/2),floor((n_e(1)+1)/2),floor((n_e(2)+1)/2))=1; % All agents start with zero assets, and the median shock
+jequaloneDist=zeros([n_a,n_semiz,n_z],'gpuArray'); % Put no households anywhere on grid
+jequaloneDist(1,1,1,floor((n_z+1)/2))=1; % All agents start with zero assets, and the median shock, no infants, no children
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -188,18 +211,21 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
+
+% Need to also tell simoptions about the semi-exogenous shocks
+% Because evaluating pi_semiz_J requires the d_grid we also have to provide
+simoptions.d_grid=d_grid;
+
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h1,h2,aprime,a,z1,z2,e1,e2) as first inputs, then just any relevant parameters.
-FnsToEvaluate.fractiontimeworked=@(h1,h2,aprime,a,z1,z2,e1,e2) h1+h2; % h is fraction of time worked
-FnsToEvaluate.fractiontimeworked1=@(h1,h2,aprime,a,z1,z2,e1,e2) h1; % h is fraction of time worked
-FnsToEvaluate.fractiontimeworked2=@(h1,h2,aprime,a,z1,z2,e1,e2) h2; % h is fraction of time worked
-FnsToEvaluate.earnings=@(h1,h2,aprime,a,z1,z2,e1,e2,w,kappa_j_1,kappa_j_2) w*kappa_j_1*h1*z1*e1+w*kappa_j_2*h2*z2*e2; % w*kappa_j_1*h1*z1*e1 + w*kappa_j_2*h2*z2*e2 is the labor earnings
-FnsToEvaluate.earnings1=@(h1,h2,aprime,a,z1,z2,e1,e2,w,kappa_j_1) w*kappa_j_1*h1*z1*e1; % w*kappa_j_1*h1*z1*e1 is the spouse-1 labor earnings
-FnsToEvaluate.earnings2=@(h1,h2,aprime,a,z1,z2,e1,e2,w,kappa_j_2) w*kappa_j_2*h2*z2*e2; % w*kappa_j_2*h2*z2*e2 is the spouse-2 labor earnings
-FnsToEvaluate.assets=@(h1,h2,aprime,a,z1,z2,e1,e2) a; % a is the current asset holdings
-% notice that we have called these fractiontimeworked, earnings and assets
+% Like with return function, we have to include (h,f,aprime,a,n1,n2,z) as first inputs, then just any relevant parameters.
+FnsToEvaluate.fractiontimeworked=@(h,f,aprime,a,n1,n2,z) h; % h is fraction of time worked
+FnsToEvaluate.earnings=@(h,f,aprime,a,n1,n2,z,w,kappa_j) w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
+FnsToEvaluate.assets=@(h,f,aprime,a,n1,n2,z) a; % a is the current asset holdings
+FnsToEvaluate.ninfants=@(h,f,aprime,a,n1,n2,z) n1; % n1 is the number of infants
+FnsToEvaluate.nchildren=@(h,f,aprime,a,n1,n2,z) n2; % n2 is the number of children
+% notice that we have called these fractiontimeworked, earnings, assets, ninfants, and nchildren
 
 %% Calculate the life-cycle profiles
 AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
@@ -211,20 +237,48 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % those were trivial, but now that we have an idiosyncratic shock z they
 % are meaningful and worth looking at.
 
-%% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
-figure(1)
-subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
-title('Life Cycle Profile: Fraction Time Worked (h1+h2)')
-subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j_1 h1 z1 e1 + w kappa_j_2 h2 z2 e2)')
-subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
+%% Plot the life cycle profiles of fraction-of-time-worked, earnings, assets, ninfants, and nchildren
+figure(3)
+subplot(5,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
+title('Life Cycle Profile: Fraction Time Worked (h)')
+subplot(5,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
+title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
+subplot(5,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
+subplot(5,1,4); plot(1:1:Params.J,AgeConditionalStats.ninfants.Mean)
+title('Life Cycle Profile: Number of Infants (n1)')
+subplot(5,1,5); plot(1:1:Params.J,AgeConditionalStats.nchildren.Mean)
+title('Life Cycle Profile: Number of children (n2)')
 
-figure(2)
-subplot(2,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean,1:1:Params.J,AgeConditionalStats.fractiontimeworked1.Mean,1:1:Params.J,AgeConditionalStats.fractiontimeworked2.Mean)
-title('Life Cycle Profile: Fraction Time Worked')
-legend('h1+h2','h1','h2')
-subplot(2,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean,1:1:Params.J,AgeConditionalStats.earnings1.Mean,1:1:Params.J,AgeConditionalStats.earnings2.Mean)
-title('Life Cycle Profile: Labor Earnings')
-legend('household','spouse 1','spouse 2')
+%% If you want to take a look at what the whole 'semi-exogenous transition matrix' looks like (it is created automatically by codes) it will look like
+
+pi_semiz_J=zeros([n_semiz,n_semiz,n_d(2),N_j]); % Note that endogenous state is the first, then the conditional transition matrix for shocks
+for f_c=1:n_d(2)
+    for n1_c=1:n_semiz(1)
+        for n2_c=1:n_semiz(2)
+            for n1prime_c=1:n_semiz(1)
+                for n2prime_c=1:n_semiz(2)
+                    for jj=1:N_j
+                        pi_semiz_J(n1_c,n2_c,n1prime_c,n2prime_c,f_c,jj)=vfoptions.SemiExoStateFn(n1_c-1,n2_c-1,n1prime_c-1,n2prime_c-1,f_c-1,Params.probofbirth(jj),Params.probofchild,Params.probofadult); % Note: the -1 turn the index into the value
+                    end
+                end
+            end
+        end
+    end
+end
+% Note that pi_semiz_J2 is just treating the two semi-exogenous states as a single vector-valued state.
+pi_semiz_J2=reshape(pi_semiz_J,[prod(n_semiz),prod(n_semiz),n_d(2),N_j]);
+% Make sure the 'rows' sum to one
+for jj=1:N_j
+    for f_c=1:n_d(2)
+        temp=sum(pi_semiz_J2(:,:,f_c,jj),2);
+        if any(abs(temp-1)>10^(-14))
+            temp-1
+        end
+    end
+end
+% Conditional on the decision variable and age, this just looks like a standard markov transition matrix
+pi_semiz_J2(:,:,1,1) % arbitrarily use the first f and j
+
+
 

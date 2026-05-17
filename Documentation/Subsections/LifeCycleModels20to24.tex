@@ -170,10 +170,7 @@ A solution code for Assignment 4 is provided, but try to solve without looking a
 % && log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2) \\
 % \end{eqnarray}
 
-% \subsection{Life-Cycle model 23:}
-
-
-\subsection{Life-Cycle model 24: Permanent Types: Solving fixed-types}
+\subsection{Life-Cycle model 23: Permanent Types: Solving fixed-types}
 We will use permanent types, which is a way to solve $N\_{}i$ household models at once. Our first model is just that of Life-Cycle model 11, with endogenous labor and both persistant and transitory shocks to labor efficiency units. In this model we add a 'fixed effect' to the labor efficiency units, denoted $\alpha_i$, something common in the literature. This is the only change to the model. Permanent types, or PTypes, is how VFI Toolkit handles different types of agents, it is much more general than just fixed-types as will be seen in later Life-Cycle models, but for now we simply use it for this purpose.
 
 We add a parameter, $\alpha_i$, which depends on the permanent types indexed by $i$. We will use $N\_{}i$ different permanent types of agents, and simply by setting the parameter $\alpha_i$ to have $N\_{}i$ different values the toolkit will automatically recognise that this parameter depends on the permanent type and respond appropriately.
@@ -199,7 +196,7 @@ While it is not necessary for solving the value function problem we do need to s
 This example plots life-cycle profiles for $\alpha_i$, both for each permanent type, and grouped across the permanent types. This provides a nice example to show how the toolkit has interpreted $\alpha_i$ is a parameter that differs by permanent type, and how the grouped value is simply the values of $\alpha_i$ summed according to their weights in $alphadist$.
 
 
-\subsection{Life-Cycle model 25: Using Names for Permanent Types: patient and impatient}
+\subsection{Life-Cycle model 24: Using Names for Permanent Types: patient and impatient}
 We consider a model with two agents who differ by the value of their discount factor parameter, $\beta$. We can use names for the agents, and so call them 'patient' and 'impatient'. The model is just that of Life-Cycle Model 11, except that there are now two agents with different values of $\beta_i$, indexed by $i$. The main purpose of this example is to show how we can use names for permanent types of agents in codes.
 
 Our household value function now includes two permanent types that differ by their value of $\beta_i$, the discount factor parameter.
@@ -214,7 +211,7 @@ Our household value function now includes two permanent types that differ by the
 \end{eqnarray*}
 Notice that $z$ is AR(1) and $e$ is i.i.d. normal. Note that the codes use 'e' variables for i.i.d. shocks, see Life-Cycle model 11 if you have not previously seen this feature.
 
-Rather than use $N\_{}i=2$, like we did in Life-Cycle model 24, we can instead give the agents names using $Names\_{}i=\{'patient','impatient'\}$. The PType commands will automatically use these names for all outputs. We set the different parameter values as $Params.beta.patient=0.96$ and $Params.beta.impatient=0.9$. After this, other than using $Names\_{}i$ everywhere we had $N\_{}i$ in Life-Cycle model 24, there is no other change we need to make.
+Rather than use $N\_{}i=2$, like we did in Life-Cycle model 23, we can instead give the agents names using $Names\_{}i=\{'patient','impatient'\}$. The PType commands will automatically use these names for all outputs. We set the different parameter values as $Params.beta.patient=0.96$ and $Params.beta.impatient=0.9$. After this, other than using $Names\_{}i$ everywhere we had $N\_{}i$ in Life-Cycle model 23, there is no other change we need to make.
 
 The names we give the permanent types are automatically used for output, hence we get $V.patient$ and $V.impatient$ as the two value functions for the agent types. Commands for things like life-cycle profiles give us both the two life-cycle profiles conditional on each agent type (e.g., $AgeConditionalStats.earnings.patient.Mean$ and $AgeConditionalStats.earnings.impatient.Mean$) and the life-cycle profiles for the whole population (e.g., $AgeConditionalStats.earnings.Mean$).
 

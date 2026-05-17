@@ -1,45 +1,28 @@
-function F=LifeCycleModel27_ReturnFn(aprime,a,z1,upsilon,e,alpha,w,sigma,agej,Jr,pension,incomefloor,r,kappa_j,wg1,wg2,wg3,beta,sj,tau1,tau2,Jbeq)
-% Exogenous labor-supply model
-% Earning dynamics process following GKOS2021
+function F=LifeCycleModel27_ReturnFn(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_1,kappa_j_2,wg1,wg2,wg3,beta,sj)
+% The first seven are the 'always required' decision variables, next period
+% endogenous states, this period endogenous states, exogenous states
+% After that we need all the parameters the return function uses, it
+% doesn't matter what order we put them here.
 
 F=-Inf;
 if agej<Jr % If working age
-    Income=w*(1-upsilon)*exp(kappa_j+alpha+z1+e)+r*a;
-    if Income>0
-        IncomeTax=tau1+tau2*log(Income)*Income;
-    else
-        IncomeTax=0;
-    end
-    AfterTaxIncome=Income-IncomeTax;
-    if AfterTaxIncome<incomefloor
-        AfterTaxIncome=incomefloor;
-    end
-    c=AfterTaxIncome+a-aprime;
+    c=w*kappa_j_1*z1*e1*h1+w*kappa_j_2*z2*e2*h2+(1+r)*a-aprime; % Add z here
 else % Retirement
-    Income=r*a;
-    if Income>0
-        IncomeTax=tau1+tau2*log(Income)*Income;
-    else
-        IncomeTax=0;
-    end
-    % Income floor is not relevant as all get pension (and pension>incomefloor)
-    c=pension+(Income-IncomeTax)+a-aprime;
+    c=pension+(1+r)*a-aprime;
 end
 
 if c>0
-    F=(c^(1-sigma))/(1-sigma); % The utility function
+    F=(c^(1-sigma))/(1-sigma) -psi*(h1^(1+eta))/(1+eta)-psi*(h2^(1+eta))/(1+eta); % The utility function
 end
 
 % add the warm glow to the return, but only near end of life
-if agej>=Jbeq
+if agej>=Jr+10
     % Warm glow of bequests: bequest are a luxury good
     warmglow=wg1*((1+aprime/wg2)^(1-wg3))/(1-wg3);
     % Modify for beta and sj (get the warm glow next period if die)
     warmglow=beta*(1-sj)*warmglow;
     % add the warm glow to the return
-    if c>0 % I don't think this should be needed, but added to be sure
-        F=F+warmglow;
-    end
+    F=F+warmglow;
 end
 
 end
