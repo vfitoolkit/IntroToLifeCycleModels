@@ -30,13 +30,12 @@ LifeCycleModel9
 clear all
 LifeCycleModel10
 
-% LifeCycleModel11A becomes ModelsAppendixA/LifeCycleModelA11, further down
-% LifeCycleModel 11B becomes LifeCycleModel11
+%%
 clear all
 LifeCycleModel11
 
 clear all
-LifeCycleModel12
+LifeCycleModel12 % FIX THIS ONE!
 
 clear all
 LifeCycleModel13
@@ -56,10 +55,9 @@ LifeCycleModel17
 clear all
 LifeCycleModel18
 
-% There is no model 19 (is just equations)
-% clear all
-% LifeCycleModel19
+% LifeCycleModel19 is only equations/explanation, no code
 
+%%
 addpath('./Models20to30/')
 
 clear all
@@ -72,17 +70,17 @@ clear all
 LifeCycleModel22
 
 clear all
-LifeCycleModel23
+LifeCycleModel23 % FIX THIS ONE!
 
 clear all
-LifeCycleModel24
+LifeCycleModel24 % FIX THIS ONE!
 
 % There is no model 25 (yet)
 % clear all
 % LifeCycleModel25
 
 clear all
-LifeCycleModel26
+LifeCycleModel26 % FIX THIS ONE!
 
 clear all
 LifeCycleModel27
@@ -96,6 +94,7 @@ LifeCycleModel29
 clear all
 LifeCycleModel30
 
+%%
 addpath('./Models31to35/')
 
 clear all
@@ -113,9 +112,62 @@ LifeCycleModel34
 clear all
 LifeCycleModel35
 
-% We do not yet test the models in subdirectories Models36to39,
-% Models40to45, Models45to50
+%%
+addpath('./Models36to39/')
 
+clear all
+LifeCycleModel36 % Fix this one
+
+clear all
+LifeCycleModel37
+
+clear all
+LifeCycleModel38 % Fix this one
+
+clear all
+LifeCycleModel39
+
+%%
+addpath('./Models40to44/')
+
+clear all
+LifeCycleModel40
+
+clear all
+LifeCycleModel41
+
+clear all
+LifeCycleModel42
+
+% clear all
+% LifeCycleModel43
+
+% clear all
+% LifeCycleModel44
+
+%%
+addpath('./Models45to50/')
+
+clear all
+LifeCycleModel45
+
+clear all
+LifeCycleModel46
+
+clear all
+LifeCycleModel47
+
+clear all
+LifeCycleModel48
+
+clear all
+LifeCycleModel49
+
+clear all
+LifeCycleModel50
+
+
+%%
 % Now the appendix models
 addpath('./ModelsAppendixA/')
 

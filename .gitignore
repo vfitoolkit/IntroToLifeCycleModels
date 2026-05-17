@@ -1,2 +1,6 @@
-# matlab auxiliary files 
+# matlab auxiliary files
 *.asv
+
+# Life-Cycle Model 44 is kept as a local-only work-in-progress
+Models40to44/LifeCycleModel44.m
+Models40to44/LifeCycleModel44_ReturnFn.m

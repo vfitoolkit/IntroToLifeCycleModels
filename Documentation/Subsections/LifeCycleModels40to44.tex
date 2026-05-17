@@ -1,9 +1,5 @@
-All of our examples thus far have had one endogenous state. We now turn to examples with more than one endogenous state, and also to other kinds of endogenous states.
-% We start with Life-Cycle Model 40, which has two standard endogenous states, used for assets and housing.
-Life-Cycle Models 41-42 demonstrate two other types of endogenous state, which the toolkit calls experienceasset, experienceassetu.
-% Life-Cycle Model 43: experienceassetz
-% Life-Cycle Model 43: experienceasset as illiquid asset
-We actually already saw two other types of endogenous state, the riskyasset in the portfolio-choice models of Life-Cycle Models 31-35, as well as residualasset in Life-Cycle Model 38. Some of these two endogenous state models are quite large and may throw out-of-memory errors on smaller gpus; many use $vfoptions.divideandconquer=1$ (see Life-Cycle Model 29) which makes them faster and requires less memory, it requires the the problem is monotone.
+All of our examples thus far have had one endogenous state. We now turn to examples with more than one endogenous state, and also to other kinds of endogenous states. We start with Life-Cycle Model 40, which has two standard endogenous states, used for assets and housing. Life-Cycle Models 41-42 demonstrate two other types of endogenous state, which the toolkit calls experienceasset, experienceassetu.
+We actually already saw two other types of endogenous state, the riskyasset in the portfolio-choice models of Life-Cycle Models 31-35, as well as residualasset in Life-Cycle Model 38. Some of these two endogenous state models may throw out-of-memory errors on smaller/older gpus; if this occurs you can try setting \textit{vfoptions.lowmemory=1}, which uses loops (over exogenous shocks) to reduce memory use but comes at the cost of slower runtimes.
 
 A standard endogenous asset in VFI Toolkit has a current endogenous state $a$, and next period endogenous state $aprime$ can be chosen directly (and as a result, $aprime$ and $a$ both appear in the ReturnFn and the FnsToEvaluate). For other endogenous asset types we again have the current endogenous state $a$, but next periods endogenous state $aprime$ cannot be chosen directly (and as a result, only $a$ appears in the ReturnFn and the FnsToEvaluate).
 
@@ -20,14 +16,39 @@ Summarizing, we have
  \item experienceasset: $aprime(d,a)$
  \item experienceassetu: $aprime(d,a,u)$
 %  \item experienceassetz: $aprime(d,a,z)$
+%  \item experienceassete: $aprime(d,a,e)$
+%  \item experienceassetze: $aprime(d,a,z,e)$
  \item residualasset: $a2prime(d,a1prime,a1)$
 \end{itemize}
 
-For two standard endogenous states, the codes restrict all choices onto the grid, and so you need lots of points (as in the earlier one endogenous state models; you can use divide-and-conquer for the first of the two assets, and this is done in the example). For experienceasset and experienceassetu, while the decision variable is chosen on the grid, the value for $aprime$ is evaluated using linear interpolation, and so you can use way less points on experienceasset and experienceassetu than you would on a standard endogenous state.
+For experienceasset and experienceassetu, while the decision variable is chosen on the grid, the value for $aprime$ is evaluated using linear interpolation, and so you can use less points on experienceasset and experienceassetu than you would on a standard endogenous state.
+
+Both divide-and-conquer and grid interpolation layer can only be applied to standard endogenous states, not the any of the alternative endogneous states.\footnote{This is a limiation of codes, conceptually it could be done.} In a model with two standard endogenous states, when you use divide-and-conquer and grid interpolation layer the are applied only to the first of the two standard endogenous states. For models with one standard endogenous state and one non-standard endogenous state, you can use divide-and-conquer and grid interpolation layer and they will be applied only to the standard endogenous state.
 
 
-% \subsection{Life-Cycle model 40: Two Endogenous States (Housing)}
+\subsection{Life-Cycle model 40: Two Endogenous States (Housing)}
+The household has two standard endogenous states: financial assets $a$ and housing $h$. In each period the household chooses whether to be a renter ($hprime=0$) or an owner ($hprime>0$). Renters purchase housing services $d$ at rental price $p$. Owners receive housing services equal to the size of their house, so housing services are $hprime$. Owners may borrow against their house subject to a downpayment requirement $\gamma$, so $aprime\geq -(1-\gamma)hprime$. Renters cannot borrow ($aprime\geq 0$). A transactions cost $\phi h$ is paid whenever the household changes house ($hprime \neq h$), and owner-occupied housing depreciates at rate $\delta_o$. Every other feature of the model (preferences over consumption, earnings process, retirement, survival, warm glow) follows the earlier intro Life-Cycle Models.
 
+Per-period utility is CES over the nondurable consumption good and housing services,
+\begin{equation*}
+ u(c,d) = \frac{1}{1-\sigma}\left(\theta c^\upsilon + (1-\theta) d^\upsilon \right)^{(1-\sigma)/\upsilon}
+\end{equation*}
+which collapses to Cobb-Douglas, $u(c,d)=\frac{1}{1-\sigma}\left(c^\theta d^{1-\theta}\right)^{1-\sigma}$, when $\upsilon=0$.
+
+Letting $y_j = w \kappa_j z$ if $j<Jr$ and $y_j=pension$ otherwise, and writing $\tau(h,hprime)=\phi h \cdot \mathbb{I}_{(hprime\neq h)}$, the household problem is
+\begin{eqnarray*}
+ V(a,h,z,j) &=& \max_{c,d,aprime,hprime} u(c,d) + (1-s_j)\beta \mathbb{I}_{(j\geq Jr+10)} warmglow(aprime+(1-\delta_o)hprime) \\
+&& \quad \quad \quad \quad \quad \quad + s_j \beta E[V(aprime,hprime,zprime,j+1)|z] \\
+&& \text{if renter (}hprime=0\text{):} \quad c + p d + aprime = y_j + (1+r) a + (1-\delta_o) h - \tau(h,hprime), \; aprime \geq 0 \\
+&& \text{if owner (}hprime>0\text{):} \quad d=hprime, \quad c + hprime + aprime = y_j + (1+r) a + (1-\delta_o) h - \tau(h,hprime) \\
+&& \phantom{\text{if owner (}hprime>0\text{):}} \; aprime \geq -(1-\gamma) hprime \\
+&& log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
+\end{eqnarray*}
+Note that for the renter the static choice of $d$ given $cspend\equiv c+pd$ has a closed-form CES solution, so $d$ does not need to be carried as a decision variable: the return function simply splits $cspend$ analytically into $c$ and $pd$.
+
+Setting up two standard endogenous states is straightforward: $n\_{}a=[n\_{}a_1,n\_{}a_2]$ and $a\_{}grid$ is a stacked column vector containing the asset grid on top of the housing grid. In the return function and FnsToEvaluate the first inputs are $(a1prime,a2prime,a1,a2,z,\dots)$. We use $vfoptions.divideandconquer=1$ and $vfoptions.gridinterplayer=1$, both of which are applied to the first endogenous state only; for that reason we put assets (which needs many grid points) first and housing (which needs few) second.
+
+Two standard endogenous states is a flexible setup. We use it here for housing but the same code structure can be used for any two-asset problem (e.g.\ liquid plus illiquid assets without the housing-services interpretation, or assets plus a second savings vehicle).
 
 \subsection{Life-Cycle model 41: Female Labor Force Participation History (experienceasset)}
 The household will have two endogenous states, the first is a standard endogenous state $a$, and the second is female-labor-force-participation-history $h$ which is an 'experienceasset'. Each period the household will decide whether the female works or not (a binary decision variable, $p$), and the female-labor-force-participation-history will evolve based on this decision, $hprime(p,h)$.
