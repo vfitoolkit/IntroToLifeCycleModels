@@ -90,9 +90,11 @@ LifeCycleModel27
 clear all
 LifeCycleModel28
 
-% There is no (longer a) model 29 (anymore)
-% clear all
-% LifeCycleModel29
+clear all
+LifeCycleModel29
+
+clear all
+LifeCycleModel30
 
 addpath('./Models31to35/')
 
