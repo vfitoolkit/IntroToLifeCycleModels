@@ -101,6 +101,7 @@ d_grid=h_grid;
 % Define the additional discount factor
 Params.growthdiscount=(1+Params.g)^(Params.sigma1*(1-Params.sigma2));
 DiscountFactorParamNames={'beta','sj','growthdiscount'};
+% When there are multiple discount factors it is understood that they are combined by taking the product of the discount factors (per period)
 
 % Change to 'LifeCycleModel22_ReturnFn'
 ReturnFn=@(h,aprime,a,z,w,sigma1,sigma2,g,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...

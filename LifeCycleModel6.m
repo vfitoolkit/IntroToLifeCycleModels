@@ -71,6 +71,7 @@ d_grid=h_grid;
 
 %% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
+% When there are multiple discount factors it is understood that they are combined by taking the product of the discount factors (per period)
 
 % Still using 'LifeCycleModel5_ReturnFn'
 ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j)... 
