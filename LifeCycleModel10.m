@@ -70,8 +70,7 @@ Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a n
 Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 %% Grids
-% The ^3 means that there are more points near 0 and near 10. We know from
-% theory that the value function will be more 'curved' near zero assets,
+% The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
@@ -83,7 +82,7 @@ z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is 1)
 
 d_grid=[]; % No decision variables
 
-%% Now, create the return function 
+%% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
 % Switch to use 'LifeCycleModel10_ReturnFn'
@@ -97,11 +96,10 @@ ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
 % and (iv) exogenous states.
 % In this model we have 0 decision variables, 1 next period endogenous
 % state, aprime, 1 this period endogenous state, a, and 1 markov exogenous state, z.
-% Hence, we have (aprime,a,z,...), and everything after this is
-% interpreted to be a parameter.
+% Hence, we have (aprime,a,z,...), and everything after this is interpreted to be a parameter.
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
-disp('Test ValueFnIter')
+%% Solve the value function iteration problem
+disp('Solve for Value fn and Policy fn using ValueFnIter command')
 vfoptions=struct(); % Just using the defaults.
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
@@ -153,11 +151,8 @@ title('Value fn at age j=81')
 xlabel('Assets (a)')
 
 % Convert the policy function to values (rather than indexes).
-% Note that the only policy is next period assets (aprime). 
-% Policy(1,:,:,:) is aprime [as function of (a,z,j)]
 % Plot as a 3d plot, again I arbitrarily choose the median value of z
 figure(3)
-simoptions=struct(); % use defaults
 PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
 subplot(1,1,1); surf(a_grid*ones(1,Params.J),ones(n_a,1)*(1:1:Params.J),reshape(PolicyVals(1,:,zind,:),[n_a,Params.J]))
 title('Policy function: next period assets (aprime), median z')
@@ -182,8 +177,7 @@ xlabel('Assets (a)')
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
-% Before we plot the life-cycle profiles we have to define how agents are
-% at age j=1. We will give them all zero assets.
+% Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
 jequaloneDist=zeros(n_a,n_z,'gpuArray'); % Put no households anywhere on grid
 jequaloneDist(1,floor((n_z+1)/2))=1; % All agents start with zero assets, and the median shock
 
@@ -197,13 +191,11 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
+simoptions=struct(); % use defaults
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% Again, we will explain in a later model what the stationary distribution
-% is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (aprime,a,z) as first
-% inputs, then just any relevant parameters.
+% Like with return function, we have to include (aprime,a,z) as first inputs, then just any relevant parameters.
 FnsToEvaluate.earnings=@(aprime,a,z,w,kappa_j) w*kappa_j*z; % z is the 'stochastic endowment' or 'exogenous earnings'
 FnsToEvaluate.assets=@(aprime,a,z) a; % a is the current asset holdings
 
@@ -220,7 +212,6 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of earnings and assets
-
 figure(5)
 subplot(2,1,1); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
 title('Life Cycle Profile: Labor Earnings (w*kappa_j*z)')

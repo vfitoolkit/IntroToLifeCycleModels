@@ -43,8 +43,7 @@ Params.Jr=46;
 Params.pension=0.3;
 
 %% Grids
-% The ^3 means that there are more points near 0 and near 10. We know from
-% theory that the value function will be more 'curved' near zero assets,
+% The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
@@ -53,7 +52,7 @@ h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition im
 % Switch into toolkit notation
 d_grid=h_grid;
 
-%% Now, create the return function 
+%% Now, create the return function
 DiscountFactorParamNames={'beta'};
 
 % Add r to the inputs (in some sense we add a and aprime, but these were already required, if previously irrelevant)
@@ -61,8 +60,8 @@ DiscountFactorParamNames={'beta'};
 ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r)... 
     LifeCycleModel3_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension,r);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
-disp('Test ValueFnIter')
+%% Solve the value function iteration problem
+disp('Solve for Value fn and Policy fn using ValueFnIter command')
 vfoptions=struct(); % Just using the defaults.
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, [], [], ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);

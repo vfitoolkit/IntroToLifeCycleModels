@@ -84,8 +84,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 
 
 %% Grids
-% The ^3 means that there are more points near 0 and near 10. We know from
-% theory that the value function will be more 'curved' near zero assets,
+% The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 asset_grid=10*(linspace(0,1,n_a(1)).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
@@ -111,15 +110,15 @@ simoptions.d_grid=d_grid;
 simoptions.a_grid=a_grid;
 simoptions.z_grid=z_grid;
 
-%% Now, create the return function 
+%% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
 % Need new LifeCycleModel38_ReturnFn as the return function is a key part of implementing loss-aversion
 ReturnFn=@(aprime,a,clag,z,w,sigma,agej,Jr,pension,r,kappa_j,lambda,mu,upsilon,theta) ...
     LifeCycleModel38_ReturnFn(aprime,a,clag,z,w,sigma,agej,Jr,pension,r,kappa_j,lambda,mu,upsilon,theta);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
-disp('Test ValueFnIter')
+%% Solve the value function iteration problem
+disp('Solve for Value fn and Policy fn using ValueFnIter command')
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -164,8 +163,7 @@ ylabel('Assets (a)')
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
-% Before we plot the life-cycle profiles we have to define how agents are
-% at age j=1. We will give them all zero assets.
+% Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
 jequaloneDist(1,1,floor((n_z+1)/2))=1; % All agents start with zero assets, and the median shock
 
@@ -181,8 +179,6 @@ Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
 
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% Again, we will explain in a later model what the stationary distribution
-% is, it is not important for our current goal of graphing the life-cycle profile
 
 figure(2)
 subplot(2,1,1); plot(asset_grid,cumsum(sum(sum(sum(StationaryDist,2),3),4)))
@@ -195,7 +191,6 @@ title('cdf over lag of consumption')
 FnsToEvaluate.consumption=@(aprime,a,clag,z,w,agej,Jr,pension,r,kappa_j) LifeCycleModel38_ConsumptionFn(aprime,a,clag,z,w,agej,Jr,pension,r,kappa_j); % Just to make the point that here we use clag as an input as it is a FnsToEvaluate, whereas our rprimeFn did not have clag as an input; internally the two functions are identical (this period consumption, and next period lag of consumption, are of course just the same thing)
 FnsToEvaluate.earnings=@(aprime,a,clag,z,w,kappa_j) w*kappa_j*z; % w*kappa_j*z is the labor earnings (exogenous labor)
 FnsToEvaluate.assets=@(aprime,a,clag,z) a; % a is the current asset holdings
-
 % notice that we have called these consumption, earnings and assets
 
 %% Calculate the life-cycle profiles
@@ -209,7 +204,6 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of earnings, assets, and consumption
-
 figure(3)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
 title('Life Cycle Profile: Labor Earnings (w kappa_j z)')

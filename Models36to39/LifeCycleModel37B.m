@@ -73,8 +73,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 
 
 %% Grids
-% The ^3 means that there are more points near 0 and near 10. We know from
-% theory that the value function will be more 'curved' near zero assets,
+% The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a(1)).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
@@ -92,15 +91,15 @@ d_grid=h_grid;
 %% Set up the temptation function in terms of (d,aprime,a,z) (this model does not have d), doing this is a lot like just a copy of the return function
 vfoptions.temptationFn=@(h,aprime,a,z,w,sigmatempt,scaletemptation,agej,Jr,pension,r,kappa_j) LifeCycleModel37B_TemptationFn(h,aprime,a,z,w,sigmatempt,scaletemptation,agej,Jr,pension,r,kappa_j);
 
-%% Now, create the return function 
+%% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
 % LifeCycleModel37B_ReturnFn is essentially just LifeCycleModel9_ReturnFn without the warm-glow
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j) ...
     LifeCycleModel37B_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
-disp('Test ValueFnIter')
+%% Solve the value function iteration problem
+disp('Solve for Value fn and Policy fn using ValueFnIter command')
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -140,8 +139,6 @@ xlabel('Assets (a)')
 
 
 % Convert the policy function to values (rather than indexes).
-% Note that there is one policy for hours worked (h), and another for next period assets (aprime). 
-% Policy(1,:,:,:) is h, Policy(2,:,:,:) is aprime [as function of (a,z,j)]
 % Plot both as a 3d plot, again I arbitrarily choose the median value of z
 figure(3)
 PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
@@ -185,8 +182,7 @@ xlabel('Assets (a)')
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
-% Before we plot the life-cycle profiles we have to define how agents are
-% at age j=1. We will give them all zero assets.
+% Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
 jequaloneDist(1,floor((n_z+1)/2))=1; % All agents start with zero assets, and the median shock
 
@@ -202,16 +198,12 @@ Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
 simoptions=struct(); % use default options
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% Again, we will explain in a later model what the stationary distribution
-% is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
-% inputs, then just any relevant parameters.
+% Like with return function, we have to include (h,aprime,a,z) as first inputs, then just any relevant parameters.
 FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z) h; % h is fraction of time worked
 FnsToEvaluate.earnings=@(h,aprime,a,z,w,kappa_j) w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
 FnsToEvaluate.assets=@(h,aprime,a,z) a; % a is the current asset holdings
-
 % notice that we have called these fractiontimeworked, earnings and assets
 
 %% Calculate the life-cycle profiles
@@ -225,7 +217,6 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
-
 figure(5)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')

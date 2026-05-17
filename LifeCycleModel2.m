@@ -53,7 +53,7 @@ h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition im
 % Switch into toolkit notation
 d_grid=h_grid;
 
-%% Now, create the return function 
+%% Now, create the return function
 
 DiscountFactorParamNames={'beta'};
 
@@ -63,8 +63,8 @@ ReturnFn=@(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension)...
     LifeCycleModel2_ReturnFn(h,aprime,a,w,sigma,psi,eta,agej,Jr,pension);
 % VFI Toolkit will automatically look in 'Params' to find the values of these parameters.
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
-disp('Test ValueFnIter')
+%% Solve the value function iteration problem
+disp('Solve for Value fn and Policy fn using ValueFnIter command')
 vfoptions=struct(); % Just using the defaults.
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, [], [], ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);

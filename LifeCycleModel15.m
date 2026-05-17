@@ -138,7 +138,7 @@ pi_z=1;
 % No decision variable
 d_grid=[];
 
-%% Now, create the return function 
+%% Now, create the return function
 DiscountFactorParamNames={'beta'};
 
 % Add r to the inputs (in some sense we add a and aprime, but these were already required, if previously irrelevant)
@@ -146,8 +146,8 @@ DiscountFactorParamNames={'beta'};
 ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,borrowingconstraint) ...
     LifeCycleModel15_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,borrowingconstraint);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
-disp('Test ValueFnIter')
+%% Solve the value function iteration problem
+disp('Solve for Value fn and Policy fn using ValueFnIter command')
 vfoptions=struct(); % Just using the defaults.
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
@@ -156,8 +156,7 @@ toc
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
-% Before we plot the life-cycle profiles we have to define how agents are
-% at age j=1. We will give them all zero assets.
+% Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
 jequaloneDist=zeros(n_a,1,'gpuArray'); % Put no households anywhere on grid
 [~,aequalzeroindex]=min(abs(a_grid));
 jequaloneDist(aequalzeroindex,1)=1; % Start with zero assets
@@ -166,18 +165,14 @@ jequaloneDist(aequalzeroindex,1)=1; % Start with zero assets
 %% We now compute the 'stationary distribution' of households
 % This is effectively irrelevant to understanding life-cycle profiles but it is required as an input. 
 % We will explain in a later model what the stationary distribution of households is and what we are doing here.
-% We need to say how many agents are of each age (this is needed for the
-% stationary distribution but is actually irrelevant to the life-cycle profiles)
+% We need to say how many agents are of each age (this is needed for the stationary distribution but is actually irrelevant to the life-cycle profiles)
 Params.mewj=ones(1,Params.J)/Params.J; % Put a fraction 1/J at each age
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
 simoptions=struct(); % Use the default options
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% Again, we will explain in a later model what the stationary distribution
-% is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (aprime,a,z) as first
-% inputs, then just any relevant parameters.
+% Like with return function, we have to include (aprime,a,z) as first inputs, then just any relevant parameters.
 FnsToEvaluate.earnings=@(aprime,a,z,w,kappa_j) w*kappa_j;
 FnsToEvaluate.assets=@(aprime,a,z) a; % a is the current asset holdings
 FnsToEvaluate.consumption=@(aprime,a,z,agej,Jr,w,kappa_j,r,pension) (agej<Jr)*(w*kappa_j+(1+r)*a-aprime)+(agej>=Jr)*(pension+(1+r)*a-aprime);
@@ -194,7 +189,6 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of consumption, marginal utility, earnings, and assets
-
 figure(1)
 subplot(4,1,1); plot(1:1:Params.J,AgeConditionalStats.consumption.Mean)
 ylim([0.5 2]) % Fix this so that can more easily see how it smooths when changing the borrowing constraint

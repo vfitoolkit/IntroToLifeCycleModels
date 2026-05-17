@@ -72,8 +72,7 @@ Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a n
 Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 %% Grids
-% The ^3 means that there are more points near 0 and near 10. We know from
-% theory that the value function will be more 'curved' near zero assets,
+% The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 z_grid=[1;0]; % the first entry is employment and the second is unemployment.
@@ -84,7 +83,7 @@ h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition im
 % Switch into toolkit notation
 d_grid=h_grid;
 
-%% Now, create the return function 
+%% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
 % Notice change to 'LifeCycleModel8_ReturnFn'
@@ -98,11 +97,10 @@ ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,be
 % and (iv) exogenous states.
 % In this model we have 1 decision variable, h, 1 next period endogenous
 % state, aprime, 1 this period endogenous state, a, and 1 markov exogenous state, z.
-% Hence, we have (h,aprime,a,z,...), and everything after this is
-% interpreted to be a parameter.
+% Hence, we have (h,aprime,a,z,...), and everything after this is interpreted to be a parameter.
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
-disp('Test ValueFnIter')
+%% Solve the value function iteration problem
+disp('Solve for Value fn and Policy fn using ValueFnIter command')
 vfoptions=struct(); % Just using the defaults.
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
@@ -161,9 +159,6 @@ title('Value fn at age j=81')
 xlabel('Assets (a)')
 
 % Convert the policy function to values (rather than indexes).
-% Note that there is one policy for hours worked (h), and another for next
-% period assets (aprime). 
-% Policy(1,:,:,:) is h, Policy(2,:,:,:) is aprime [as function of (a,z,j)]
 % Plot both as a 3d plot.
 figure(3)
 PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
@@ -217,15 +212,22 @@ xlabel('Assets (a)')
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
-% Before we plot the life-cycle profiles we have to define how agents are
-% at age j=1. We will give them all zero assets.
+% Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
 jequaloneDist=zeros(n_a,n_z,'gpuArray'); % Put no households anywhere on grid
 jequaloneDist(1,floor((n_z+1)/2))=1; % All agents start with zero assets, and the median shock
 
 %% We now compute the 'stationary distribution' of households
-% Start with a mass of one at initial age, use the conditional survival
-% probabilities sj to calculate the mass of those who survive to next
-% period, repeat. Once done for all ages, normalize to one
+% The 'stationary distribution' is the joint distribution of households over the state space (endogenous states, exogenous shocks, and age).
+% It tells you the fraction of all households that are at each point in the model.
+% Agents start in period j=1 distributed in the state-space according to jequaloneDist.
+% Based on their choices (Policies) and the shock z
+% they move each period and we go forward through the periods to get the distribution at ages 2, 3, ..., J.
+% Unlike in Model 5, the distribution at each age is now non-degenerate: households that have drawn different
+% sequences of the unemployment shock z end up at different (a,z) states, even though they all started identically.
+% Params.mewj below says how many households are of each age; the codes use this to weight the age-j distributions
+% into one joint distribution. Now that we have conditional survival probabilities sj (introduced in Model 6),
+% the mass of households of age j+1 is sj times the mass of households of age j (start with mass one at age 1,
+% then push forward using sj, then normalize so the total mass is one).
 Params.mewj=ones(1,Params.J); % Marginal distribution of households over age
 for jj=2:length(Params.mewj)
     Params.mewj(jj)=Params.sj(jj-1)*Params.mewj(jj-1);
@@ -234,16 +236,14 @@ Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
 simoptions=struct(); % use default options
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% Again, we will explain in a later model what the stationary distribution
-% is, it is not important for our current goal of graphing the life-cycle profile
+% StationaryDist has size [n_a, n_z, N_j]
+% StationaryDist(a_index, z_index, age) is the fraction of all households at that state, and sum(StationaryDist(:)) is 1.
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
-% inputs, then just any relevant parameters.
+% Like with return function, we have to include (h,aprime,a,z) as first inputs, then just any relevant parameters.
 FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z) h; % h is fraction of time worked
 FnsToEvaluate.earnings=@(h,aprime,a,z,w,kappa_j) w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
 FnsToEvaluate.assets=@(h,aprime,a,z) a; % a is the current asset holdings
-
 % notice that we have called these fractiontimeworked, earnings and assets
 
 %% Calculate the life-cycle profiles
@@ -257,7 +257,6 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
-
 figure(5)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')

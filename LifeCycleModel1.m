@@ -10,13 +10,6 @@
 % No stochastic exogenous state variables
 % Age: j
 
-% If you don't understand the terms 'decision variable', 'endogenous state
-% variable' and 'exogenous state variable' you can find the general
-% description of a finite horizon value function problem as understood by
-% the VFI Toolkit at: https://github.com/vfitoolkit/vfitoolkit-matlab-docs/blob/main/DiscStateSpaceToolkit.pdf
-% Skip to chapter "Finite Horizon Value Function Iterations: Case 1"
-% Note: This is quite mathematical, and may not be of immediate interest to you yet.
-
 %% Begin setting up to use VFI Toolkit to solve
 % Lets model agents from age 20 to age 100, so 81 periods
 
@@ -51,7 +44,7 @@ h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition im
 % Switch into toolkit notation
 d_grid=h_grid;
 
-%% Now, create the return function 
+%% Now, create the return function
 
 % We tell VFI Toolkit the name of which parameter is the discount factor
 DiscountFactorParamNames={'beta'};
@@ -82,8 +75,8 @@ ReturnFn=@(h,aprime,a,w,sigma,psi,eta)...
 % next period endogenous state directly. Hence why we have both of (..,aprime,a,..)
 % in the ReturnFn.
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
-disp('Test ValueFnIter')
+%% Solve the value function iteration problem
+disp('Solve for Value fn and Policy fn using ValueFnIter command')
 vfoptions=struct(); % Just using the defaults.
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, [], [], ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);

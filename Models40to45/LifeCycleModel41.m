@@ -92,8 +92,7 @@ Params.wg3=Params.sigma; % By using the same curvature as the utility of consump
 
 
 %% Grids
-% The ^3 means that there are more points near 0 and near 10. We know from
-% theory that the value function will be more 'curved' near zero assets,
+% The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 asset_grid=10*(linspace(0,1,n_a(1)).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
@@ -135,7 +134,7 @@ simoptions.d_grid=d_grid; % Needed to handle aprimeFn
 simoptions.a_grid=a_grid; % Needed to handle aprimeFn
 
 
-%% Now, create the return function 
+%% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModel41_ReturnFn'
@@ -146,8 +145,8 @@ ReturnFn=@(p,aprime,a,h,z,w,sigma,psi,y_m,childcarecosts,agej,Jr,pension,r,wg1,w
 % is an experienceasset, we do not include hprime as it is not chosen
 % directly.
 
-%% Now solve the value function iteration problem
-disp('Test ValueFnIter')
+%% Solve the value function iteration problem
+disp('Solve for Value fn and Policy fn using ValueFnIter command')
 vfoptions.divideandconquer=1; % exploit monotonicity of first endogenous state (assets)
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
@@ -171,9 +170,10 @@ size(Policy)
 %% Let's take a quick look at what we have calculated, namely Policy
 
 % Convert the policy function to values (rather than indexes).
-% Note that there is one policy for participation (p), and another for next period assets (aprime). 
+% Note that there is one policy for participation (p), and another for next period assets (aprime).
 % Because h is an experienceasset, hprime is not chosen directly so is not in Policy
 % Policy(1,:,:,:,:) is p, Policy(2,:,:,:,:) is aprime [as function of (a,h,z,j)]
+% When using grid interpolation layer there is also a Policy(3,:,:,:,:) that is related to aprime on the interpolation layer (not something you need to understand as user, just mentioning)
 
 % Rather than plot lots of outputs, we will just look at two, some
 % participation decisions and some aprime decisions. 
@@ -204,8 +204,7 @@ zlabel('Next period assets (aprime)')
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
-% Before we plot the life-cycle profiles we have to define how agents are
-% at age j=1. We will give them all zero assets.
+% Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
 jequaloneDist(1,4,floor((n_z+1)/2))=1; % All agents start with zero assets, h_grid(4) of human capital, and the median shock [h_grid(4) is roughly same as y_m(1), just my arbitrary decision]
 
@@ -220,8 +219,6 @@ end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% Again, we will explain in a later model what the stationary distribution
-% is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (p,aprime,a,h,z) as first inputs, then just any relevant parameters.
@@ -230,7 +227,6 @@ FnsToEvaluate.femaleearnings=@(p,aprime,a,h,z,w) w*h*z*p; % labor earnings of fe
 FnsToEvaluate.maleearnings=@(p,aprime,a,h,z,w,y_m) w*y_m*z; % labor earnings of male
 FnsToEvaluate.assets=@(p,aprime,a,h,z) a; % a is the current asset holdings
 FnsToEvaluate.femaleLFPH=@(p,aprime,a,h,z,w) h; % female labor force participation history
-
 % notice that we have called these participation, femaleearnings, maleearnings, assets and femaleLFPH
 
 %% Calculate the life-cycle profiles
@@ -240,7 +236,6 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % AgeConditionalStats.participation.Mean
 
 %% Plot the life cycle profiles of participation, earnings, assets, and female LFPH
-
 figure(2)
 subplot(5,1,1); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.participation.Mean)
 title('Life Cycle Profile: Partipication (p)')

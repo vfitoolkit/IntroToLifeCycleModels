@@ -96,8 +96,7 @@ Params.wg3=Params.sigma; % By using the same curvature as the utility of consump
 
 
 %% Grids
-% The ^3 means that there are more points near 0 and near 10. We know from
-% theory that the value function will be more 'curved' near zero assets,
+% The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 asset_grid=10*(linspace(0,1,n_a(1)).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
@@ -176,7 +175,7 @@ legend('45 degree','small u', 'mid u', 'large u')
 title('max s')
 hold off 
 
-%% Now, create the return function 
+%% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModel42_ReturnFn'
@@ -187,8 +186,8 @@ ReturnFn=@(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,wg1,wg2,wg3,beta,s
 % is an experienceassetu, we do not include hprime as it is not chosen
 % directly.
 
-%% Now solve the value function iteration problem
-disp('Test ValueFnIter')
+%% Solve the value function iteration problem
+disp('Solve for Value fn and Policy fn using ValueFnIter command')
 vfoptions.verbose=1; % give feedback
 vfoptions.divideandconquer=1; % exploit monotonicity of first endogenous state (assets)
 tic;
@@ -213,9 +212,10 @@ size(Policy)
 %% Let's take a quick look at what we have calculated, namely V and Policy
 
 % Convert the policy function to values (rather than indexes).
-% Note that there are policies for labor supply (l), study time (s), and next period assets (aprime). 
+% Note that there are policies for labor supply (l), study time (s), and next period assets (aprime).
 % Because h is an experienceassetu, hprime is not chosen directly so is not in Policy
 % Policy(1,:,:,:,:) is l, Policy(2,:,:,:,:) is s, Policy(3,:,:,:,:) is aprime [as function of (a,h,z,j)]
+% When using grid interpolation layer there is also a Policy(4,:,:,:,:) that is related to aprime on the interpolation layer (not something you need to understand as user, just mentioning)
 
 % Rather than plot lots of outputs, we will just look at two, some
 % study decisions and some aprime decisions. 
@@ -248,8 +248,7 @@ zlabel('Next period assets (aprime)')
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
-% Before we plot the life-cycle profiles we have to define how agents are
-% at age j=1. We will give them all zero assets.
+% Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
 jequaloneDist(1,4,floor((n_z+1)/2))=1; % All agents start with zero assets, h_grid(4) of human capital, and the median shock [h_grid(4) is roughly same as y_m(1), just my arbitrary decision]
 
@@ -264,19 +263,15 @@ end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% Again, we will explain in a later model what the stationary distribution
-% is, it is not important for our current goal of graphing the life-cycle profile
 
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (l,s,aprime,a,h,z) as first
-% inputs, then just any relevant parameters.
+% Like with return function, we have to include (l,s,aprime,a,h,z) as first inputs, then just any relevant parameters.
 FnsToEvaluate.laborsupply=@(l,s,aprime,a,h,z) l; % l is labor supply
 FnsToEvaluate.studytime=@(l,s,aprime,a,h,z) s; % s is study-time
 FnsToEvaluate.earnings=@(l,s,aprime,a,h,z,w) w*h*z*l; % labor earnings (note, l will equal 0 in retirement)
 FnsToEvaluate.humancapital=@(l,s,aprime,a,h,z) h; % human capital
 FnsToEvaluate.assets=@(l,s,aprime,a,h,z) a; % a is the current asset holdings
-
 % notice that we have called these laborsupply, studytime, earnings, humancapital and assets
 
 %% Calculate the life-cycle profiles
@@ -286,7 +281,6 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % AgeConditionalStats.laborsupply.Mean
 
 %% Plot the life cycle profiles of labor supply, study time, earnings, human capital, and assets
-
 figure(3)
 subplot(5,1,1); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.laborsupply.Mean)
 title('Life Cycle Profile: Labor Supply (l)')

@@ -191,8 +191,7 @@ PTypeDistParamNames={'statdist_alpha'};
 % in the ReturnFn.
 
 %% Grids
-% The ^3 means that there are more points near 0 and near 10. We know from
-% theory that the value function will be more 'curved' near zero assets,
+% The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=(10^6)*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
@@ -210,7 +209,7 @@ h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition im
 d_grid=h_grid;
 
 
-%% Now, create the return function 
+%% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModel27_ReturnFn', and now input z, upsilon and e.
@@ -219,9 +218,9 @@ ReturnFn=@(aprime,a,z1,upsilon,e,alpha,w,sigma,agej,Jr,pension,incomefloor,r,kap
 % We have no decision variable, one standard endogenous state, two markovs
 % and an i.i.d, so inputs start with (aprime,a,z1,upsilon,e,...)
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
+%% Solve the value function iteration problem
 vfoptions.divideandconquer=1; % exploit monotonicity
-disp('Solving ValueFnIter')
+disp('Solve for Value fn and Policy fn using ValueFnIter command')
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz_PType(n_d,n_a,n_z,N_j, N_i, d_grid, a_grid, z_grid_J, pi_z_J, ReturnFn, Params, DiscountFactorParamNames, vfoptions);
 toc
@@ -285,8 +284,7 @@ AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mas
 StationaryDist=StationaryDist_Case1_FHorz_PType(jequaloneDist,AgeWeightsParamNames,PTypeDistParamNames,Policy,n_d,n_a,n_z,N_j,N_i,pi_z_J,Params,simoptions);
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (aprime,a,z1,upsilon,e) as first
-% inputs, then just any relevant parameters.
+% Like with return function, we have to include (aprime,a,z1,upsilon,e) as first inputs, then just any relevant parameters.
 FnsToEvaluate.earnings=@(aprime,a,z1,upsilon,e,agej,Jr,kappa_j,w,alpha) (agej<Jr)*w*(1-upsilon)*exp(kappa_j+alpha+z1+e); % (agej<Jr)*w*(1-upsilon)*exp(kappa_j+alpha+z1+e) is the labor earnings
 FnsToEvaluate.assets=@(aprime,a,z1,upsilon,e) a; % a is the current asset holdings
 FnsToEvaluate.nonemployment=@(aprime,a,z1,upsilon,e,agej,Jr) (agej<Jr)*upsilon; % upsilon=1 is non-employment
@@ -303,7 +301,6 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1_PType(StationaryDist,Policy,Fn
 % are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of earnings, assets, and non-employment
-
 % Plot the age-conditional means for the population as a whole
 figure(1)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)

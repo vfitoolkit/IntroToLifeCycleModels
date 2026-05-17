@@ -103,8 +103,7 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 
 
 %% Grids
-% The ^3 means that there are more points near 0 and near 10. We know from
-% theory that the value function will be more 'curved' near zero assets,
+% The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
@@ -148,15 +147,15 @@ simoptions.SemiExoStateFn=vfoptions.SemiExoStateFn;
 % At the bottom of this code/script there are some lines showing you what
 % pi_semiz_J which is created internally looks like.
 
-%% Now, create the return function 
+%% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModelA9_ReturnFn'
 ReturnFn=@(h,f,search,aprime,a,n,work,z,w,sigma,psi,eta,agej,eta1,eta2,eta3,nbar,childcarec,Jr,pension,r,kappa_j,benefits,search_c) ...
     LifeCycleModelA9_ReturnFn(h,f,search,aprime,a,n,work,z,w,sigma,psi,eta,agej,eta1,eta2,eta3,nbar,childcarec,Jr,pension,r,kappa_j,benefits,search_c);
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
-disp('Solve ValueFnIter')
+%% Solve the value function iteration problem
+disp('Solve for Value fn and Policy fn using ValueFnIter command')
 vfoptions.verbose=1;
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
@@ -205,8 +204,7 @@ title('How the utility of children varies with age')
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
-% Before we plot the life-cycle profiles we have to define how agents are
-% at age j=1. We will give them all zero assets.
+% Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_semiz,n_z],'gpuArray'); % Put no households anywhere on grid
 jequaloneDist(1,1,1,floor((n_z+1)/2))=1; % All agents start with zero assets, and the median shock, no infants, no children
 
@@ -226,18 +224,14 @@ AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mas
 simoptions.d_grid=d_grid;
 
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
-% Again, we will explain in a later model what the stationary distribution
-% is, it is not important for our current goal of graphing the life-cycle profile
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,z) as first
-% inputs, then just any relevant parameters.
+% Like with return function, we have to include (h,aprime,a,z) as first inputs, then just any relevant parameters.
 FnsToEvaluate.fractiontimeworked=@(h,f,search,aprime,a,n,work,z) h; % h is fraction of time worked
 FnsToEvaluate.earnings=@(h,f,search,aprime,a,n,work,z,w,kappa_j) work*w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
 FnsToEvaluate.assets=@(h,f,search,aprime,a,n,work,z) a; % a is the current asset holdings
 FnsToEvaluate.work=@(h,f,search,aprime,a,n,work,z) work; % works is the current employment status
 FnsToEvaluate.nchildren=@(h,f,search,aprime,a,n,work,z) n; % a is the current asset holdings
-
 % notice that we have called these fractiontimeworked, earnings and assets
 
 %% Calculate the life-cycle profiles
@@ -251,7 +245,6 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
-
 figure(5)
 subplot(5,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')

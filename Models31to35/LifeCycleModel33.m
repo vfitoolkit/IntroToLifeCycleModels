@@ -104,8 +104,7 @@ Params.sj=1-Params.dj(21:101); % Conditional survival probabilities
 Params.sj(end)=0; % In the present model the last period (j=J) value of sj is actually irrelevant
 
 %% Grids
-% The ^3 means that there are more points near 0 and near 10. We know from
-% theory that the value function will be more 'curved' near zero assets,
+% The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 a_grid=13*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
@@ -143,7 +142,7 @@ simoptions.a_grid=a_grid;
 simoptions.d_grid=d_grid;
 
 
-%% Now, create the return function 
+%% Now, create the return function
 DiscountFactorParamNames={'beta'}; % Note: no longer contains the conditional survival probability
 
 % Use 'LifeCycleModel31_ReturnFn' (warm-glow of bequests is handled via vfoptions.WarmGlowBequestsFn, not inside the return function, with Epstein-Zin preferences)
@@ -151,8 +150,8 @@ ReturnFn=@(savings,a,z,w,sigma,agej,Jr,pension,kappa_j) ...
     LifeCycleModel31_ReturnFn(savings,a,z,w,sigma,agej,Jr,pension,kappa_j);
 % vfoptions.refine_d: only (d1,d3,..) are input to ReturnFn [this model has no d1, so here just d3]
 
-%% Now solve the value function iteration problem, just to check that things are working before we go to General Equilibrium
-disp('Test ValueFnIter')
+%% Solve the value function iteration problem
+disp('Solve for Value fn and Policy fn using ValueFnIter command')
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -204,8 +203,6 @@ title('Value fn at age j=81')
 xlabel('Assets (a)')
 
 % Convert the policy function to values (rather than indexes).
-% Note that there is one policy for savings, and another for the share of savings invested in risky assets (riskyshare). 
-% Policy(1,:,:,:) is savings, Policy(2,:,:,:) is riskyshare [as function of (a,z,j)]
 % Plot both as a 3d plot, again I arbitrarily choose the median value of z
 figure(3)
 PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
@@ -249,8 +246,7 @@ xlabel('Assets (a)')
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
-% Before we plot the life-cycle profiles we have to define how agents are
-% at age j=1. We will give them all zero assets.
+% Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
 jequaloneDist(1,floor((n_z+1)/2))=1; % All agents start with zero assets, and the median shock
 
@@ -268,12 +264,10 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 % riskyasset requires the grids when simulating the agent distribution to be able to handle aprime(d,u). The grids are passed in simoptions.
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (savings,riskyshare,a,z) as first
-% inputs, then just any relevant parameters.
+% Like with return function, we have to include (savings,riskyshare,a,z) as first inputs, then just any relevant parameters.
 FnsToEvaluate.riskyshare=@(savings,riskyshare,a,z) riskyshare; % riskyshare, is the fraction of savings invested in the risky asset
 FnsToEvaluate.earnings=@(savings,riskyshare,a,z,w,kappa_j) w*kappa_j*z; % labor earnings
 FnsToEvaluate.assets=@(savings,riskyshare,a,z) a; % a is the current asset holdings
-
 % notice that we have called these riskyshare, earnings and assets
 
 %% Calculate the life-cycle profiles
@@ -287,7 +281,6 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of riskyshare, earnings, and assets
-
 figure(5)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.riskyshare.Mean)
 title('Life Cycle Profile: Share of savings invested in risky asset (riskyshare)')
