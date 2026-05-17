@@ -101,7 +101,10 @@ ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,be
 
 %% Solve the value function iteration problem
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
-vfoptions=struct(); % Just using the defaults.
+vfoptions.divideandconquer=1; % turn on divide-and-conquer (divide-and-conquer is explained in Life-Cycle Model 29)
+vfoptions.gridinterplayer=1; % turn on grid interpolation layer (grid interpolation layer is explained in Life-Cycle Model 30)
+vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
+% vfoptions.lowmemory=1; % default=0, set =1 to use loops over z if you get a gpu out-of-memory error, the loops reduce memory use but slow the runtimes
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -234,7 +237,8 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
-simoptions=struct(); % use default options
+simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
+simoptions.ngridinterp=vfoptions.ngridinterp;
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 % StationaryDist has size [n_a, n_z, N_j]
 % StationaryDist(a_index, z_index, age) is the fraction of all households at that state, and sum(StationaryDist(:)) is 1.

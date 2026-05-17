@@ -119,6 +119,8 @@ ReturnFn=@(aprime,a,clag,z,w,sigma,agej,Jr,pension,r,kappa_j,lambda,mu,upsilon,t
 
 %% Solve the value function iteration problem
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
+% divide-and-conquer and grid interpolation layer cannot be applied to non-standard endogneous states, such as residualasset
+% divide-and-conquer and grid interpolation layer could be applied to the standard endogenous state, assets, but the toolkit does not currently support combining them with a residualasset
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc

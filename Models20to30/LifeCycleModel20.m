@@ -102,6 +102,13 @@ d_grid=h_grid;
 % In this example, agej obviously depends on age
 vfoptions.ExogShockFn=@(agej,Jr) LifeCycleModel20_ExogShockFn(agej,Jr);
 simoptions.ExogShockFn=vfoptions.ExogShockFn;
+
+% Use divide-and-conquer and grid interpolation layer (see Life-Cycle Models 29 and 30)
+vfoptions.divideandconquer=1; % turn on divide-and-conquer
+vfoptions.gridinterplayer=1; % turn on grid interpolation layer
+vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
+simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
+simoptions.ngridinterp=vfoptions.ngridinterp;
 % Both value function and simulations need to know about the age-dependence exogenous shocks
 
 % We will evaluate the ExogShockFn at agej=1, just because I want to use

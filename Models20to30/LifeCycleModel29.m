@@ -99,7 +99,7 @@ vftime1=toc
 
 %% Solve the value function iteration problem, with divide-and-conquer
 vfoptions.divideandconquer=1; % turn on divide-and-conquer, speeds up runtimes by exploiting (conditional) montonicity
-% vfoptions.level1n=sqrt(n_a); % default, number of points in 'first level' when performing divide-and-conquer (setting this is optional, different values will slightly change gpu memory use and runtimes)
+% vfoptions.level1n=round(sqrt(n_a)); % default, number of points in 'first level' when performing divide-and-conquer (setting this is optional, different values will slightly change gpu memory use and runtimes)
 tic;
 [V2, Policy2]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 vftime2=toc

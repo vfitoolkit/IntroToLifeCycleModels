@@ -112,6 +112,14 @@ simoptions.n_e=vfoptions.n_e;
 simoptions.e_grid=vfoptions.e_grid;
 simoptions.pi_e=vfoptions.pi_e;
 
+% Use divide-and-conquer and grid interpolation layer (see Life-Cycle Models 29 and 30)
+vfoptions.divideandconquer=1; % turn on divide-and-conquer
+vfoptions.gridinterplayer=1; % turn on grid interpolation layer
+vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
+% vfoptions.lowmemory=1; % default=0, set =1 to use loops (over e, or z if no e) if you get a gpu out-of-memory error, the loops reduce memory use but slow the runtimes [models with e & z can set =2]
+simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
+simoptions.ngridinterp=vfoptions.ngridinterp;
+
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
 % Switch into toolkit notation

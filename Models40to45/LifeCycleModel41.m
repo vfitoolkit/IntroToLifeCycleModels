@@ -130,8 +130,16 @@ vfoptions.aprimeFn=@(p,h,delta_h, h_accum) exp(log(h)+h_accum*p-delta_h*(1-p));
 % We also need to tell simoptions about the experience asset
 simoptions.experienceasset=1;
 simoptions.aprimeFn=vfoptions.aprimeFn;
-simoptions.d_grid=d_grid; % Needed to handle aprimeFn 
+simoptions.d_grid=d_grid; % Needed to handle aprimeFn
 simoptions.a_grid=a_grid; % Needed to handle aprimeFn
+
+% Use divide-and-conquer and grid interpolation layer on the standard endogenous state, assets (see Life-Cycle Models 29 and 30)
+vfoptions.divideandconquer=1; % turn on divide-and-conquer
+vfoptions.gridinterplayer=1; % turn on grid interpolation layer
+vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
+% vfoptions.lowmemory=1; % default=0, set =1 to use loops (over e, or z if no e) if you get a gpu out-of-memory error, the loops reduce memory use but slow the runtimes [models with e & z can set =2]
+simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
+simoptions.ngridinterp=vfoptions.ngridinterp;
 
 
 %% Now, create the return function
@@ -147,7 +155,6 @@ ReturnFn=@(p,aprime,a,h,z,w,sigma,psi,y_m,childcarecosts,agej,Jr,pension,r,wg1,w
 
 %% Solve the value function iteration problem
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
-vfoptions.divideandconquer=1; % exploit monotonicity of first endogenous state (assets)
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc

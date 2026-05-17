@@ -146,6 +146,10 @@ d_grid=h_grid;
 %% Now, create the return function
 DiscountFactorParamNames={'beta'}; 
 vfoptions.survivalprobability='sj';
+% Divide-and-conquer and Grid Interpolation Layer have not yet been implemented with Epstein-Zin preferences.
+% vfoptions.divideandconquer=1; % turn on divide-and-conquer (divide-and-conquer is explained in Life-Cycle Model 29)
+% vfoptions.gridinterplayer=1; % turn on grid interpolation layer (grid interpolation layer is explained in Life-Cycle Model 30)
+% vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
 % Note that because we have a warm-glow-of-bequests together with Epstein-Zin preferences we can no longer treat sj 
 % as just another discount factor (if you have EZ preferences but no warm-glow you can just put sj as another discount factor)
 

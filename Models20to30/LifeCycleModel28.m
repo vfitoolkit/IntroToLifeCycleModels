@@ -72,6 +72,13 @@ simoptions.n_semiz=vfoptions.n_semiz;
 simoptions.semiz_grid=vfoptions.semiz_grid;
 simoptions.SemiExoStateFn=vfoptions.SemiExoStateFn;
 
+% Use divide-and-conquer and grid interpolation layer (see Life-Cycle Models 29 and 30)
+vfoptions.divideandconquer=1; % turn on divide-and-conquer
+vfoptions.gridinterplayer=1; % turn on grid interpolation layer
+vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
+simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
+simoptions.ngridinterp=vfoptions.ngridinterp;
+
 % At the bottom of this code/script there are some lines showing you what
 % pi_semiz_J which is created internally looks like.
 

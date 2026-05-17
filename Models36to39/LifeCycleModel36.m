@@ -22,6 +22,11 @@ vfoptions.quasi_hyperbolic='Sophisticated'; % Default is 'Naive', alternative is
 
 % 3. Set the appropriate preference parameters.
 vfoptions.QHadditionaldiscount='beta0';
+
+% Use divide-and-conquer and grid interpolation layer (see Life-Cycle Models 29 and 30)
+vfoptions.divideandconquer=1; % turn on divide-and-conquer
+vfoptions.gridinterplayer=1; % turn on grid interpolation layer
+vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
 Params.beta0=0.85; % The quasi-hyperbolic discounting parameter controlling 'additional' discounting between 'today and tomorrow'
 % Params.beta      % The quasi-hyperbolic discounting parameter controlling discounting between any two periods (note that once combined with the survival probabilites this give a discount factor that is typically less than one).
 % Note that beta is set below.
@@ -188,7 +193,8 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
-simoptions=struct(); % Use the default options
+simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
+simoptions.ngridinterp=vfoptions.ngridinterp;
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of

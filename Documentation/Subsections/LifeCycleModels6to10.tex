@@ -78,6 +78,8 @@ As in Life-Cycle Model 5, we have to state where households start by setting $je
 
 The result is $StationaryDist$, a 3D array of size $[n_a, n_z, N_j]$ which represents the fraction of all households at each $(a, z, j)$, with entries summing to one. Almost everything we will compute from a model with heterogeneous agents---means, age-conditional statistics, Gini coefficients, life-cycle profiles---is an integral against this distribution.
 
+From here on out, you will see lines turning on \textit{vfoptions.divideandconquer} and \textit{vfoptions.gridinterplayer} in most of the codes; these make the value function iteration faster and more accurate, and are explained in Life-Cycle Models 29 and 30.
+
 \subsection{Life-Cycle model 9: Idiosyncratic shocks again, AR(1)}
 We introduced a shock $z$ that takes two possible values: employed or unemployed. Now let's change $z$ to being about labor productivity. We already have $\kappa_j$ as deterministic labor productivity depending on age. We will make $z$ an AR(1) process on labor productivity units.\footnote{AR(1) means 'autoregressive process of order 1'. An AR(1) process $y_t$ follows $y_t=(1-\rho)c+\rho+\epsilon_t$, $\epsilon_t \sim N(0,\sigma_{\epsilon}^2)$. It is a standard model in time-series econometrics. Note that by making the constant $(1-\rho)c$ it follows that $E[y_t]=c$, which gives a nice easy way to interpret $c$ and $\rho$.} The code allows for exogenous shock variables to be any discrete markov process, so we have to convert the AR(1) process $z$ into a markov process. There are many ways to do this, we will use Farmer-Toda; if you are interested in the alternatives like Rouwenhorst, Tauchen and Tauchen-Hussey, see Life-Cycle model A1.
 

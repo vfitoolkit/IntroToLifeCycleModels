@@ -218,8 +218,14 @@ ReturnFn=@(aprime,a,z1,upsilon,e,alpha,w,sigma,agej,Jr,pension,incomefloor,r,kap
 % We have no decision variable, one standard endogenous state, two markovs
 % and an i.i.d, so inputs start with (aprime,a,z1,upsilon,e,...)
 
+% Use divide-and-conquer and grid interpolation layer (see Life-Cycle Models 29 and 30)
+vfoptions.divideandconquer=1; % turn on divide-and-conquer
+vfoptions.gridinterplayer=1; % turn on grid interpolation layer
+vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
+simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
+simoptions.ngridinterp=vfoptions.ngridinterp;
+
 %% Solve the value function iteration problem
-vfoptions.divideandconquer=1; % exploit monotonicity
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz_PType(n_d,n_a,n_z,N_j, N_i, d_grid, a_grid, z_grid_J, pi_z_J, ReturnFn, Params, DiscountFactorParamNames, vfoptions);

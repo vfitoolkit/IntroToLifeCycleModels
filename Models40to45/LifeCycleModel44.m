@@ -1,27 +1,28 @@
-%% Life-Cycle Model A1: Idiosyncratic shocks again, AR(1), different discretization methods
-% This is the exact same model as Life-Cycle Model 9, it simply shows three
-% alternative methods to discretize the AR(1) process on z.
-% AR(1) process, z_t=0+rho_z z_{t-1}+epsilon_{z,t}, epsilon_{z,t} ~N(0,sigma_{epsilon,z}^2)
+%% Life-Cycle Model 44: Two endogenous states (liquid and illiquid assets)
+% When using two endogenous states you essentially put
+% (...a1prime,a2prime,a1,a2,...)
+% in ReturnFn, FnsToEvaluate, etc.
 %
-% As well as the Farmer-Toda method, we see how to implement the
-% Rouwenhorst, Tauchen, and Tauchen-Hussey methods. We use an if statement
-% to choose which to do, based on the following variable
-DiscretizeAR1method='FarmerToda';
-% Options: 'FarmerToda', 'Rouwenhorst','Tauchen', 'TauchenHussey'.
+% Models with just one asset do not generate a realistic distribution of
+% the marginal propensity to consume. Models with an illiquid asset have
+% been identified as one one to improve this and have a more realistic
+% distribution of the marginal propensity to consume by creating
+% 'wealthy-hand-to-mouth' households which have assets and still have a large
+% marginal propensity to consume because their assets are illiquid and they
+% have almost no liquid assets.
 
-% I recommend that you use Farmer-Toda method, except when rho_z (the
-% autocorrelation of the AR(1)) is >=0.99, then use Rouwenhorst. I
-% recommend against using Tauchen or Tauchen-Hussey methods. (They used to
-% be fine, but we nowadays simply have better alternatives.)
+% Two other aspects of the setup worth highlighting:
+% n_a=[5,11] % n_a is the number of grid points for each of the two assets
+% a_grid=[a1_grid; a2_grid] % a_grid just stacks the column vector for a1_grid and a2_grid on top of each other
 
-% The only differences in implementing one of these discretization methods
-% is the command, see roughly line 96
+% The illiquid asset incurs an adjustment cost if the quantity changes
+% Params.adjcost
 
 %% How does VFI Toolkit think about this?
 %
 % One decision variable: h, labour hours worked
-% One endogenous state variable: a, assets (total household savings)
-% One stochastic exogenous state variable: z, an AR(1) process (in logs), idiosyncratic shock to labor productivity units
+% Two endogenous state variable: a1 liquid assets and a2 illiquid assets
+% Two stochastic exogenous state variables: z and e, persistent and transitory shocks to labor efficiency units, respectively
 % Age: j
 
 %% Begin setting up to use VFI Toolkit to solve
@@ -31,9 +32,10 @@ Params.agejshifter=19; % Age 20 minus one. Makes keeping track of actual age eas
 Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
-n_d=51; % Endogenous labour choice (fraction of time worked)
-n_a=201; % Endogenous asset holdings
-n_z=21;  % Exogenous labor productivity units shock
+n_d=5; % Endogenous labour choice (fraction of time worked)
+n_a=[21,21]; % Endogenous asset holdings
+n_z=11; % Exogenous labor productivity units shocks, persistent and transitory
+n_e=3;
 N_j=Params.J; % Number of periods in finite horizon
 
 %% Parameters
@@ -45,9 +47,13 @@ Params.sigma = 2; % Coeff of relative risk aversion (curvature of consumption)
 Params.eta = 1.5; % Curvature of leisure (This will end up being 1/Frisch elasticity)
 Params.psi = 10; % Weight on leisure
 
+% Illiquid asset
+Params.adjcost=0.1; % Adjustment cost
+
 % Prices
 Params.w=1; % Wage
-Params.r=0.05; % Interest rate (0.05 is 5%)
+Params.r1=0.03; % Rate of return on liquid assets
+Params.r2=0.06; % Rate of return on illiquid assets
 
 % Demographics
 Params.agej=1:1:Params.J; % Is a vector of all the agej: 1,2,3,...,J
@@ -58,9 +64,11 @@ Params.pension=0.3;
 
 % Age-dependent labor productivity units
 Params.kappa_j=[linspace(0.5,2,Params.Jr-15),linspace(2,1,14),zeros(1,Params.J-Params.Jr+1)];
-% Exogenous shock process: AR1 on labor productivity units
+% persistent AR(1) process on idiosyncratic labor productivity units
 Params.rho_z=0.9;
-Params.sigma_epsilon_z=0.03;
+Params.sigma_epsilon_z=0.02;
+% transitory iid normal process on idiosyncratic labor productivity units
+Params.sigma_epsilon_e=0.2; % Implicitly, rho_e=0
 
 % Conditional survival probabilities: sj is the probability of surviving to be age j+1, given alive at age j
 % Most countries have calculations of these (as they are used by the government departments that oversee pensions)
@@ -84,26 +92,41 @@ Params.wg3=Params.sigma; % By using the same curvature as the utility of consump
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
-a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
+a1_grid=10*(linspace(0,1,n_a(1)).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
+a2_grid=10*(linspace(0,1,n_a(2)).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
+a_grid=[a1_grid; a2_grid]; % stacked column vectors
 
 % First, the AR(1) process z
-% Note: Many of these methods have options that can be set. We just use the
-% default settings. Look at the 'help' or code for any of them for an explanation 
-% of the options, and for citations to the papers that explain them.
-switch DiscretizeAR1method
-    case 'FarmerToda'
-        [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
-    case 'Rouwenhorst'
-        [z_grid,pi_z]=discretizeAR1_Rouwenhorst(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
-    case 'Tauchen'
-        Tauchen_q=3; % Hyperparameter required by Tauchen method
-        [z_grid,pi_z]=discretizeAR1_Tauchen(0,Params.rho_z,Params.sigma_epsilon_z,n_z,Tauchen_q);
-    case 'TauchenHussey'
-        [z_grid,pi_z]=discretizeAR1_TauchenHussey(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
+if Params.rho_z<0.99
+    [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
+elseif Params.rho_z>=0.99 % Rouwenhorst performs better than Farmer-Toda when the autocorrelation is very high
+    [z_grid,pi_z]=discretizeAR1_Rouwenhorst(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
 end
 z_grid=exp(z_grid); % Take exponential of the grid
 [mean_z,~,~,~]=MarkovChainMoments(z_grid,pi_z); % Calculate the mean of the grid so as can normalise it
-z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is exactly 1)
+z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is 1)
+% Now the iid normal process e
+[e_grid,pi_e]=discretizeAR1_FarmerToda(0,0,Params.sigma_epsilon_e,n_e);
+e_grid=exp(e_grid); % Take exponential of the grid
+pi_e=pi_e(1,:)'; % Because it is iid, the distribution is just the first row (all rows are identical). We use pi_e as a column vector for VFI Toolkit to handle iid variables.
+mean_e=pi_e'*e_grid; % Because it is iid, pi_e is the stationary distribution (you could just use MarkovChainMoments(), I just wanted to demonstrate a handy trick)
+e_grid=e_grid./mean_e; % Normalise the grid on z (so that the mean of e is 1)
+% To use e variables we have to put them into the vfoptions and simoptions
+vfoptions.n_e=n_e;
+vfoptions.e_grid=e_grid;
+vfoptions.pi_e=pi_e;
+simoptions.n_e=vfoptions.n_e;
+simoptions.e_grid=vfoptions.e_grid;
+simoptions.pi_e=vfoptions.pi_e;
+
+% Use divide-and-conquer and grid interpolation layer (see Life-Cycle Models 29 and 30)
+% With two standard endogenous states, divide-and-conquer and grid interpolation layer are applied (only) to the first endogenous state.
+vfoptions.divideandconquer=1; % turn on divide-and-conquer
+vfoptions.gridinterplayer=1; % turn on grid interpolation layer
+vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive grid points on the first endogenous state
+simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
+simoptions.ngridinterp=vfoptions.ngridinterp;
+
 
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
@@ -113,41 +136,59 @@ d_grid=h_grid;
 %% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
-% Note 'LifeCycleModelA1_ReturnFn' is just a copy paste of 'LifeCycleModel8_ReturnFn'
-ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)...
-    LifeCycleModelA1_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
+% Use 'LifeCycleModel40_ReturnFn'
+ReturnFn=@(h,a1prime,a2prime,a1,a2,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r1,r2,adjcost,kappa_j,wg1,wg2,wg3,beta,sj)...
+    LifeCycleModel40_ReturnFn(h,a1prime,a2prime,a1,a2,z1,z2,w,sigma,psi,eta,agej,Jr,pension,r1,r2,adjcost,kappa_j,wg1,wg2,wg3,beta,sj)
 
 %% Solve the value function iteration problem
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
-% Use divide-and-conquer and grid interpolation layer (see Life-Cycle Models 29 and 30)
-vfoptions.divideandconquer=1; % turn on divide-and-conquer
-vfoptions.gridinterplayer=1; % turn on grid interpolation layer
-vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
-simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
-simoptions.ngridinterp=vfoptions.ngridinterp;
+vfoptions.verbose=1;
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
 
-% V is now (a,z,j). This was already true, just that previously z was trivial (a single point) 
+% V is now (a,z,e,j). One dimension for each state variable.
 % Compare
 size(V)
 % with
-[n_a,n_z,N_j]
+[n_a,n_z,n_e,N_j]
 % there are the same.
 % Policy is
 size(Policy)
 % which is the same as
-[length(n_d)+length(n_a),n_a,n_z,N_j]
-% The n_a,n_z,N_j represent the state on which the decisions/policys
-% depend, and there is one decision for each decision variable 'd' and each endogenous state variable 'a'
+[length(n_d)+length(n_a),n_a,n_z,n_e,N_j]
+% The n_a,n_z,n_e,N_j represent the state on which the decisions/policys
+% depend, and there is one decision for each decision variable 'd' and each
+% endogenous state variable 'a', and one for the markov exogenous state variable
+% 'z', and one for the markov exogenous state variable 'e'.
+
+%% Testing divide-and-conquer
+vfoptions.divideandconquer=0;
+tic;
+[V0, Policy0]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
+toc
+
+vfoptions.divideandconquer=1;
+vfoptions.level1n=[3,n_a(2)]; % DC2B
+tic;
+[V1, Policy1]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
+toc
+
+vfoptions.divideandconquer=1;
+vfoptions.level1n=[5,5]; % DC2
+tic;
+[V1, Policy1]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
+toc
+
+
+%% We won't plot the Value and Policy fn, but thinking out how you would might be a good way to check you understand the form of V and Policy
 
 %% Now, we want to graph Life-Cycle Profiles
 
 %% Initial distribution of agents at birth (j=1)
 % Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
-jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,floor((n_z+1)/2))=1; % All agents start with zero assets, and the median shock
+jequaloneDist=zeros([n_a,n_z,n_e],'gpuArray'); % Put no households anywhere on grid
+jequaloneDist(1,floor((n_z+1)/2),floor((n_e+1)/2))=1; % All agents start with zero assets, and the median value of each shock
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -163,9 +204,9 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (h,aprime,a,z) as first inputs, then just any relevant parameters.
-FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z) h; % h is fraction of time worked
-FnsToEvaluate.earnings=@(h,aprime,a,z,w,kappa_j) w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
-FnsToEvaluate.assets=@(h,aprime,a,z) a; % a is the current asset holdings
+FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z,e) h; % h is fraction of time worked
+FnsToEvaluate.earnings=@(h,aprime,a,z,e,w,kappa_j) w*kappa_j*h*z*e; % w*kappa_j*h*z*e is the labor earnings
+FnsToEvaluate.assets=@(h,aprime,a,z,e) a; % a is the current asset holdings
 % notice that we have called these fractiontimeworked, earnings and assets
 
 %% Calculate the life-cycle profiles
@@ -179,11 +220,11 @@ AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEva
 % are meaningful and worth looking at.
 
 %% Plot the life cycle profiles of fraction-of-time-worked, earnings, and assets
-figure(5)
+figure(1)
 subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
-title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
+title('Life Cycle Profile: Labor Earnings (w kappa_j h)')
 subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 

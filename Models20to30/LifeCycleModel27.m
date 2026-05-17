@@ -26,10 +26,7 @@
 % modifying the return function, where fc is the fixed cost; you could model it 
 % so the fixed cost is only incurred if both work).
 %
-% This example is a larger model than most, so to still be able to solve it
-% on a gpu with 8gb gpu-memory we use vfoptions.lowmemory=1 (and
-% vfoptions.paroverz=1) so that the value function is solved looping over
-% the e variables but parallel over the z variables.
+% This example is a larger model than most.
 
 %% How does VFI Toolkit think about this?
 %
@@ -132,6 +129,13 @@ simoptions.n_e=vfoptions.n_e;
 simoptions.e_grid=vfoptions.e_grid;
 simoptions.pi_e=vfoptions.pi_e;
 
+% Use divide-and-conquer and grid interpolation layer (see Life-Cycle Models 29 and 30)
+vfoptions.divideandconquer=1; % turn on divide-and-conquer
+vfoptions.gridinterplayer=1; % turn on grid interpolation layer
+vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
+simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
+simoptions.ngridinterp=vfoptions.ngridinterp;
+
 % Grid for labour choice
 h1_grid=linspace(0,1,n_d(1))'; % Notice that it is imposing the 0<=h1<=1 condition implicitly
 h2_grid=linspace(0,1,n_d(2))'; % Notice that it is imposing the 0<=h2<=1 condition implicitly
@@ -147,9 +151,6 @@ ReturnFn=@(h1,h2,aprime,a,z1,z2,e1,e2,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j_
 
 %% Solve the value function iteration problem
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
-% Note: on a more powerful GPU you can set lowmemory=0 (which is the default) and things will run faster.
-vfoptions.lowmemory=1;
-vfoptions.paroverz=1;
 vfoptions.verbose=1;
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);

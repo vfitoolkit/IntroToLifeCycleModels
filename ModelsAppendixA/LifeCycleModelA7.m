@@ -192,6 +192,13 @@ simoptions.n_e=vfoptions.n_e;
 simoptions.e_grid=vfoptions.e_grid;
 simoptions.pi_e=vfoptions.pi_e;
 
+% Use divide-and-conquer and grid interpolation layer (see Life-Cycle Models 29 and 30)
+vfoptions.divideandconquer=1; % turn on divide-and-conquer
+vfoptions.gridinterplayer=1; % turn on grid interpolation layer
+vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
+simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
+simoptions.ngridinterp=vfoptions.ngridinterp;
+
 %% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
@@ -202,7 +209,6 @@ ReturnFn=@(h,aprime,a,z1,z2,z3,e1,e2,e3,w,sigma,psi,eta,agej,Jr,pension,r,kappa_
 
 %% Solve the value function iteration problem
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
-% vfoptions=struct(); % Just using the defaults.
 vfoptions.lowmemory=1; % This problem is big, so use lowmemory (more loops, so slower but less memory)
 vfoptions.verbose=1; % since it will be slower, get info on progress
 tic;
@@ -243,7 +249,6 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
-% simoptions=struct(); % Use the default options
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 
 

@@ -183,6 +183,8 @@ ReturnFn=@(savings,hprime,h,a,z,w,sigma,agej,Jr,pension,kappa_j,sigma_h,f_htc,mi
 %% Solve the value function iteration problem
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
 vfoptions.verbose=1;
+% divide-and-conquer and grid interpolation layer cannot be applied to non-standard endogneous states, such as riskyasset
+% divide-and-conquer and grid interpolation layer could be applied to the standard endogenous state, housing, but since it has only a few grid points divide-and-conquer would not acheive much, and grid interpolation would not make sense to do (as we want only 'whole' houses)
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc

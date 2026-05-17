@@ -154,6 +154,14 @@ simoptions.n_u=vfoptions.n_u;
 simoptions.u_grid=vfoptions.u_grid;
 simoptions.pi_u=vfoptions.pi_u;
 
+% Use divide-and-conquer and grid interpolation layer on the standard endogenous state, assets (see Life-Cycle Models 29 and 30)
+vfoptions.divideandconquer=1; % turn on divide-and-conquer
+vfoptions.gridinterplayer=1; % turn on grid interpolation layer
+vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
+% vfoptions.lowmemory=1; % default=0, set =1 to use loops (over e, or z if no e) if you get a gpu out-of-memory error, the loops reduce memory use but slow the runtimes [models with e & z can set =2]
+simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
+simoptions.ngridinterp=vfoptions.ngridinterp;
+
 % To better understand the human capital production function, here is a graph of it
 hprime_shu=zeros([n_a,n_u]);
 for hh=1:n_a(2)
@@ -189,7 +197,6 @@ ReturnFn=@(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,wg1,wg2,wg3,beta,s
 %% Solve the value function iteration problem
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
 vfoptions.verbose=1; % give feedback
-vfoptions.divideandconquer=1; % exploit monotonicity of first endogenous state (assets)
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc

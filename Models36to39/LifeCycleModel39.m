@@ -160,6 +160,11 @@ vfoptions.exoticpreferences='AmbiguityAversion';
 vfoptions.n_ambiguity=n_ambiguity;
 vfoptions.ambiguity_pi_z_J=ambiguity_pi_z_J;
 
+% Divide-and-conquer and Grid Interpolation Layer have not yet been implemented with Ambiguity Aversion preferences.
+% vfoptions.divideandconquer=1; % turn on divide-and-conquer (divide-and-conquer is explained in Life-Cycle Model 29)
+% vfoptions.gridinterplayer=1; % turn on grid interpolation layer (grid interpolation layer is explained in Life-Cycle Model 30)
+% vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
+
 %% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 

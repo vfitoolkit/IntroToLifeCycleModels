@@ -86,6 +86,11 @@ d_grid=[];
 %% Set up the temptation function in terms of (d,aprime,a,z) (this model does not have d), doing this is a lot like just a copy of the return function
 vfoptions.temptationFn=@(aprime,a,z,w,sigmatempt,scaletemptation,agej,Jr,pension,r,kappa_j) LifeCycleModel37_TemptationFn(aprime,a,z,w,sigmatempt,scaletemptation,agej,Jr,pension,r,kappa_j);
 
+% Divide-and-conquer and Grid Interpolation Layer have not yet been implemented with Gul-Pesendorfer preferences.
+% vfoptions.divideandconquer=1; % turn on divide-and-conquer (divide-and-conquer is explained in Life-Cycle Model 29)
+% vfoptions.gridinterplayer=1; % turn on grid interpolation layer (grid interpolation layer is explained in Life-Cycle Model 30)
+% vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
+
 %% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 

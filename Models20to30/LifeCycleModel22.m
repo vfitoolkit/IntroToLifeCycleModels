@@ -109,7 +109,9 @@ ReturnFn=@(h,aprime,a,z,w,sigma1,sigma2,g,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,
 
 %% Solve the value function iteration problem
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
-vfoptions=struct(); % Just using the defaults.
+vfoptions.divideandconquer=1; % turn on divide-and-conquer (divide-and-conquer is explained in Life-Cycle Model 29)
+vfoptions.gridinterplayer=1; % turn on grid interpolation layer (grid interpolation layer is explained in Life-Cycle Model 30)
+vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
 tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
@@ -138,6 +140,8 @@ FnsToEvaluate.ahat=@(h,aprime,a,z) a; % a is the current asset holdings
 % To simulate panel data we will set the number of time periods
 simoptions.simperiods=N_j; % N_j is the default value
 simoptions.numbersims=10^3; % 10^3 is the default value
+simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
+simoptions.ngridinterp=vfoptions.ngridinterp;
 % To simulate panel data you have to define 'where' an individual household
 % simulation starts from, we will use the jequaloneDist (from which
 % starting points will be drawn randomly)
