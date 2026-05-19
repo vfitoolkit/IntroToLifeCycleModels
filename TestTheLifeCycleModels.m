@@ -35,7 +35,7 @@ clear all
 LifeCycleModel11
 
 clear all
-LifeCycleModel12 % FIX THIS ONE!
+LifeCycleModel12
 
 clear all
 LifeCycleModel13
@@ -70,17 +70,17 @@ clear all
 LifeCycleModel22
 
 clear all
-LifeCycleModel23 % FIX THIS ONE!
+LifeCycleModel23
 
 clear all
-LifeCycleModel24 % FIX THIS ONE!
+LifeCycleModel24
 
 % There is no model 25 (yet)
 % clear all
 % LifeCycleModel25
 
 clear all
-LifeCycleModel26 % FIX THIS ONE!
+LifeCycleModel26
 
 clear all
 LifeCycleModel27

@@ -154,7 +154,7 @@ catch ME
 end
 
 % We can use Matlab function cov2corr() to get the correlation matrix (and vector of standard deviations) from our covariance matrix.
-[StdDevVector,CorrMatrix] = cov2corr(InitialDistCovarMatrix);
+[StdDevVector,CorrMatrix] = cov2corr_homemade(InitialDistCovarMatrix);
 % Note: the diagonals of the correlation matrix are always ones by definition/construction
 
 % The key contribution of AH2021 is how we can parametrize this correlation matrix as a vector.
