@@ -18,7 +18,8 @@ end
 resources=income+(1+r)*a+(1-delta_o)*h-tau_hhprime;
 
 if hprime==0
-    %% Renter: split cspend into c and p*d analytically
+    %% Renter: split cspend into c and p*d analytically (see
+    % http://discourse.vfitoolkit.com/t/models-with-housing-a-simplification-to-handle-renters-splitting-cspend-analytically-into-consumption-c-and-housing-services-d/653)
     cspend=resources-aprime; % cspend=c+p*d
     if upsilon==0
         consumption=theta*cspend;

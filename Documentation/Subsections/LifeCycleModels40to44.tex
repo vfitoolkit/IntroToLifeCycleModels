@@ -44,7 +44,7 @@ Letting $y_j = w \kappa_j z$ if $j<Jr$ and $y_j=pension$ otherwise, and writing 
 && \phantom{\text{if owner (}hprime>0\text{):}} \; aprime \geq -(1-\gamma) hprime \\
 && log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
 \end{eqnarray*}
-Note that for the renter the static choice of $d$ given $cspend\equiv c+pd$ has a closed-form CES solution, so $d$ does not need to be carried as a decision variable: the return function simply splits $cspend$ analytically into $c$ and $pd$.
+Note that for the renter the static choice of $d$ given $cspend\equiv c+pd$ has a closed-form CES solution, so $d$ does not need to be carried as a decision variable: the return function simply splits $cspend$ analytically into $c$ and $pd$. The derivation is at \url{http://discourse.vfitoolkit.com/t/models-with-housing-a-simplification-to-handle-renters-splitting-cspend-analytically-into-consumption-c-and-housing-services-d/653}.
 
 Setting up two standard endogenous states is straightforward: $n\_{}a=[n\_{}a_1,n\_{}a_2]$ and $a\_{}grid$ is a stacked column vector containing the asset grid on top of the housing grid. In the return function and FnsToEvaluate the first inputs are $(a1prime,a2prime,a1,a2,z,\dots)$. We use $vfoptions.divideandconquer=1$ and $vfoptions.gridinterplayer=1$, both of which are applied to the first endogenous state only; for that reason we put assets (which needs many grid points) first and housing (which needs few) second.
 

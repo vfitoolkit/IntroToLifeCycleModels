@@ -26,7 +26,9 @@ if hprime==0
     cspend=resources-aprime; % cspend=c+p*d
     if cspend>0
         % Analytic split of cspend into c and p*d from the CES first-order
-        % condition with budget c+p*d=cspend.
+        % condition with budget c+p*d=cspend. See
+        % http://discourse.vfitoolkit.com/t/models-with-housing-a-simplification-to-handle-renters-splitting-cspend-analytically-into-consumption-c-and-housing-services-d/653
+        % for the derivation.
         if upsilon==0
             % Cobb-Douglas limit
             c=theta*cspend;

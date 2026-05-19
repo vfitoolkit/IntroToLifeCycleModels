@@ -27,6 +27,8 @@
 % purchased by a renter, can be solved for analytically and so does not
 % need to be included in the code as a decision variable (instead the
 % analytic solution is just included in the return function as a formula).
+% See http://discourse.vfitoolkit.com/t/models-with-housing-a-simplification-to-handle-renters-splitting-cspend-analytically-into-consumption-c-and-housing-services-d/653
+% for the derivation.
 
 %% How does VFI Toolkit think about this?
 %
