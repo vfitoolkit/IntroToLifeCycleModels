@@ -82,18 +82,21 @@ Params.wg3=Params.sigma; % By using the same curvature as the utility of consump
 
 
 %% Grids
+precision='double';
+precision_cast=@(x) double(x)
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
-a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
+a_grid=precision_cast(10*(linspace(0,1,n_a).^3)'); % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
 % First, the AR(1) process z
 [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
 z_grid=exp(z_grid); % Take exponential of the grid
 [mean_z,~,~,statdist_z]=MarkovChainMoments(z_grid,pi_z); % Calculate the mean of the grid so as can normalise it
-z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is exactly 1)
+z_grid=precision_cast(z_grid./mean_z); % Normalise the grid on z (so that the mean of z is exactly 1)
+pi_z=precision_cast(pi_z);
 
 % Grid for labour choice
-h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
+h_grid=linspace(precision_cast(0),precision_cast(1),n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
 % Switch into toolkit notation
 d_grid=h_grid;
 
@@ -101,8 +104,13 @@ d_grid=h_grid;
 DiscountFactorParamNames={'beta','sj'};
 
 % Notice we still use 'LifeCycleModel8_ReturnFn'
-ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
+if strcmp(precision,'single')
+    ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)... 
+        LifeCycleModel8_ReturnFn_single(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
+else
+    ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj)... 
+        LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
+end
 
 %% Solve the value function iteration problem
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
@@ -115,16 +123,16 @@ toc
 
 %% Initial distribution of agents at birth (j=1)
 % Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
-jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, with z drawn from its stationary distribution
+jequaloneDist=zeros([n_a,n_z],precision,'gpuArray'); % Put no households anywhere on grid
+jequaloneDist(1,:)=precision_cast(statdist_z); % All agents start with zero assets, with z drawn from its stationary distribution
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
 % probabilities sj to calculate the mass of those who survive to next
 % period, repeat. Once done for all ages, normalize to one
-Params.mewj=ones(1,Params.J); % Marginal distribution of households over age
+Params.mewj=ones(1,Params.J,precision); % Marginal distribution of households over age
 for jj=2:length(Params.mewj)
-    Params.mewj(jj)=Params.sj(jj-1)*Params.mewj(jj-1);
+    Params.mewj(jj)=precision_cast(Params.sj(jj-1))*Params.mewj(jj-1);
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
@@ -136,7 +144,12 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 FnsToEvaluate.fractiontimeworked=@(h,aprime,a,z) h; % h is fraction of time worked
 FnsToEvaluate.earnings=@(h,aprime,a,z,w,kappa_j) w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings (note: h will be zero when z is zero, so could just use w*kappa_j*h)
 FnsToEvaluate.assets=@(h,aprime,a,z) a; % a is the current asset holdings
-FnsToEvaluate.consumption=@(h,aprime,a,z,agej,Jr,w,kappa_j,r,pension) (agej<Jr)*(w*kappa_j*z*h+(1+r)*a-aprime)+(agej>=Jr)*(pension+(1+r)*a-aprime);
+if strcmp(precision,'single')
+    % Cannot nest anonymous function calls
+    FnsToEvaluate.consumption=@(h,aprime,a,z,agej,Jr,w,kappa_j,r,pension) (agej<Jr)*(w*kappa_j*z*h+(single(1)+r)*a-aprime)+(agej>=Jr)*(pension+(single(1)+r)*a-aprime);
+else
+    FnsToEvaluate.consumption=@(h,aprime,a,z,agej,Jr,w,kappa_j,r,pension) (agej<Jr)*(w*kappa_j*z*h+(1+r)*a-aprime)+(agej>=Jr)*(pension+(1+r)*a-aprime);
+end
 
 %% Calculate the life-cycle profiles
 AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
@@ -151,8 +164,8 @@ store_n_z=n_z; % Need n_z later to do exogenous labor with shocks
 n_z=1;
 z_grid=1;
 pi_z=1;
-jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,1)=1; 
+jequaloneDist=zeros([n_a,n_z],precision,'gpuArray'); % Put no households anywhere on grid
+jequaloneDist(1,1)=precision_cast(1); 
 % ReturnFn is unchanged
 [V_noshock, Policy_noshock]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 StationaryDist_noshock=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy_noshock,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
@@ -184,22 +197,32 @@ n_z=store_n_z;
 [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
 z_grid=exp(z_grid); % Take exponential of the grid
 [mean_z,~,~,statdist_z]=MarkovChainMoments(z_grid,pi_z); % Calculate the mean of the grid so as can normalise it
-z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is exactly 1)
-jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, with z drawn from its stationary distribution
+z_grid=precision_cast(z_grid./mean_z); % Normalise the grid on z (so that the mean of z is exactly 1)
+pi_z=precision_cast(pi_z);
+jequaloneDist=zeros([n_a,n_z],precision,'gpuArray'); % Put no households anywhere on grid
+jequaloneDist(1,:)=precision_cast(statdist_z); % All agents start with zero assets, with z drawn from its stationary distribution
 
 % Switch to exogenous labor supply
 n_d=0; % None
 d_grid=[]; % No decision variables
 % Change return function
-ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,meanearningsratio) ...
-    LifeCycleModel18B_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,meanearningsratio);
+if strcmp(precision,'single')
+    ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,meanearningsratio) ...
+        LifeCycleModel18B_ReturnFn_single(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,meanearningsratio);
+else
+    ReturnFn=@(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,meanearningsratio) ...
+        LifeCycleModel18B_ReturnFn(aprime,a,z,w,sigma,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj,meanearningsratio);
+end
 [V_exo, Policy_exo]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 StationaryDist_exo=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy_exo,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 % Change FnsToEvaluate
 FnsToEvaluate_exo.earnings=@(aprime,a,z,w,kappa_j,meanearningsratio) meanearningsratio*w*kappa_j*z; % z is the 'stochastic endowment' or 'exogenous earnings'
 FnsToEvaluate_exo.assets=@(aprime,a,z) a; % a is the current asset holdings
-FnsToEvaluate_exo.consumption=@(aprime,a,z,agej,Jr,w,kappa_j,r,pension,meanearningsratio) (agej<Jr)*(meanearningsratio*w*kappa_j*z+(1+r)*a-aprime)+(agej>=Jr)*(pension+(1+r)*a-aprime);
+if strcmp(precision,'single')
+    FnsToEvaluate_exo.consumption=@(aprime,a,z,agej,Jr,w,kappa_j,r,pension,meanearningsratio) (agej<Jr)*(meanearningsratio*w*kappa_j*z+(single(1)+r)*a-aprime)+(agej>=Jr)*(pension+(single(1)+r)*a-aprime);
+else
+    FnsToEvaluate_exo.consumption=@(aprime,a,z,agej,Jr,w,kappa_j,r,pension,meanearningsratio) (agej<Jr)*(meanearningsratio*w*kappa_j*z+(1+r)*a-aprime)+(agej>=Jr)*(pension+(1+r)*a-aprime);
+end
 
 AgeConditionalStats_exo=LifeCycleProfiles_FHorz_Case1(StationaryDist_exo,Policy_exo,FnsToEvaluate_exo,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
@@ -208,10 +231,10 @@ AllStats_exo=EvalFnOnAgentDist_AllStats_FHorz_Case1(StationaryDist_exo, Policy_e
 
 %% Solve a third time, this time with exogenous labor supply and no shocks (deterministic model)
 n_z=1;
-z_grid=1;
-pi_z=1;
-jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,1)=1; 
+z_grid=precision_cast(1);
+pi_z=precision_cast(1);
+jequaloneDist=zeros([n_a,n_z],precision,'gpuArray'); % Put no households anywhere on grid
+jequaloneDist(1,1)=precision_cast(1); 
 [V_exonoshock, Policy_exonoshock]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 StationaryDist_exonoshock=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy_exonoshock,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 % FnsToEvaluate_exo are unchanged
