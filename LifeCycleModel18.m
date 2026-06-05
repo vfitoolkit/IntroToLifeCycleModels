@@ -89,11 +89,12 @@ precision_cast=@(x) single(x)
 a_grid=precision_cast(10*(linspace(0,1,n_a).^3)'); % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
 % First, the AR(1) process z
-[z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
+farmertodaoptions.precision=precision;
+mcmomentsoptions.precision=precision;
+[z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z,farmertodaoptions);
 z_grid=exp(z_grid); % Take exponential of the grid
-[mean_z,~,~,statdist_z]=MarkovChainMoments(z_grid,pi_z); % Calculate the mean of the grid so as can normalise it
-z_grid=precision_cast(z_grid./mean_z); % Normalise the grid on z (so that the mean of z is exactly 1)
-pi_z=precision_cast(pi_z);
+[mean_z,~,~,statdist_z]=MarkovChainMoments(z_grid,pi_z,mcmomentsoptions); % Calculate the mean of the grid so as can normalise it
+z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is exactly 1)
 
 % Grid for labour choice
 h_grid=linspace(precision_cast(0),precision_cast(1),n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
@@ -124,7 +125,7 @@ toc
 %% Initial distribution of agents at birth (j=1)
 % Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z],precision,'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,:)=precision_cast(statdist_z); % All agents start with zero assets, with z drawn from its stationary distribution
+jequaloneDist(1,:)=statdist_z; % All agents start with zero assets, with z drawn from its stationary distribution
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -194,11 +195,10 @@ Params.meanearningsratio=0.4767/0.9682;
 %% Solve a second time, but this time with exogenous labor supply
 % Turn shocks back on
 n_z=store_n_z;
-[z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
+[z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z,farmertodaoptions);
 z_grid=exp(z_grid); % Take exponential of the grid
-[mean_z,~,~,statdist_z]=MarkovChainMoments(z_grid,pi_z); % Calculate the mean of the grid so as can normalise it
-z_grid=precision_cast(z_grid./mean_z); % Normalise the grid on z (so that the mean of z is exactly 1)
-pi_z=precision_cast(pi_z);
+[mean_z,~,~,statdist_z]=MarkovChainMoments(z_grid,pi_z,mcmomentsoptions); % Calculate the mean of the grid so as can normalise it
+z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is exactly 1)
 jequaloneDist=zeros([n_a,n_z],precision,'gpuArray'); % Put no households anywhere on grid
 jequaloneDist(1,:)=precision_cast(statdist_z); % All agents start with zero assets, with z drawn from its stationary distribution
 

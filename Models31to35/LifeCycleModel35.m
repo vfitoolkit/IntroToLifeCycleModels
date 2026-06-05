@@ -64,6 +64,13 @@ vfoptions.refine_d=[0,1,1]; % tell the code how many d1, d2, and d3 there are
 % It is possible to solve models without any d1, as is the case here.
 simoptions.refine_d=vfoptions.refine_d;
 
+precision='single';
+if strcmp(precision,'single')
+    precision_cast=@(x) single(x)
+else
+    precision_cast=@(x) double(x)
+end
+
 %% Parameters
 
 % Housing
@@ -89,7 +96,9 @@ Params.r=0.05; % Rate of return on risk free asset
 Params.rp=0.03; % Mean excess returns to the risky asset (so the mean return of the risky asset will be r+rp)
 Params.sigma_u=0.025; % Standard deviation of innovations to the risky asset
 Params.rho_u=0; % Asset return risk component is modeled as iid (if you regress, e.g., the percent change in S&P500 on its one year lag you get a coefficient of essentially zero)
-[u_grid, pi_u]=discretizeAR1_FarmerToda(Params.rp,Params.rho_u,Params.sigma_u,n_u);
+farmertodaoptions.precision=precision;
+mcmomentsoptions.precision=precision;
+[u_grid, pi_u]=discretizeAR1_FarmerToda(Params.rp,Params.rho_u,Params.sigma_u,n_u,farmertodaoptions);
 pi_u=pi_u(1,:)'; % This is iid
 
 % Demographics
@@ -120,31 +129,32 @@ Params.sj=1-Params.dj(21:101); % Conditional survival probabilities
 Params.sj(end)=0; % In the present model the last period (j=J) value of sj is actually irrelevant
 
 %% Grids
+
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
-asset_grid=-3+13*(linspace(0,1,n_a(2)))'; % Note, I use equal spacing (normally would put most points near zero)
+asset_grid=-3+13*(linspace(precision_cast(0),precision_cast(1),n_a(2)))'; % Note, I use equal spacing (normally would put most points near zero)
 % note: will go from -3 to 13-3
 % Make it so that there is a zero assets
 % Find closest to zero assets
 [~,zeroassetindex]=min(abs(asset_grid));
-asset_grid(zeroassetindex)=0;
+asset_grid(zeroassetindex)=precision_cast(0);
 
 % age20avgincome=Params.w*Params.kappa_j(1);
 % house_grid=[0; logspace(2*age20avgincome, 12*age20avgincome, 5)'];
-house_grid=(0:1:n_a(1)-1)';
+house_grid=(precision_cast(0):n_a(1)-1)';
 % Note, we can see from w*kappa_j*z and the values of these, that average
 % income is going to be around one, so will just use this simpler house grid
 % [We can think about the values of the house_grid as being relative the average income (or specifically average at a given age)]
 Params.minhouse=house_grid(2); % first is zero (no house)
 
 % First, the AR(1) process z
-[z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
+[z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z,farmertodaoptions);
 z_grid=exp(z_grid); % Take exponential of the grid
-[mean_z,~,~,~]=MarkovChainMoments(z_grid,pi_z); % Calculate the mean of the grid so as can normalise it
+[mean_z,~,~,~]=MarkovChainMoments(z_grid,pi_z,mcmomentsoptions); % Calculate the mean of the grid so as can normalise it
 z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is exactly 1)
 
 % Share of assets invested in the risky asset
-riskyshare_grid=linspace(0,1,n_d(1))'; % Share of assets, from 0 to 1
+riskyshare_grid=linspace(precision_cast(0),precision_cast(1),n_d(1))'; % Share of assets, from 0 to 1
 % Set up d for VFI Toolkit (is the two decision variables)
 d_grid=[riskyshare_grid; asset_grid]; % Note: this does not have to be a_grid, I just chose to use same grid for savings as for assets
 
@@ -154,7 +164,11 @@ a_grid=[house_grid; asset_grid];
 
 % riskyasset: aprime_val=aprimeFn(d,u)
 % vfoptions.refine_d: the decision variables input to aprimeFn are d2,d3
-aprimeFn=@(riskyshare,savings,u, r) LifeCycleModel31_aprimeFn(riskyshare,savings, u, r); % Will return the value of aprime
+if strcmp(precision,'single')
+    aprimeFn=@(riskyshare,savings,u, r) LifeCycleModel31_aprimeFn_single(riskyshare,savings, u, r); % Will return the value of aprime
+else
+    aprimeFn=@(riskyshare,savings,u, r) LifeCycleModel31_aprimeFn(riskyshare,savings, u, r); % Will return the value of aprime
+end
 % Note that u is risky asset excess return and effectively includes both the (excess) mean and standard deviation of risky assets
 
 %% Put the risky asset into vfoptions and simoptions
@@ -176,8 +190,13 @@ simoptions.d_grid=d_grid;
 % DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModel35_ReturnFn'
-ReturnFn=@(savings,hprime,h,a,z,w,sigma,agej,Jr,pension,kappa_j,sigma_h,f_htc,minhouse,rentprice,f_coll,houseservices) ...
-    LifeCycleModel35_ReturnFn(savings,hprime,h,a,z,w,sigma,agej,Jr,pension,kappa_j,sigma_h,f_htc,minhouse,rentprice,f_coll,houseservices);
+if strcmp(precision,'single')
+    ReturnFn=@(savings,hprime,h,a,z,w,sigma,agej,Jr,pension,kappa_j,sigma_h,f_htc,minhouse,rentprice,f_coll,houseservices) ...
+        LifeCycleModel35_ReturnFn_single(savings,hprime,h,a,z,w,sigma,agej,Jr,pension,kappa_j,sigma_h,f_htc,minhouse,rentprice,f_coll,houseservices);
+else
+    ReturnFn=@(savings,hprime,h,a,z,w,sigma,agej,Jr,pension,kappa_j,sigma_h,f_htc,minhouse,rentprice,f_coll,houseservices) ...
+        LifeCycleModel35_ReturnFn(savings,hprime,h,a,z,w,sigma,agej,Jr,pension,kappa_j,sigma_h,f_htc,minhouse,rentprice,f_coll,houseservices);
+end
 % vfoptions.refine_d: only (d1,d3,..) are input to ReturnFn [this model has no d1, so here just d3]
 
 %% Solve the value function iteration problem
