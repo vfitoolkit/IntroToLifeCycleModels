@@ -40,7 +40,7 @@ Params.w=1; % Wage
 a_grid=single(1);
 
 % Grid for labour choice
-h_grid=single(linspace(0,1,n_d)'); % Notice that it is imposing the 0<=h<=1 condition implicitly
+h_grid=linspace(single(0),single(1),n_d)'); % Notice that it is imposing the 0<=h<=1 condition implicitly
 % Switch into toolkit notation
 d_grid=h_grid;
 
