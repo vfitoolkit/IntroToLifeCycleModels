@@ -37,10 +37,10 @@ Params.w=1; % Wage
 % While there are no 'a' for 'z' in this model, VFI Toolkit requires them 
 % to figure out what is going on. By making them just a single grid point, 
 % and then not using them anywhere, we are essentially solving a model without them.
-a_grid=1;
+a_grid=single(1);
 
 % Grid for labour choice
-h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
+h_grid=single(linspace(0,1,n_d)'); % Notice that it is imposing the 0<=h<=1 condition implicitly
 % Switch into toolkit notation
 d_grid=h_grid;
 
@@ -66,7 +66,7 @@ DiscountFactorParamNames={'beta'};
 % We then just have to make the @() contain exactly the same inputs as
 % 'LifeCycleModel1_ReturnFn', and then give the parameter names.
 ReturnFn=@(h,aprime,a,w,sigma,psi,eta)...
-    LifeCycleModel1_ReturnFn(h,aprime,a,w,sigma,psi,eta);
+    LifeCycleModel1_ReturnFn_single(h,aprime,a,w,sigma,psi,eta);
 % The first entries must be the decision variables (d), the next period endogenous 
 % state (aprime), and this period endogenous state (a), followed by any parameters.
 % VFI Toolkit will automatically look in 'Params' to find the values of these parameters.
