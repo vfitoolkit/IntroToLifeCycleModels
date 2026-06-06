@@ -77,12 +77,12 @@ precision_cast=@(x) single(x)
 
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
-a_grid=precision_cast(10*(linspace(0,1,n_a).^3)'); % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
+a_grid=10*(linspace(precision_cast(0),1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 z_grid=precision_cast([1;0]); % the first entry is employment and the second is unemployment.
 pi_z=precision_cast([0.7, 0.3; 0.5, 0.5]); % p_ee=0.7, p_eu=0.3, p_ue=0.5, p_uu=0.5
 
 % Grid for labour choice
-h_grid=linspace(precision_cast(0),precision_cast(1),n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
+h_grid=linspace(precision_cast(0),1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
 % Switch into toolkit notation
 d_grid=h_grid;
 

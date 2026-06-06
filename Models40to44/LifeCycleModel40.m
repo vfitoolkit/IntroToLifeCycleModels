@@ -96,10 +96,17 @@ Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a n
 Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
 %% Grids
+precision='single';
+if strcmp(precision,'single')
+    precision_cast=@(x) single(x)
+else
+    precision_cast=@(x) x
+end
+
 % Housing grid, from 0 to maxh. hprime=0 means renter; hprime>0 means owner.
 minh=0;
 maxh=5;
-h_grid=minh+(maxh-minh)*linspace(0,1,n_a(2))'.^2; % ^2 puts more points near minh
+h_grid=minh+(maxh-minh)*linspace(precision_cast(0),1,n_a(2))'.^2; % ^2 puts more points near minh
 
 % Asset grid. Includes a negative portion to allow mortgage borrowing.
 % The minimum possible value of assets is -(1-gamma)*maxh (the maximum mortgage).
@@ -107,9 +114,9 @@ minassets=-(1-Params.gamma)*maxh;
 maxassets=10;
 % Negative part of the grid: evenly spaced from minassets up to 0.
 n_a_neg=round(0.1*n_a(1)); % roughly 10% of points in the negative range
-asset_grid_neg=linspace(minassets,0,n_a_neg)';
+asset_grid_neg=linspace(precision_cast(minassets),0,n_a_neg)';
 % Positive part of the grid (more points nearer 0, where the value fn is most curved).
-asset_grid_pos=maxassets*linspace(0,1,n_a(1)-n_a_neg+1)'.^3;
+asset_grid_pos=maxassets*linspace(precision_cast(0),1,n_a(1)-n_a_neg+1)'.^3;
 % Note: both contain zero, so omit it from asset_grid_neg before stacking
 asset_grid=[asset_grid_neg(1:end-1); asset_grid_pos];
 
@@ -117,9 +124,11 @@ asset_grid=[asset_grid_neg(1:end-1); asset_grid_pos];
 a_grid=[asset_grid; h_grid];
 
 % AR(1) process for z (labor productivity units)
-[z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
+farmertodaoptions.precision=precision;
+mcmomentsoptions.precision=precision;
+[z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z,farmertodaoptions);
 z_grid=exp(z_grid); % Take exponential of the grid
-[mean_z,~,~,~]=MarkovChainMoments(z_grid,pi_z); % Mean of the grid so as can normalise it
+[mean_z,~,~,~]=MarkovChainMoments(z_grid,pi_z,mcmomentsoptions); % Mean of the grid so as can normalise it
 z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is 1)
 
 d_grid=[]; % No decision variables
@@ -127,8 +136,13 @@ d_grid=[]; % No decision variables
 %% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
-ReturnFn=@(aprime,hprime,a,h,z,w,r,p,sigma,theta,upsilon,gamma,phi,delta_o,agej,Jr,pension,kappa_j,wg1,wg2,wg3,beta,sj) ...
-    LifeCycleModel40_ReturnFn(aprime,hprime,a,h,z,w,r,p,sigma,theta,upsilon,gamma,phi,delta_o,agej,Jr,pension,kappa_j,wg1,wg2,wg3,beta,sj);
+if isUnderlyingType(a_grid,'single')
+    ReturnFn=@(aprime,hprime,a,h,z,w,r,p,sigma,theta,upsilon,gamma,phi,delta_o,agej,Jr,pension,kappa_j,wg1,wg2,wg3,beta,sj) ...
+        LifeCycleModel40_ReturnFn_single(aprime,hprime,a,h,z,w,r,p,sigma,theta,upsilon,gamma,phi,delta_o,agej,Jr,pension,kappa_j,wg1,wg2,wg3,beta,sj);
+else
+    ReturnFn=@(aprime,hprime,a,h,z,w,r,p,sigma,theta,upsilon,gamma,phi,delta_o,agej,Jr,pension,kappa_j,wg1,wg2,wg3,beta,sj) ...
+        LifeCycleModel40_ReturnFn(aprime,hprime,a,h,z,w,r,p,sigma,theta,upsilon,gamma,phi,delta_o,agej,Jr,pension,kappa_j,wg1,wg2,wg3,beta,sj);
+end
 % (aprime,hprime,a,h,z,...): two next-period endogenous states, then two current
 % endogenous states, then the exogenous state z, then parameters.
 
@@ -149,7 +163,7 @@ vftime=toc
 
 %% Initial distribution of agents at birth (j=1)
 % All agents are born with zero assets and zero housing (so they are renters at j=1).
-jequaloneDist=zeros([n_a,n_z],'gpuArray');
+jequaloneDist=zeros([n_a,n_z],precision,'gpuArray');
 [~,zeroassetindex]=min(abs(asset_grid));
 jequaloneDist(zeroassetindex,1,floor((n_z+1)/2))=1; % zero assets, zero housing, median z
 
@@ -171,10 +185,17 @@ FnsToEvaluate.housing=@(aprime,hprime,a,h,z) h; % current housing stock
 FnsToEvaluate.homeownership=@(aprime,hprime,a,h,z) (hprime>0); % =1 if owner next period, =0 if renter
 FnsToEvaluate.totalwealth=@(aprime,hprime,a,h,z) a+h; % financial assets plus housing
 FnsToEvaluate.loantovalue=@(aprime,hprime,a,h,z) (aprime<0)*(hprime>0)*abs(aprime)/max(hprime,eps); % LTV ratio (only for borrowers)
-FnsToEvaluate.consumption=@(aprime,hprime,a,h,z,w,r,p,theta,upsilon,phi,delta_o,agej,Jr,pension,kappa_j) ...
-    LifeCycleModel40_ConsumptionFn(aprime,hprime,a,h,z,w,r,p,theta,upsilon,phi,delta_o,agej,Jr,pension,kappa_j);
-FnsToEvaluate.housingservices=@(aprime,hprime,a,h,z,w,r,p,theta,upsilon,phi,delta_o,agej,Jr,pension,kappa_j) ...
-    LifeCycleModel40_HousingServicesFn(aprime,hprime,a,h,z,w,r,p,theta,upsilon,phi,delta_o,agej,Jr,pension,kappa_j);
+if isUnderlyingType(a_grid,'single')
+    FnsToEvaluate.consumption=@(aprime,hprime,a,h,z,w,r,p,theta,upsilon,phi,delta_o,agej,Jr,pension,kappa_j) ...
+        LifeCycleModel40_ConsumptionFn_single(aprime,hprime,a,h,z,w,r,p,theta,upsilon,phi,delta_o,agej,Jr,pension,kappa_j);
+    FnsToEvaluate.housingservices=@(aprime,hprime,a,h,z,w,r,p,theta,upsilon,phi,delta_o,agej,Jr,pension,kappa_j) ...
+        LifeCycleModel40_HousingServicesFn_single(aprime,hprime,a,h,z,w,r,p,theta,upsilon,phi,delta_o,agej,Jr,pension,kappa_j);
+else
+    FnsToEvaluate.consumption=@(aprime,hprime,a,h,z,w,r,p,theta,upsilon,phi,delta_o,agej,Jr,pension,kappa_j) ...
+        LifeCycleModel40_ConsumptionFn(aprime,hprime,a,h,z,w,r,p,theta,upsilon,phi,delta_o,agej,Jr,pension,kappa_j);
+    FnsToEvaluate.housingservices=@(aprime,hprime,a,h,z,w,r,p,theta,upsilon,phi,delta_o,agej,Jr,pension,kappa_j) ...
+        LifeCycleModel40_HousingServicesFn(aprime,hprime,a,h,z,w,r,p,theta,upsilon,phi,delta_o,agej,Jr,pension,kappa_j);
+end
 
 %% Calculate the life-cycle profiles
 AgeConditionalStats=LifeCycleProfiles_FHorz_Case1(StationaryDist,Policy,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
