@@ -74,8 +74,8 @@ Our household value function is now,
 && \text{if }j>=Jr: \; c+aprime=(1+r)a +pension \\
 && equiv=equiv_1 n_1+equiv_2 n_2 \\
 && infantcaretime=h_c n_1 \\
-&& childcarecosts=childcarec (h>0) n_1  \\
-&& 0\leq h \leq 1, aprime\geq 0 \\
+&& childcarecosts=childcarec \, \mathbb{I}_{(h>0)} \, n_1  \\
+&& 0\leq h \leq 1, aprime\geq 0, f\in\{0,1\} \\
 && log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
 \end{eqnarray*}
 where $equiv$ is a household consumption equivalence scale (scales down the utility of consumption based on the number of people in the households). Notice that $n_1$ and $n_2$ are part of the state space, and $f$ is added to the decision variables. Infants require the household to decicate some of their time ($infantcaretime$), and if they work ($h>0$) while they have an infant there are child care costs ($childcarecosts$).
