@@ -64,9 +64,9 @@ Params.pension=0.1;
 
 % Uncertain Human Capital
 Params.alpha_h=0.6; % returns to scale of human capital production fn
-Params.delta_h=0.02; % depreciation rate of human capital
-Params.ability=3; % ability to produce human capital
-Params.sscaler=5; % scale from units of study-time into something more appropriate for the human capital production function
+Params.delta_h_j=0.02*[ones(1,31), linspace(1,2,46-31), linspace(2,4,61-46), 4*ones(1,81-61)]; % depreciation rate of human capital
+Params.ability_j=[linspace(3,1,21), ones(1,81-21)]; % ability to produce human capital
+Params.sscaler=0.5; % scale from units of study-time into something more appropriate for the human capital production function
 % i.i.d. shocks that make human capital uncertain
 Params.sigma_epsilon_u=0.01;
 
@@ -94,13 +94,17 @@ Params.wg1=0.3; % (relative) importance of bequests
 Params.wg2=3; % degree to which bequests are a luxury good (>=1; =1 would be a normal good)
 Params.wg3=Params.sigma; % By using the same curvature as the utility of consumption it makes it much easier to guess appropriate parameter values for the warm glow
 
+% Tuition
+% When tuition is more expensive (8), agents get advanced degree later, when they can afford it
+% When tutition is less expensive (6), they hurry up and study while kappa_j is low
+Params.tuition=7;
 
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 asset_grid=10*(linspace(0,1,n_a(1)).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
-h_grid=linspace(1,4,n_a(2))'; % Because h is an experienceasset, it will be interpolated onto this grid and so we need less grid points than usual
+h_grid=linspace(1,20,n_a(2))'; % Because h is an experienceasset, it will be interpolated onto this grid and so we need less grid points than usual
 % Note: deliberately omit 0 from h_grid
 
 % First, the AR(1) process z
@@ -130,7 +134,7 @@ vfoptions.experienceassetu=1; % Using an experience-asset-u
 % the experience asset).
 
 % aprimeFn gives the value of hprime
-vfoptions.aprimeFn=@(s,h,u,alpha_h, delta_h, ability,sscaler) u*(ability*(h*(sscaler*s))^alpha_h+h*(1-delta_h));
+vfoptions.aprimeFn=@(s,h,u,alpha_h, delta_h_j, ability_j,sscaler) u*(ability_j*(h*(sscaler*s))^alpha_h+h*(1-delta_h_j));
 % The first three inputs must be (d,a,u) [in the sense of aprime(d,a,u)], then any parameters
 
 % We also need to tell simoptions about the experienceassetu
@@ -138,6 +142,8 @@ simoptions.experienceassetu=1;
 simoptions.aprimeFn=vfoptions.aprimeFn;
 simoptions.d_grid=d_grid; % Needed to handle aprimeFn 
 simoptions.a_grid=a_grid; % Needed to handle aprimeFn
+simoptions.optimize_nProbs=1;
+simoptions.verbose=2;
 
 % And we need to define the i.i.d. shocks u
 [u_grid,pi_u]=discretizeAR1_FarmerToda(0,0,Params.sigma_epsilon_u,n_u);
@@ -162,12 +168,12 @@ vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecu
 simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
 simoptions.ngridinterp=vfoptions.ngridinterp;
 
-% To better understand the human capital production function, here is a graph of it
+% To better understand the human capital production function, here is a graph of it (at age 1)
 hprime_shu=zeros([n_a,n_u]);
 for hh=1:n_a(2)
     for ss=1:n_d(2)
         for uu=1:n_u
-            hprime_shu(ss,hh,uu)=vfoptions.aprimeFn(s_grid(ss),h_grid(hh),u_grid(uu),Params.alpha_h,Params.delta_h,Params.ability,Params.sscaler);
+            hprime_shu(ss,hh,uu)=vfoptions.aprimeFn(s_grid(ss),h_grid(hh),u_grid(uu),Params.alpha_h,Params.delta_h_j(1),Params.ability_j(1),Params.sscaler);
         end
     end
 end
@@ -187,8 +193,8 @@ hold off
 DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModel42_ReturnFn'
-ReturnFn=@(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,wg1,wg2,wg3,beta,sj)...
-    LifeCycleModel42_ReturnFn(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,wg1,wg2,wg3,beta,sj);
+ReturnFn=@(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,wg1,wg2,wg3,beta,sj,tuition)...
+    LifeCycleModel42_ReturnFn(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,wg1,wg2,wg3,beta,sj,tuition);
 % Notice how we have (l,s,aprime,a,h,z,...)
 % Follow same decision-next endo-endo-exo ordering as usual, but because h
 % is an experienceassetu, we do not include hprime as it is not chosen
@@ -257,7 +263,7 @@ zlabel('Next period assets (aprime)')
 %% Initial distribution of agents at birth (j=1)
 % Before we plot the life-cycle profiles we have to define how agents are at age j=1. We will give them all zero assets.
 jequaloneDist=zeros([n_a,n_z],'gpuArray'); % Put no households anywhere on grid
-jequaloneDist(1,4,floor((n_z+1)/2))=1; % All agents start with zero assets, h_grid(4) of human capital, and the median shock [h_grid(4) is roughly same as y_m(1), just my arbitrary decision]
+jequaloneDist(1,2,floor((n_z+1)/2))=1; % All agents start with zero assets, h_grid(2) of human capital, and the median shock [h_grid(2) is roughly same as y_m(1), just my arbitrary decision]
 
 %% We now compute the 'stationary distribution' of households
 % Start with a mass of one at initial age, use the conditional survival
@@ -295,7 +301,7 @@ subplot(5,1,2); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.study
 title('Life Cycle Profile: Study time (s)')
 subplot(5,1,3); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.earnings.Mean)
 title('Life Cycle Profile: Earnings (w h z l)')
-subplot(5,1,4); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.humancapital.Mean)
+subplot(5,1,4); hold on; plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.humancapital.Mean); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.humancapital.Maximum); hold off
 title('Life Cycle Profile: Human Capital (h)')
 subplot(5,1,5); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')

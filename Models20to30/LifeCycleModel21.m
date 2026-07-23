@@ -77,7 +77,7 @@ Params.wg3=Params.sigma; % By using the same curvature as the utility of consump
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
-a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
+a_grid=15*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
@@ -137,6 +137,9 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
+
+simoptions.optimize_nProbs=1;
+simoptions.verbose=1;
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 % Note: Because we have simoptions.ExogShockFn, what we input for z_grid and  pi_z will just be ignored.
 
@@ -165,7 +168,7 @@ subplot(5,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(5,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
 title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
-subplot(5,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
+subplot(5,1,3); hold on; plot(1:1:Params.J,AgeConditionalStats.assets.Mean); plot(1:1:Params.J,AgeConditionalStats.assets.Maximum); hold off
 title('Life Cycle Profile: Assets (a)')
 subplot(5,1,4); plot(1:1:Params.J,[AgeConditionalStats.fractionunemployed.Mean(1:Params.Jr-1),nan(1,Params.J-Params.Jr+1)])
 title('Life Cycle Profile: Fraction Unemployment (z==0)')
@@ -194,11 +197,16 @@ simoptions.ngridinterp=vfoptions.ngridinterp;
 ReturnFn=@(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj) ...
     LifeCycleModel8_ReturnFn(h,aprime,a,z,w,sigma,psi,eta,agej,Jr,pension,r,kappa_j,wg1,wg2,wg3,beta,sj);
 [V_nomedical, Policy_nomedical]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
+simoptions.optimize_nProbs=1;
+simoptions.verbose=1;
 StationaryDist_nomedical=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy_nomedical,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 AgeConditionalStats_nomedical=LifeCycleProfiles_FHorz_Case1(StationaryDist_nomedical,Policy_nomedical,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions);
 
 figure(2)
+hold on
 plot(1:1:Params.J,AgeConditionalStats.assets.Mean,1:1:Params.J,AgeConditionalStats_nomedical.assets.Mean)
+plot(1:1:Params.J,AgeConditionalStats.assets.Mean,1:1:Params.J,AgeConditionalStats_nomedical.assets.Maximum)
+hold off
 title('Life Cycle Profile: Assets (a)')
 legend('Medical Expense Shocks','No Medical Shocks')
 % Notice that medical expense shocks late in life cause elderly households

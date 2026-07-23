@@ -30,7 +30,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
 n_d=2; % Endogenous labour choice (working or not-working)
-n_a=[201,21]; % Endogenous asset holdings, female-labor-force-participation
+n_a=[201,31]; % Endogenous asset holdings, female-labor-force-participation
 n_z=11; % Exogenous labor productivity units shock
 N_j=Params.J; % Number of periods in finite horizon
 
@@ -96,7 +96,7 @@ Params.wg3=Params.sigma; % By using the same curvature as the utility of consump
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 asset_grid=10*(linspace(0,1,n_a(1)).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
-h_grid=linspace(0.1,3,n_a(2))'; % Because h is an experienceasset, it will be interpolated onto this grid and so we need less grid points than usual
+h_grid=linspace(0.1,4,n_a(2))'; % Because h is an experienceasset, it will be interpolated onto this grid and so we need less grid points than usual
 % Note: deliberately omit 0 from h_grid
 
 % First, the AR(1) process z
@@ -140,7 +140,8 @@ vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecu
 % vfoptions.lowmemory=1; % default=0, set =1 to use loops (over e, or z if no e) if you get a gpu out-of-memory error, the loops reduce memory use but slow the runtimes [models with e & z can set =2]
 simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
 simoptions.ngridinterp=vfoptions.ngridinterp;
-
+simoptions.optimize_nProbs=1;
+simoptions.verbose=1;
 
 %% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
@@ -252,7 +253,7 @@ subplot(5,1,3); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.malee
 title('Life Cycle Profile: Male Earnings (y_m)')
 subplot(5,1,4); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
-subplot(5,1,5); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.femaleLFPH.Mean)
+subplot(5,1,5); hold on; plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.femaleLFPH.Mean); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.femaleLFPH.Maximum); hold off
 title('Life Cycle Profile: female labor force participation history (h)')
 % Remember, we added a huge childcare cost, so women choose not to work
 % during ages 27-31. You can see that their human capital (femaleLFPH) has
