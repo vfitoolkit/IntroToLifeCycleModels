@@ -145,6 +145,9 @@ vfoptions.gridinterplayer=1; % turn on grid interpolation layer
 vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
 simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
 simoptions.ngridinterp=vfoptions.ngridinterp;
+simoptions.optimize_nProbs=1;
+simoptions.verbose=1;
+simoptions.tolerance=1e-7;
 
 
 % Grid for labour choice

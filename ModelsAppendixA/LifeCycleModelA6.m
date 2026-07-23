@@ -139,7 +139,7 @@ Params.wg3=Params.sigma; % By using the same curvature as the utility of consump
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
-a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
+a_grid=16*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
 % Grid for labour choice
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
@@ -183,6 +183,8 @@ vfoptions.gridinterplayer=1; % turn on grid interpolation layer
 vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecutive a_grid points
 simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
 simoptions.ngridinterp=vfoptions.ngridinterp;
+simoptions.optimize_nProbs=1;
+simoptions.verbose=1;
 
 %% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
@@ -260,7 +262,7 @@ subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
 title('Life Cycle Profile: Labor Earnings (w kappa_j h e1 e2)')
-subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
+subplot(3,1,3); hold on; plot(1:1:Params.J,AgeConditionalStats.assets.Mean); subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Maximum); plot(1:1:Params.J,AgeConditionalStats.assets.Minimum); hold off
 title('Life Cycle Profile: Assets (a)')
 
 
