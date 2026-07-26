@@ -205,10 +205,10 @@ AgeConditionalStats_nomedical=LifeCycleProfiles_FHorz_Case1(StationaryDist_nomed
 figure(2)
 hold on
 plot(1:1:Params.J,AgeConditionalStats.assets.Mean,1:1:Params.J,AgeConditionalStats_nomedical.assets.Mean)
-plot(1:1:Params.J,AgeConditionalStats.assets.Mean,1:1:Params.J,AgeConditionalStats_nomedical.assets.Maximum)
+plot(1:1:Params.J,AgeConditionalStats.assets.Maximum,1:1:Params.J,AgeConditionalStats_nomedical.assets.Maximum)
 hold off
 title('Life Cycle Profile: Assets (a)')
-legend('Medical Expense Shocks','No Medical Shocks')
+legend('Medical Expense Shocks','No Medical Shocks','Medical Expense Shocks (Maximum)','No Medical (Maximum)')
 % Notice that medical expense shocks late in life cause elderly households
 % to hold more assets (as self-insurance against medical expense shocks)
 
