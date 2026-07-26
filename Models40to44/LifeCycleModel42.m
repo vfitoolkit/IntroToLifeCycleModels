@@ -142,8 +142,6 @@ simoptions.experienceassetu=1;
 simoptions.aprimeFn=vfoptions.aprimeFn;
 simoptions.d_grid=d_grid; % Needed to handle aprimeFn 
 simoptions.a_grid=a_grid; % Needed to handle aprimeFn
-simoptions.optimize_nProbs=1;
-simoptions.verbose=2;
 
 % And we need to define the i.i.d. shocks u
 [u_grid,pi_u]=discretizeAR1_FarmerToda(0,0,Params.sigma_epsilon_u,n_u);
@@ -275,6 +273,9 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
+
+simoptions.optimize_nProbs=1;
+simoptions.verbose=2;
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 
 

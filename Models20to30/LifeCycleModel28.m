@@ -79,6 +79,7 @@ vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecu
 simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
 simoptions.ngridinterp=vfoptions.ngridinterp;
 
+
 % At the bottom of this code/script there are some lines showing you what
 % pi_semiz_J which is created internally looks like.
 
@@ -223,6 +224,8 @@ AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mas
 % Because evaluating pi_semiz_J requires the d_grid we also have to provide
 simoptions.d_grid=d_grid;
 
+simoptions.optimize_nProbs=1;
+simoptions.verbose=2;
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of

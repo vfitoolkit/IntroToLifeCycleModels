@@ -34,8 +34,8 @@ Params.agejshifter=19; % Age 20 minus one. Makes keeping track of actual age eas
 Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
-n_d=[51,201]; % Decisions: riskyshare, savings
-n_a=[5,201]; % Endogenous housing and asset holdings
+n_d=[51,301]; % Decisions: riskyshare, savings
+n_a=[5,301]; % Endogenous housing and asset holdings
 n_z=7; % Exogenous labor productivity units shock
 n_u=5; % Between period i.i.d. shock
 N_j=Params.J; % Number of periods in finite horizon
@@ -43,7 +43,6 @@ N_j=Params.J; % Number of periods in finite horizon
 vfoptions.riskyasset=1; % riskyasset aprime(d,u)
 simoptions.riskyasset=1;
 % When there is more than one endogenous state, the riskyasset is the last one
-
 
 % Specify Epstein-Zin preferences
 vfoptions.exoticpreferences='EpsteinZin';
@@ -122,8 +121,8 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
-asset_grid=-3+13*(linspace(0,1,n_a(2)))'; % Note, I use equal spacing (normally would put most points near zero)
-% note: will go from -3 to 13-3
+asset_grid=-3+30*(linspace(0,1,n_a(2)))'; % Note, I use equal spacing (normally would put most points near zero)
+% note: will go from -3 to 30-3
 % Make it so that there is a zero assets
 % Find closest to zero assets
 [~,zeroassetindex]=min(abs(asset_grid));
@@ -294,6 +293,9 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
+
+simoptions.optimize_nProbs=1;
+simoptions.verbose=2;
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 % riskyasset requires the grids when simulating the agent distribution to be able to handle aprime(d,u). The grids are passed in simoptions.
 
