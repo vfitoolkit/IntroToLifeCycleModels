@@ -102,7 +102,7 @@ Params.tuition=7;
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
-asset_grid=10*(linspace(0,1,n_a(1)).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
+asset_grid=30*(linspace(0,1,n_a(1)).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
 h_grid=linspace(1,20,n_a(2))'; % Because h is an experienceasset, it will be interpolated onto this grid and so we need less grid points than usual
 % Note: deliberately omit 0 from h_grid
@@ -304,7 +304,7 @@ subplot(5,1,3); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.earni
 title('Life Cycle Profile: Earnings (w h z l)')
 subplot(5,1,4); hold on; plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.humancapital.Mean); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.humancapital.Maximum); hold off
 title('Life Cycle Profile: Human Capital (h)')
-subplot(5,1,5); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.assets.Mean)
+subplot(5,1,5); hold on; plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.assets.Mean); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.assets.Maximum); hold off
 title('Life Cycle Profile: Assets (a)')
 % Because the calibration is a bit silly, assets are an inferior investment
 % to human capital. Hence throughout working life households just invest in

@@ -296,7 +296,7 @@ subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.riskyshare.Mean)
 title('Life Cycle Profile: Share of savings invested in risky asset (riskyshare)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
 title('Life Cycle Profile: Labor Earnings (w kappa_j z)')
-subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
+subplot(3,1,3); hold on; plot(1:1:Params.J,AgeConditionalStats.assets.Mean); plot(1:1:Params.J,AgeConditionalStats.assets.Maximum); hold off
 title('Life Cycle Profile: Assets (a)')
 
 

@@ -34,8 +34,8 @@ Params.agejshifter=19; % Age 20 minus one. Makes keeping track of actual age eas
 Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
-n_d=[51,301]; % Decisions: riskyshare, savings
-n_a=[5,301]; % Endogenous housing and asset holdings
+n_d=[51,201]; % Decisions: riskyshare, savings
+n_a=[5,201]; % Endogenous housing and asset holdings
 n_z=7; % Exogenous labor productivity units shock
 n_u=5; % Between period i.i.d. shock
 N_j=Params.J; % Number of periods in finite horizon
@@ -121,8 +121,8 @@ Params.sj(end)=0; % In the present model the last period (j=J) value of sj is ac
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
-asset_grid=-3+30*(linspace(0,1,n_a(2)))'; % Note, I use equal spacing (normally would put most points near zero)
-% note: will go from -3 to 30-3
+asset_grid=-3+23*(linspace(0,1,n_a(2)))'; % Note, I use equal spacing (normally would put most points near zero)
+% note: will go from -3 to 23-3
 % Make it so that there is a zero assets
 % Find closest to zero assets
 [~,zeroassetindex]=min(abs(asset_grid));
@@ -324,7 +324,7 @@ subplot(4,1,1); plot(1:1:Params.J,AgeConditionalStats.riskyshare.Mean)
 title('Life Cycle Profile: Share of savings invested in risky asset (riskyshare)')
 subplot(4,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
 title('Life Cycle Profile: Labor Earnings (w kappa_j z)')
-subplot(4,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
+subplot(4,1,3); hold on; plot(1:1:Params.J,AgeConditionalStats.assets.Mean); plot(1:1:Params.J,AgeConditionalStats.assets.Maximum); hold off
 title('Life Cycle Profile: Assets (a)')
 subplot(4,1,4); plot(1:1:Params.J,AgeConditionalStats.housing.Mean)
 title('Life Cycle Profile: Housing (h)')

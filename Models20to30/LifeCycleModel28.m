@@ -132,7 +132,7 @@ Params.wg3=Params.sigma; % By using the same curvature as the utility of consump
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
-a_grid=10*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
+a_grid=12*(linspace(0,1,n_a).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
 % First, the AR(1) process z
 [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
@@ -253,7 +253,7 @@ subplot(5,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(5,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
 title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
-subplot(5,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
+subplot(5,1,3); hold on; plot(1:1:Params.J,AgeConditionalStats.assets.Mean); plot(1:1:Params.J,AgeConditionalStats.assets.Maximum); hold off
 title('Life Cycle Profile: Assets (a)')
 subplot(5,1,4); plot(1:1:Params.J,AgeConditionalStats.ninfants.Mean)
 title('Life Cycle Profile: Number of Infants (n1)')

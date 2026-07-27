@@ -30,7 +30,7 @@ Params.J=100-Params.agejshifter; % =81, Number of period in life-cycle
 
 % Grid sizes to use
 n_d=2; % Endogenous labour choice (working or not-working)
-n_a=[201,31]; % Endogenous asset holdings, female-labor-force-participation
+n_a=[201,21]; % Endogenous asset holdings, female-labor-force-participation
 n_z=11; % Exogenous labor productivity units shock
 N_j=Params.J; % Number of periods in finite horizon
 
@@ -94,9 +94,9 @@ Params.wg3=Params.sigma; % By using the same curvature as the utility of consump
 %% Grids
 % The ^3 means that there are more points near 0 and near 10. We know from theory that the value function will be more 'curved' near zero assets,
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
-asset_grid=10*(linspace(0,1,n_a(1)).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
+asset_grid=30*(linspace(0,1,n_a(1)).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
-h_grid=linspace(0.1,4,n_a(2))'; % Because h is an experienceasset, it will be interpolated onto this grid and so we need less grid points than usual
+h_grid=linspace(0.1,2,n_a(2))'; % Because h is an experienceasset, it will be interpolated onto this grid and so we need less grid points than usual
 % Note: deliberately omit 0 from h_grid
 
 % First, the AR(1) process z
@@ -253,7 +253,7 @@ subplot(5,1,2); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.femal
 title('Life Cycle Profile: Female Earnings (w h z p)')
 subplot(5,1,3); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.maleearnings.Mean)
 title('Life Cycle Profile: Male Earnings (y_m)')
-subplot(5,1,4); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.assets.Mean)
+subplot(5,1,4); hold on; plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.assets.Mean); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.assets.Maximum); hold off
 title('Life Cycle Profile: Assets (a)')
 subplot(5,1,5); hold on; plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.femaleLFPH.Mean); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.femaleLFPH.Maximum); hold off
 title('Life Cycle Profile: female labor force participation history (h)')
