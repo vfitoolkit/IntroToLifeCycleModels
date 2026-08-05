@@ -184,6 +184,7 @@ vfoptions.ngridinterp=20; % 20 evenly-spaced points between each pair of consecu
 simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer must also be set in simoptions (because it changes Policy size/interpretation)
 simoptions.ngridinterp=vfoptions.ngridinterp;
 
+
 %% Now, create the return function
 DiscountFactorParamNames={'beta','sj'};
 
@@ -234,6 +235,9 @@ for jj=2:length(Params.mewj)
 end
 Params.mewj=Params.mewj./sum(Params.mewj); % Normalize to one
 AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mass of agents of each age
+
+simoptions.optimize_nProbs=1;
+simoptions.verbose=2;
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 
 
@@ -260,7 +264,7 @@ subplot(3,1,1); plot(1:1:Params.J,AgeConditionalStats.fractiontimeworked.Mean)
 title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(3,1,2); plot(1:1:Params.J,AgeConditionalStats.earnings.Mean)
 title('Life Cycle Profile: Labor Earnings (w kappa_j h e1 e2)')
-subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
+subplot(3,1,3); hold on; plot(1:1:Params.J,AgeConditionalStats.assets.Mean); subplot(3,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Maximum); plot(1:1:Params.J,AgeConditionalStats.assets.Minimum); hold off
 title('Life Cycle Profile: Assets (a)')
 
 
