@@ -4,3 +4,18 @@
 # Life-Cycle Model 44 is kept as a local-only work-in-progress
 Models40to44/LifeCycleModel44.m
 Models40to44/LifeCycleModel44_ReturnFn.m
+
+# diary of the test runner
+TestLifeCycleDiary.txt
+
+# latex build artifacts (the pdf itself is kept)
+Documentation/LifeCycleModels.aux
+Documentation/LifeCycleModels.bbl
+Documentation/LifeCycleModels.blg
+Documentation/LifeCycleModels.log
+Documentation/LifeCycleModels.out
+Documentation/LifeCycleModels.toc
+
+# Life-Cycle Model 47 data (PSID extract, and the saved estimation output)
+Models45to50/J325247*
+Models45to50/LCM47.mat
