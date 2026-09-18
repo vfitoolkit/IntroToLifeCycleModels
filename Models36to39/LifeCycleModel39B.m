@@ -1,4 +1,4 @@
-%% Life-Cycle Model 39: Ambiguity Aversion with Engenous Labor
+%% Life-Cycle Model 39B: Ambiguity Aversion with Endogenous Labor
 % Underlying model is Life-Cycle model 21.
 % There are earnings shocks during working age, and then medical shocks during retirement.
 % We will have the medical shocks being ambiguous (while the earnings shocks are risk)

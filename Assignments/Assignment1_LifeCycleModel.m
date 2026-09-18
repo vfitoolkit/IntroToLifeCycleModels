@@ -1,4 +1,4 @@
-%% Add a labor income tax to the LifeCycleModel4, and plot the life-cycle profile of tax paid
+%% Assignment 1: Add a labor income tax to the LifeCycleModel4, and plot the life-cycle profile of tax paid
 % The relevant changes are
 % Lines 40-1: Add tau_l to parameters
 % Lines 61-2: add tau_l to return function inputs (and modify return function)

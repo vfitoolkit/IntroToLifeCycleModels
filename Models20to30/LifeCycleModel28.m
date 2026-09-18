@@ -1,4 +1,4 @@
-% Adds fertility and children to 'Life Cycle Model 9' from 'Introduction to Life-Cycle Models'
+%% Life-Cycle Model 28: Adds fertility and children to 'Life Cycle Model 9' from 'Introduction to Life-Cycle Models'
 %
 % Uses what VFI Toolkit call a "semi-exogenous state". An exogenous state that can be influenced by the decision variables.
 % The changes to life-cycle model 9 involve adding a decision variable for 'fertility' which influences the two semi-exogenous 

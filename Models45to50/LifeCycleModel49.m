@@ -1,4 +1,4 @@
-%% Life-Cycle Model 45: GMM Estimation of a Life-Cycle Model with Permanent Types, using the Permanent Types for Unobserved Heterogeneity
+%% Life-Cycle Model 49: GMM Estimation of a Life-Cycle Model with Permanent Types, using the Permanent Types for Unobserved Heterogeneity
 % We will make one change to the model used in Life-Cycle Model 45 (which was essentially just Life-Cycle Model 9)
 % We use permanent types as a fixed-effect in earnings (conditional on working)
 % To be able to estimate them, we parameterize these fixed effects as a normal distribution.

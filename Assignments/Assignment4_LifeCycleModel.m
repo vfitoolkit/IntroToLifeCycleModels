@@ -1,4 +1,4 @@
-%% Assignment 2: Deterministic income growth with exogenous labor supply (and exogenous shocks)
+%% Assignment 4: Deterministic income growth with exogenous labor supply (and exogenous shocks)
 % We will consider a (real wage) growth rate of 2%, Params.g=0.02
 %
 % We first solve the 'renormalized model'; see the pdf for an explanation.
