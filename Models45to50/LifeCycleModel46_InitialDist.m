@@ -18,9 +18,9 @@ tol_value=10^(-9); % AH2021 require a tolerance (between 10^(-4) and 10^(-14))
 % Note: AH2021 provide GFT_inverse_mapping() in their Online Appendix (for multiple
 % programming languages). The version used here is a lightly modified/cleaned version of theirs.
 
-% And then use Matlab corr2cov() to convert the vector of std deviations
+% And then use corr2cov_homemade() to convert the vector of std deviations
 % and correlation matrix into the covariance matrix
-InitialDistCovarMatrix = corr2cov(StdDevVector,CorrMatrix2);
+InitialDistCovarMatrix = corr2cov_homemade(StdDevVector,CorrMatrix2);
 
 
 % So we need to put this joint-normal distribution onto our asset grid

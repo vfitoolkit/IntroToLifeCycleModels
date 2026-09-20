@@ -259,6 +259,7 @@ for jj=1:J
     end
 end
 CohortFixedEffects=reshape(CohortFixedEffects,[J*T,Ncohorts]);
+CohortFixedEffects=CohortFixedEffects(:,2:end); % Have to use only Ncohorts-1 variables here (the age dummies and the cohort dummies both sum to one, so the age effects would only be identified up to a constant)
 
 % Cohort-fixed-effect regression
 ydata=reshape(RealEarnings_jjtt,[MaxObs*(64-19)*(1992-1968),1]);

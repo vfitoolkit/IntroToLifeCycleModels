@@ -153,7 +153,7 @@ catch ME
     error('Matrix is not symmetric positive definite') % bad, is not a covariance matrix
 end
 
-% We can use Matlab function cov2corr() to get the correlation matrix (and vector of standard deviations) from our covariance matrix.
+% We can use cov2corr_homemade() to get the correlation matrix (and vector of standard deviations) from our covariance matrix.
 [StdDevVector,CorrMatrix] = cov2corr_homemade(InitialDistCovarMatrix);
 % Note: the diagonals of the correlation matrix are always ones by definition/construction
 
