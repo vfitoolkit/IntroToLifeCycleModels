@@ -1,12 +1,12 @@
-function F=LifeCycleModel42_ReturnFn(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,wg1,wg2,wg3,beta,sj)
+function F=LifeCycleModel42_ReturnFn(l,s,aprime,a,h,z,w,sigma,eta,psi,agej,Jr,pension,r,wg1,wg2,wg3,beta,sj,tuition)
 
 leisure=1-s-l; % one unit of time, minus time spent studying and working
 
 F=-Inf;
 if agej<Jr % If working age
-    c=w*h*z*l+(1+r)*a-aprime; % Add z here
+    c=w*h*z*l+(1+r)*a-aprime-s*tuition; % Add z here
 else % Retirement
-    c=pension+(1+r)*a-aprime;
+    c=pension+(1+r)*a-aprime-s*tuition/2;
 end
 
 if c>0 && leisure>0
