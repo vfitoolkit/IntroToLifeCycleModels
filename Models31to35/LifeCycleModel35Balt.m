@@ -226,12 +226,12 @@ xlabel('Assets (a)')
 % Plot both as a 3d plot, again I arbitrarily choose the median value of z
 figure(3)
 PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
-subplot(2,1,1); surf(asset_grid*ones(1,Params.J),ones(n_a(2),1)*(1:1:Params.J),reshape(PolicyVals(1,1,:,zind,:),[n_a(2),Params.J]))
+subplot(2,1,1); surf(asset_grid*ones(1,Params.J),ones(n_a(2),1)*(1:1:Params.J),reshape(PolicyVals(2,1,:,zind,:),[n_a(2),Params.J]))
 title('Policy function: savings, median z')
 xlabel('Age j')
 ylabel('Assets (a)')
 zlabel('Savings')
-subplot(2,1,2); surf(asset_grid*ones(1,Params.J),ones(n_a(2),1)*(1:1:Params.J),reshape(PolicyVals(2,1,:,zind,:),[n_a(2),Params.J]))
+subplot(2,1,2); surf(asset_grid*ones(1,Params.J),ones(n_a(2),1)*(1:1:Params.J),reshape(PolicyVals(1,1,:,zind,:),[n_a(2),Params.J]))
 title('Policy function: riskyshare, median z')
 xlabel('Age j')
 ylabel('Assets (a)')
@@ -239,27 +239,27 @@ zlabel('share of savings invested in risky assets (riskyshare)')
 
 % Again, plot both policies (h and aprime), this time as a function (of assets) for a given age  (I do a few for different ages)
 figure(4)
-subplot(5,2,1); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,1)),asset_grid,squeeze(PolicyVals(1,1,:,zind,1)),asset_grid,squeeze(PolicyVals(1,1,:,end,1))) % j=1
+subplot(5,2,1); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,1)),asset_grid,squeeze(PolicyVals(2,1,:,zind,1)),asset_grid,squeeze(PolicyVals(2,1,:,end,1))) % j=1
 title('Policy for savings at age j=1')
-subplot(5,2,3); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,20)),asset_grid,squeeze(PolicyVals(1,1,:,zind,20)),asset_grid,squeeze(PolicyVals(1,1,:,end,20))) % j=20
+subplot(5,2,3); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,20)),asset_grid,squeeze(PolicyVals(2,1,:,zind,20)),asset_grid,squeeze(PolicyVals(2,1,:,end,20))) % j=20
 title('Policy for savings at age j=20')
-subplot(5,2,5); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,45)),asset_grid,squeeze(PolicyVals(1,1,:,zind,45)),asset_grid,squeeze(PolicyVals(1,1,:,end,45))) % j=45
+subplot(5,2,5); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,45)),asset_grid,squeeze(PolicyVals(2,1,:,zind,45)),asset_grid,squeeze(PolicyVals(2,1,:,end,45))) % j=45
 title('Policy for savings at age j=45')
-subplot(5,2,7); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,46)),asset_grid,squeeze(PolicyVals(1,1,:,zind,46)),asset_grid,squeeze(PolicyVals(1,1,:,end,46))) % j=46
+subplot(5,2,7); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,46)),asset_grid,squeeze(PolicyVals(2,1,:,zind,46)),asset_grid,squeeze(PolicyVals(2,1,:,end,46))) % j=46
 title('Policy for savings at age j=46 (first year of retirement)')
-subplot(5,2,9); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,81)),asset_grid,squeeze(PolicyVals(1,1,:,zind,81)),asset_grid,squeeze(PolicyVals(1,1,:,end,81))) % j=81
+subplot(5,2,9); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,81)),asset_grid,squeeze(PolicyVals(2,1,:,zind,81)),asset_grid,squeeze(PolicyVals(2,1,:,end,81))) % j=81
 title('Policy for savings at age j=81')
 xlabel('Assets (a)')
-subplot(5,2,2); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,1)),asset_grid,squeeze(PolicyVals(2,1,:,zind,1)),asset_grid,squeeze(PolicyVals(2,1,:,end,1))) % j=1
+subplot(5,2,2); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,1)),asset_grid,squeeze(PolicyVals(1,1,:,zind,1)),asset_grid,squeeze(PolicyVals(1,1,:,end,1))) % j=1
 title('Policy for riskyshare at age j=1')
 legend('min z','median z','max z') % Just include the legend once in the top-right subplot
-subplot(5,2,4); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,20)),asset_grid,squeeze(PolicyVals(2,1,:,zind,20)),asset_grid,squeeze(PolicyVals(2,1,:,end,20))) % j=20
+subplot(5,2,4); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,20)),asset_grid,squeeze(PolicyVals(1,1,:,zind,20)),asset_grid,squeeze(PolicyVals(1,1,:,end,20))) % j=20
 title('Policy for riskyshare at age j=20')
-subplot(5,2,6); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,45)),asset_grid,squeeze(PolicyVals(2,1,:,zind,45)),asset_grid,squeeze(PolicyVals(2,1,:,end,45))) % j=45
+subplot(5,2,6); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,45)),asset_grid,squeeze(PolicyVals(1,1,:,zind,45)),asset_grid,squeeze(PolicyVals(1,1,:,end,45))) % j=45
 title('Policy for riskyshare at age j=45')
-subplot(5,2,8); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,46)),asset_grid,squeeze(PolicyVals(2,1,:,zind,46)),asset_grid,squeeze(PolicyVals(2,1,:,end,46))) % j=46
+subplot(5,2,8); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,46)),asset_grid,squeeze(PolicyVals(1,1,:,zind,46)),asset_grid,squeeze(PolicyVals(1,1,:,end,46))) % j=46
 title('Policy for riskyshare at age j=46 (first year of retirement)')
-subplot(5,2,10); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,81)),asset_grid,squeeze(PolicyVals(2,1,:,zind,81)),asset_grid,squeeze(PolicyVals(2,1,:,end,81))) % j=81
+subplot(5,2,10); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,81)),asset_grid,squeeze(PolicyVals(1,1,:,zind,81)),asset_grid,squeeze(PolicyVals(1,1,:,end,81))) % j=81
 title('Policy for riskyshare at age j=81')
 xlabel('Assets (a)')
 
@@ -286,10 +286,10 @@ StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Pol
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
 % Like with return function, we have to include (h,aprime,a,z) as first inputs, then just any relevant parameters.
-FnsToEvaluate.riskyshare=@(savings,riskyshare,hprime,h,a,z) riskyshare; % riskyshare, is the fraction of savings invested in the risky asset
-FnsToEvaluate.earnings=@(savings,riskyshare,hprime,h,a,z,w,kappa_j) w*kappa_j*z; % labor earnings
-FnsToEvaluate.assets=@(savings,riskyshare,hprime,h,a,z) a; % a is the current asset holdings
-FnsToEvaluate.housing=@(savings,riskyshare,hprime,h,a,z) h; % a is the current asset holdings
+FnsToEvaluate.riskyshare=@(riskyshare,savings,hprime,h,a,z) riskyshare; % riskyshare, is the fraction of savings invested in the risky asset
+FnsToEvaluate.earnings=@(riskyshare,savings,hprime,h,a,z,w,kappa_j) w*kappa_j*z; % labor earnings
+FnsToEvaluate.assets=@(riskyshare,savings,hprime,h,a,z) a; % a is the current asset holdings
+FnsToEvaluate.housing=@(riskyshare,savings,hprime,h,a,z) h; % a is the current asset holdings
 % notice that we have called these riskyshare, earnings and assets
 
 %% Calculate the life-cycle profiles
@@ -312,4 +312,3 @@ subplot(4,1,3); plot(1:1:Params.J,AgeConditionalStats.assets.Mean)
 title('Life Cycle Profile: Assets (a)')
 subplot(4,1,4); plot(1:1:Params.J,AgeConditionalStats.housing.Mean)
 title('Life Cycle Profile: Housing (h)')
-
