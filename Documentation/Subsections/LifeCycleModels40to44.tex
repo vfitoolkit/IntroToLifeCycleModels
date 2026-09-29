@@ -50,7 +50,7 @@ Setting up two standard endogenous states is straightforward: $n\_{}a=[n\_{}a_1,
 
 Two standard endogenous states is a flexible setup. We use it here for housing but the same code structure can be used for any two-asset problem (e.g.\ liquid plus illiquid assets without the housing-services interpretation, or assets plus a second savings vehicle).
 
-\subsection{Life-Cycle model 41: Female Labor Force Participation History (experienceasset)}
+\subsection{Life-Cycle model 41: experienceasset (Female Labor Force Participation History)}
 The household will have two endogenous states, the first is a standard endogenous state $a$, and the second is female-labor-force-participation-history $h$ which is an 'experienceasset'. Each period the household will decide whether the female works or not (a binary decision variable, $p$), and the female-labor-force-participation-history will evolve based on this decision, $hprime(p,h)$.
 
 The household represents a couple. For simplicity the male always works (for earnings $y_m$). The household can save assets $a$, and the female gets earnings $y_f=p h z$ where $p$ is the labor-force-participation decision (1 is working, 0 if not working), $h$ is female-labor-force-participation-history, and $z$ is a markov process on female productivity (per unit of human capital).
@@ -74,7 +74,7 @@ This kind of model is used to understand decision around female labor-force part
 
 More generally, experienceasset will be useful for any kind of model where you want next period endogenous state to be a function of this period endogenous state and a decision variable, so $aprime(d,a)$. Note that it is important when setting up $n\_{}a$ that the endogenous state is the second asset, and for the grids you create $a\_{}grid$ as a stacked column vector of the grids for each of the two assets. And that if you have multiple decision variables, when setting up $n\_{}d$ the decision that matters for the experienceasset must be the last one, and for the grids you create $d\_{}grid$ as a stacked column vector of the grids for each decision variable. You can also use an experienceasset in a one endogenous state model (as the only endogenous state).
 
-\subsection{Life-Cycle model 42: Uncertain Human Capital (experienceassetu)}
+\subsection{Life-Cycle model 42: experienceassetu (Uncertain Human Capital)}
 The household will have two endogenous states, the first is a standard endogenous state $a$, and the second is human capital $h$ which is accumulated with uncertainty, and hence an 'experienceassetu'. Each period the household will decide what fraction of time to spend studying (a decision variable, $s$) and the human capital will evolve based on this decision $hprime(d,h,u)$ with uncertainty due to a between-period i.i.d shock, $u$. We also have two decision variables, $l$, the labor supply, and $s$ the time spent studying. When using experienceassetu with multiple decision variables, the last decision variable will be the one that influences the experienceassetu.
 
 The household problem is,
