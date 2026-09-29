@@ -99,8 +99,8 @@ subplot(5,1,2); plot(a_grid,V(:,20)) % j=20
 title('Value fn at age j=20')
 subplot(5,1,3); plot(a_grid,V(:,45)) % j=45
 title('Value fn at age j=45')
-subplot(5,1,4); plot(a_grid,V(:,46)) % j=46
-title('Value fn at age j=46 (first year of retirement)')
+subplot(5,1,4); plot(a_grid,V(:,Params.Jr)) % j=Jr
+title(sprintf('Value fn at age j=%i (first year of retirement)',Params.Jr))
 subplot(5,1,5); plot(a_grid,V(:,81)) % j=81
 title('Value fn at age j=81')
 xlabel('Assets (a)')
@@ -132,8 +132,8 @@ subplot(5,2,3); plot(a_grid,PolicyVals(1,:,20)) % j=20
 title('Policy for h at age j=20')
 subplot(5,2,5); plot(a_grid,PolicyVals(1,:,45)) % j=45
 title('Policy for h at age j=45')
-subplot(5,2,7); plot(a_grid,PolicyVals(1,:,46)) % j=46
-title('Policy for h at age j=46 (first year of retirement)')
+subplot(5,2,7); plot(a_grid,PolicyVals(1,:,Params.Jr)) % j=Jr
+title(sprintf('Policy for h at age j=%i (first year of retirement)',Params.Jr))
 subplot(5,2,9); plot(a_grid,PolicyVals(1,:,81)) % j=81
 title('Policy for h at age j=81')
 xlabel('Assets (a)')
@@ -143,8 +143,8 @@ subplot(5,2,4); plot(a_grid,PolicyVals(2,:,20)) % j=20
 title('Policy for aprime at age j=20')
 subplot(5,2,6); plot(a_grid,PolicyVals(2,:,45)) % j=45
 title('Policy for aprime at age j=45')
-subplot(5,2,8); plot(a_grid,PolicyVals(2,:,46)) % j=46
-title('Policy for aprime at age j=46 (first year of retirement)')
+subplot(5,2,8); plot(a_grid,PolicyVals(2,:,Params.Jr)) % j=Jr
+title(sprintf('Policy for aprime at age j=%i (first year of retirement)',Params.Jr))
 subplot(5,2,10); plot(a_grid,PolicyVals(2,:,81)) % j=81
 title('Policy for aprime at age j=81')
 xlabel('Assets (a)')

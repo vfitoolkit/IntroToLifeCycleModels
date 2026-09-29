@@ -187,8 +187,8 @@ subplot(3,1,1); plot(a_grid,PolicyVals(1,:,1,45),a_grid,PolicyVals(1,:,zind,45),
 title('Policy for aprime at age j=45 (at low asset levels)')
 xlim([0,0.1])
 legend('min z','median z','max z','no shock')
-subplot(3,1,2); plot(a_grid,PolicyVals(1,:,1,46),a_grid,PolicyVals(1,:,zind,46),a_grid,PolicyVals(1,:,end,46),a_grid,PolicyVals_noshock(1,:,1,46)) % j=46
-title('Policy for aprime at age j=46 (first year of retirement)')
+subplot(3,1,2); plot(a_grid,PolicyVals(1,:,1,Params.Jr),a_grid,PolicyVals(1,:,zind,Params.Jr),a_grid,PolicyVals(1,:,end,Params.Jr),a_grid,PolicyVals_noshock(1,:,1,Params.Jr)) % j=Jr
+title(sprintf('Policy for aprime at age j=%i (first year of retirement)',Params.Jr))
 subplot(3,1,3); plot(a_grid,PolicyVals(1,:,1,81),a_grid,PolicyVals(1,:,zind,81),a_grid,PolicyVals(1,:,end,81),a_grid,PolicyVals_noshock(1,:,1,81)) % j=81
 title('Policy for aprime at age j=81')
 xlabel('Assets (a)')

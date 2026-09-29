@@ -1,4 +1,4 @@
-%% Life-Cycle Model 22: Deterministic income growth 
+%% Life-Cycle Model 22: Deterministic Economic/productivity growth
 % (with endogenous labor supply and exogenous shocks)
 % We will consider a (real wage) growth rate of 2%, Params.g=0.02
 %

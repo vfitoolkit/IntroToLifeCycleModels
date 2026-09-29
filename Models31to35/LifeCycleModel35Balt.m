@@ -216,8 +216,8 @@ subplot(5,1,2); plot(asset_grid,V(1,:,1,20),asset_grid,V(1,:,zind,20),asset_grid
 title('Value fn at age j=20')
 subplot(5,1,3); plot(asset_grid,V(1,:,1,45),asset_grid,V(1,:,zind,45),asset_grid,V(1,:,end,45)) % j=45
 title('Value fn at age j=45')
-subplot(5,1,4); plot(asset_grid,V(1,:,1,46),asset_grid,V(1,:,end,46),asset_grid,V(1,:,end,46)) % j=46
-title('Value fn at age j=46 (first year of retirement)')
+subplot(5,1,4); plot(asset_grid,V(1,:,1,Params.Jr),asset_grid,V(1,:,end,Params.Jr),asset_grid,V(1,:,end,Params.Jr)) % j=Jr
+title(sprintf('Value fn at age j=%i (first year of retirement)',Params.Jr))
 subplot(5,1,5); plot(asset_grid,V(1,:,1,81),asset_grid,V(1,:,zind,81),asset_grid,V(1,:,end,81)) % j=81
 title('Value fn at age j=81')
 xlabel('Assets (a)')
@@ -245,8 +245,8 @@ subplot(5,2,3); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,20)),asset_grid,squee
 title('Policy for savings at age j=20')
 subplot(5,2,5); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,45)),asset_grid,squeeze(PolicyVals(2,1,:,zind,45)),asset_grid,squeeze(PolicyVals(2,1,:,end,45))) % j=45
 title('Policy for savings at age j=45')
-subplot(5,2,7); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,46)),asset_grid,squeeze(PolicyVals(2,1,:,zind,46)),asset_grid,squeeze(PolicyVals(2,1,:,end,46))) % j=46
-title('Policy for savings at age j=46 (first year of retirement)')
+subplot(5,2,7); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,Params.Jr)),asset_grid,squeeze(PolicyVals(2,1,:,zind,Params.Jr)),asset_grid,squeeze(PolicyVals(2,1,:,end,Params.Jr))) % j=Jr
+title(sprintf('Policy for savings at age j=%i (first year of retirement)',Params.Jr))
 subplot(5,2,9); plot(asset_grid,squeeze(PolicyVals(2,1,:,1,81)),asset_grid,squeeze(PolicyVals(2,1,:,zind,81)),asset_grid,squeeze(PolicyVals(2,1,:,end,81))) % j=81
 title('Policy for savings at age j=81')
 xlabel('Assets (a)')
@@ -257,8 +257,8 @@ subplot(5,2,4); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,20)),asset_grid,squee
 title('Policy for riskyshare at age j=20')
 subplot(5,2,6); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,45)),asset_grid,squeeze(PolicyVals(1,1,:,zind,45)),asset_grid,squeeze(PolicyVals(1,1,:,end,45))) % j=45
 title('Policy for riskyshare at age j=45')
-subplot(5,2,8); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,46)),asset_grid,squeeze(PolicyVals(1,1,:,zind,46)),asset_grid,squeeze(PolicyVals(1,1,:,end,46))) % j=46
-title('Policy for riskyshare at age j=46 (first year of retirement)')
+subplot(5,2,8); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,Params.Jr)),asset_grid,squeeze(PolicyVals(1,1,:,zind,Params.Jr)),asset_grid,squeeze(PolicyVals(1,1,:,end,Params.Jr))) % j=Jr
+title(sprintf('Policy for riskyshare at age j=%i (first year of retirement)',Params.Jr))
 subplot(5,2,10); plot(asset_grid,squeeze(PolicyVals(1,1,:,1,81)),asset_grid,squeeze(PolicyVals(1,1,:,zind,81)),asset_grid,squeeze(PolicyVals(1,1,:,end,81))) % j=81
 title('Policy for riskyshare at age j=81')
 xlabel('Assets (a)')

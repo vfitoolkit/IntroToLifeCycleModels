@@ -1,4 +1,4 @@
-%% Life-Cycle Model 47: GMM Estimation of a Life-Cycle Model
+%% Life-Cycle Model 47: GMM Estimation, using data and how to choose Weighting Matrix
 % Model is same as we had in Life-Cycle Model 45.
 % Main thing we do here is use data to get data moments (the target
 % moments), the covariance matrix of the data moments (needed for

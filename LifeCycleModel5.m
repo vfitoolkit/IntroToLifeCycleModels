@@ -1,4 +1,4 @@
-%% Life-Cycle Model 5: Earnings are hump-shaped
+%% Life-Cycle Model 5: Earnings are hump-shaped (and explain agent distribution)
 % Introduce a parameter kappa_j, that depends on age.
 % kappa_j represents 'labor productivity units as a deterministic function of age'
 % kappa_j is created as a J-by-1 vector, and the codes immediately realise this is a parameter that varies with age (because is has length J)

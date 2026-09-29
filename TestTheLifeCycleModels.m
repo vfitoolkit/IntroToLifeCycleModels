@@ -10,7 +10,7 @@
 % 7: Models 45-50 - GMM estimation
 % 8: Models A1-A12
 % 9: Assignments
-doPart=[1,1,1,1,1,1,1,1,1];
+doPart=[0,0,0,1,0,0,0,0,0];
 
 %% Diary of the command window output
 if exist('./TestLifeCycleDiary.txt','file')
@@ -230,11 +230,11 @@ if doPart(6)==1
     LifeCycleModel40
 
     clearvars -except doPart
-    fprintf('Now solving Life-Cycle Model 41: Female Labor Force Participation History (experienceasset) \n')
+    fprintf('Now solving Life-Cycle Model 41: experienceasset (Female Labor Force Participation History) \n')
     LifeCycleModel41
 
     clearvars -except doPart
-    fprintf('Now solving Life-Cycle Model 42: Uncertain Human Capital (experienceassetu) \n')
+    fprintf('Now solving Life-Cycle Model 42: experienceassetu (Uncertain Human Capital) \n')
     LifeCycleModel42
 
     % Models 43 and 44 are not finished yet (their subsections in the pdf are

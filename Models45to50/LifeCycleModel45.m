@@ -1,4 +1,4 @@
-%% Life-Cycle Model 45: GMM Estimation of a Life-Cycle Model
+%% Life-Cycle Model 45: GMM Estimation, the basics
 % This is just life-cycle model 9, and is essentially copy paste until line 150
 % To keep things clear, we will not use any real-world data (that is done in Life-Cycle Model 47)
 % We will first solve the model to get age-conditional mean earnings.

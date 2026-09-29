@@ -1,4 +1,4 @@
-%% Life-Cycle Model 18: Precautionary savings with endogenous labor
+%% Life-Cycle Model 18: Precautionary Savings with Endogenous labor
 % We saw precautionary savings with exogenous labor in Life-Cycle Model 17.
 % We now repeat this, but this time with endogenous labor.
 % Recall that precautionary savings are about increasing asset holdings as a way for households 

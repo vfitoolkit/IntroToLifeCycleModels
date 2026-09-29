@@ -1,4 +1,4 @@
-%% Life-Cycle Model 37: Temptation and Self-Control, Gul-Pesendorfer preferences
+%% Life-Cycle Model 37: Temptation and Self-Control (Gul-Pesendorfer Preferences)
 % Alter life-cycle model 10 to use Gul-Pesendorfer preferences
 
 % There are essentially just one aspect to using Gul-Pesendorfer
@@ -131,8 +131,8 @@ subplot(5,1,2); plot(a_grid,V(:,1,20),a_grid,V(:,zind,20),a_grid,V(:,end,20)) % 
 title('Value fn at age j=20')
 subplot(5,1,3); plot(a_grid,V(:,1,45),a_grid,V(:,zind,45),a_grid,V(:,end,45)) % j=45
 title('Value fn at age j=45')
-subplot(5,1,4); plot(a_grid,V(:,1,46),a_grid,V(:,zind,46),a_grid,V(:,end,46)) % j=46
-title('Value fn at age j=46 (first year of retirement)')
+subplot(5,1,4); plot(a_grid,V(:,1,Params.Jr),a_grid,V(:,zind,Params.Jr),a_grid,V(:,end,Params.Jr)) % j=Jr
+title(sprintf('Value fn at age j=%i (first year of retirement)',Params.Jr))
 subplot(5,1,5); plot(a_grid,V(:,1,81),a_grid,V(:,zind,81),a_grid,V(:,end,81)) % j=81
 title('Value fn at age j=81')
 xlabel('Assets (a)')
@@ -156,8 +156,8 @@ subplot(5,1,2); plot(a_grid,PolicyVals(1,:,1,20),a_grid,PolicyVals(1,:,zind,20),
 title('Policy for aprime at age j=20')
 subplot(5,1,3); plot(a_grid,PolicyVals(1,:,1,45),a_grid,PolicyVals(1,:,zind,45),a_grid,PolicyVals(1,:,end,45)) % j=45
 title('Policy for aprime at age j=45')
-subplot(5,1,4); plot(a_grid,PolicyVals(1,:,1,46),a_grid,PolicyVals(1,:,zind,46),a_grid,PolicyVals(1,:,end,46)) % j=46
-title('Policy for aprime at age j=46 (first year of retirement)')
+subplot(5,1,4); plot(a_grid,PolicyVals(1,:,1,Params.Jr),a_grid,PolicyVals(1,:,zind,Params.Jr),a_grid,PolicyVals(1,:,end,Params.Jr)) % j=Jr
+title(sprintf('Policy for aprime at age j=%i (first year of retirement)',Params.Jr))
 subplot(5,1,5); plot(a_grid,PolicyVals(1,:,1,81),a_grid,PolicyVals(1,:,zind,81),a_grid,PolicyVals(1,:,end,81)) % j=81
 title('Policy for aprime at age j=81')
 xlabel('Assets (a)')

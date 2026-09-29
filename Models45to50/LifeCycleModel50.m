@@ -1,4 +1,4 @@
-%% Life-Cycle Model 50: GMM Estimation of a Life-Cycle Model with Permanent Types, permanent types 2
+%% Life-Cycle Model 50: GMM Estimation, permanent types 2
 % We will modify the model used in Life-Cycle Model 45 (which was essentially just Life-Cycle Model 9)
 % We will have two permanent types, 'funtimes' and 'worktimes'. 
 % Almost all parameters will be common, but the psi parameter (the weight

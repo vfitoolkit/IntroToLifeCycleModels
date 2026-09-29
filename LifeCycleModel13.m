@@ -1,4 +1,4 @@
-%% Life-Cycle Model 13: Simulate Panel Data
+%% Life-Cycle Model 13: Simulating Panel Data
 % Is unchanged from Life-Cycle Model 9 until line 153
 % Use FnsToEvaluate to simulate panel data very easily.
 % Then create some plots and run a regression so illustrate how to use the panel data.

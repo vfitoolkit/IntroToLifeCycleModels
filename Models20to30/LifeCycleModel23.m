@@ -1,4 +1,4 @@
-%% Life-Cycle Model 23: Using Permanent Type to model fixed-effects
+%% Life-Cycle Model 23: Permanent Types: Solving fixed-types
 % The exogenous process on labor efficiency units now uses an approach common in the literature:
 % Labor efficiency units are a combination of four components:
 % 1) kappa_j, a deterministic profile of age

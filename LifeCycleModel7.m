@@ -1,4 +1,4 @@
-%% Life-Cycle Model 7: Warm-glow bequests
+%% Life-Cycle Model 7: Warm-glow of bequests
 
 %% How does VFI Toolkit think about this?
 %

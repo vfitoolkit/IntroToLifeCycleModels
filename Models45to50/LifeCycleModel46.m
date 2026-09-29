@@ -1,4 +1,4 @@
-%% Life-Cycle Model 46: GMM Estimation of a Life-Cycle Model, again
+%% Life-Cycle Model 46: GMM Estimation, parameter restrictions, estimating shocks and initial dist
 % Same model as Life-Cycle Model 45
 % This time we include the parameters that determine exogenous shocks and
 % initial agent distribution among the parameters to be estimated.

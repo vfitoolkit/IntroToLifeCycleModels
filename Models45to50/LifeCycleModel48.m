@@ -1,4 +1,4 @@
-%% Life-Cycle Model 48: GMM Estimation of a Life-Cycle Model, various extras
+%% Life-Cycle Model 48: GMM Estimation, various extras
 % This is largely just redoing the GMM estimation in Life-Cycle Model 45,
 % but showing how to use various estimoptions and looking at some of the
 % other outputs.
