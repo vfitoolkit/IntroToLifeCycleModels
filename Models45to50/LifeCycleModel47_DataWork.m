@@ -264,7 +264,8 @@ CohortFixedEffects=CohortFixedEffects(:,2:end); % Have to use only Ncohorts-1 va
 % Cohort-fixed-effect regression
 ydata=reshape(RealEarnings_jjtt,[MaxObs*(64-19)*(1992-1968),1]);
 Xdata=[repelem(AgeFixedEffects,MaxObs,1),repelem(CohortFixedEffects,MaxObs,1)];
-b = regress(ydata,Xdata);
+keep=~isnan(ydata); % regress() drops these rows itself, backslash needs us to do it (and so avoids needing the Statistics Toolbox)
+b = Xdata(keep,:)\ydata(keep);
 B=b(1:J); % b is (J+Ncohorts)-by-1
 
 % Finally, we plot the fitted age effects
@@ -285,7 +286,8 @@ title('Fitted mean earnings profile')
 % Cohort-fixed-effect regression
 ydata=reshape(RealEarnings_jjtt.^2,[MaxObs*(64-19)*(1992-1968),1]); % square of earnings
 Xdata=[repelem(AgeFixedEffects,MaxObs,1),repelem(CohortFixedEffects,MaxObs,1)];
-b2 = regress(ydata,Xdata);
+keep=~isnan(ydata); % regress() drops these rows itself, backslash needs us to do it (and so avoids needing the Statistics Toolbox)
+b2 = Xdata(keep,:)\ydata(keep);
 B2=b2(1:J); % b2 is (J+Ncohorts)-by-1
 
 % Finally, we plot the fitted age effects
@@ -309,7 +311,8 @@ TimeFixedEffects=reshape(TimeFixedEffects,[J*T,T-1]);
 % Time-fixed-effect regression
 ydata=reshape(RealEarnings_jjtt,[MaxObs*(64-19)*(1992-1968),1]);
 Xdata=[repelem(AgeFixedEffects,MaxObs,1),repelem(TimeFixedEffects,MaxObs,1)];
-b3 = regress(ydata,Xdata);
+keep=~isnan(ydata); % regress() drops these rows itself, backslash needs us to do it (and so avoids needing the Statistics Toolbox)
+b3 = Xdata(keep,:)\ydata(keep);
 B3=b3(1:J); % b3 is (J+T)-by-1
 
 MeanEarningsProfile_TFE=B3;
@@ -328,7 +331,8 @@ legend('Cohort FE','Time FE','location','southeast')
 % Time-fixed-effect regression
 ydata=reshape(RealEarnings_jjtt.^2,[MaxObs*(64-19)*(1992-1968),1]); % square of earnings
 Xdata=[repelem(AgeFixedEffects,MaxObs,1),repelem(TimeFixedEffects,MaxObs,1)];
-b2 = regress(ydata,Xdata);
+keep=~isnan(ydata); % regress() drops these rows itself, backslash needs us to do it (and so avoids needing the Statistics Toolbox)
+b2 = Xdata(keep,:)\ydata(keep);
 B4=b2(1:J); % b2 is (J+Ncohorts)-by-1
 
 % Finally, we plot the fitted age effects
