@@ -23,7 +23,7 @@
 %% How does VFI Toolkit think about this?
 %
 % One decision variable: h, fraction of time worked
-% Two endogenous state variables: a, assets (total household savings), and e, lifetime average earnings
+% Two endogenous state variables: a, assets (total household savings), and ebar, lifetime average earnings
 % One stochastic exogenous state variable: z, an AR(1) process (in logs), idiosyncratic shock to labor productivity units
 % Age: j
 
@@ -99,8 +99,8 @@ Params.wg3=Params.sigma; % By using the same curvature as the utility of consump
 % and putting more points near curvature (where the derivative changes the most) increases accuracy of results.
 asset_grid=10*(linspace(0,1,n_a(1)).^3)'; % The ^3 means most points are near zero, which is where the derivative of the value fn changes most.
 
-e_grid=linspace(0,2,n_a(2))'; % Because e is an experienceassetz, it will be interpolated onto this grid and so we need less grid points than usual
-% Note: e_grid starts at zero, someone who never works has zero lifetime average earnings
+ebar_grid=linspace(0,2,n_a(2))'; % Because ebar is an experienceassetz, it will be interpolated onto this grid and so we need less grid points than usual
+% Note: ebar_grid starts at zero, someone who never works has zero lifetime average earnings
 
 % First, the AR(1) process z
 [z_grid,pi_z]=discretizeAR1_FarmerToda(0,Params.rho_z,Params.sigma_epsilon_z,n_z);
@@ -112,23 +112,23 @@ z_grid=z_grid./mean_z; % Normalise the grid on z (so that the mean of z is exact
 h_grid=linspace(0,1,n_d)'; % Notice that it is imposing the 0<=h<=1 condition implicitly
 d_grid=h_grid;
 % Put asset and lifetime-average-earnings grids together
-a_grid=[asset_grid; e_grid]; % 'stacked-column vector', so one column vector on top of the other
+a_grid=[asset_grid; ebar_grid]; % 'stacked-column vector', so one column vector on top of the other
 
 %% experienceassetz: aprimeFn
 % To use an experienceassetz, we need to define aprime(d,a,z)
-% [in notation of the current model, eprime(h,e,z)]
+% [in notation of the current model, ebarprime(h,ebar,z)]
 
 vfoptions.experienceassetz=1; % Using an experience-asset-z
 % Note: by default, assumes it is the last d variable that controls the
 % evolution of the experience asset (and that the last a variable is
 % the experience asset).
 
-% aprimeFn gives the value of eprime
-% While working, e is the running average of earnings so far: at age agej
+% aprimeFn gives the value of ebarprime
+% While working, ebar is the running average of earnings so far: at age agej
 % the new average is the old one, plus 1/agej of the gap between this
 % periods earnings and the old average. Once retired the entitlement is
 % frozen (you stop accruing).
-vfoptions.aprimeFn=@(h,e,z,w,kappa_j,agej,Jr) (agej<Jr)*(e+(w*kappa_j*z*h-e)/agej)+(agej>=Jr)*e;
+vfoptions.aprimeFn=@(h,ebar,z,w,kappa_j,agej,Jr) (agej<Jr)*(ebar+(w*kappa_j*z*h-ebar)/agej)+(agej>=Jr)*ebar;
 % The first three inputs must be (d,a,z) [in the sense of aprime(d,a,z)], then any parameters
 
 % We also need to tell simoptions about the experienceassetz
@@ -146,13 +146,13 @@ simoptions.gridinterplayer=vfoptions.gridinterplayer; % grid interpolation layer
 simoptions.ngridinterp=vfoptions.ngridinterp;
 
 % To see what the pension system looks like, here is the pension as a function of lifetime average earnings
-pension_e=Params.pensionscale*(Params.pensionrate1*min(e_grid,Params.pensionbp1)+Params.pensionrate2*max(min(e_grid,Params.pensionbp2)-Params.pensionbp1,0)+Params.pensionrate3*max(e_grid-Params.pensionbp2,0));
-pension_e=max(pension_e,Params.pensionmin);
+pension_ebar=Params.pensionscale*(Params.pensionrate1*min(ebar_grid,Params.pensionbp1)+Params.pensionrate2*max(min(ebar_grid,Params.pensionbp2)-Params.pensionbp1,0)+Params.pensionrate3*max(ebar_grid-Params.pensionbp2,0));
+pension_ebar=max(pension_ebar,Params.pensionmin);
 figure(1)
-plot(e_grid,pension_e,e_grid,e_grid)
+plot(ebar_grid,pension_ebar,ebar_grid,ebar_grid)
 legend('pension','45 degree','location','northwest')
-title('Pension as a function of lifetime average earnings (e)')
-xlabel('Lifetime average earnings (e)')
+title('Pension as a function of lifetime average earnings (ebar)')
+xlabel('Lifetime average earnings (ebar)')
 ylabel('Pension')
 % Notice the two kinks, at the bend points, and that the pension is flat at
 % pensionmin for the very lowest earners. Because the slope falls as you
@@ -162,14 +162,14 @@ ylabel('Pension')
 DiscountFactorParamNames={'beta','sj'};
 
 % Use 'LifeCycleModel43_ReturnFn'
-ReturnFn=@(h,aprime,a,e,z,w,sigma,psi,eta,agej,Jr,r,kappa_j,pensionbp1,pensionbp2,pensionrate1,pensionrate2,pensionrate3,pensionscale,pensionmin,wg1,wg2,wg3,beta,sj)...
-    LifeCycleModel43_ReturnFn(h,aprime,a,e,z,w,sigma,psi,eta,agej,Jr,r,kappa_j,pensionbp1,pensionbp2,pensionrate1,pensionrate2,pensionrate3,pensionscale,pensionmin,wg1,wg2,wg3,beta,sj);
-% Notice how we have (h,aprime,a,e,z,...)
-% Follow same decision-next endo-endo-exo ordering as usual, but because e
-% is an experienceassetz, we do not include eprime as it is not chosen
+ReturnFn=@(h,aprime,a,ebar,z,w,sigma,psi,eta,agej,Jr,r,kappa_j,pensionbp1,pensionbp2,pensionrate1,pensionrate2,pensionrate3,pensionscale,pensionmin,wg1,wg2,wg3,beta,sj)...
+    LifeCycleModel43_ReturnFn(h,aprime,a,ebar,z,w,sigma,psi,eta,agej,Jr,r,kappa_j,pensionbp1,pensionbp2,pensionrate1,pensionrate2,pensionrate3,pensionscale,pensionmin,wg1,wg2,wg3,beta,sj);
+% Notice how we have (h,aprime,a,ebar,z,...)
+% Follow same decision-next endo-endo-exo ordering as usual, but because ebar
+% is an experienceassetz, we do not include ebarprime as it is not chosen
 % directly.
 % Notice also that 'pension' is no longer one of the parameters. The
-% pension is now calculated inside the return function, out of e.
+% pension is now calculated inside the return function, out of ebar.
 
 %% Solve the value function iteration problem
 disp('Solve for Value fn and Policy fn using ValueFnIter command')
@@ -178,7 +178,7 @@ tic;
 [V, Policy]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j, d_grid, a_grid, z_grid, pi_z, ReturnFn, Params, DiscountFactorParamNames, [], vfoptions);
 toc
 
-% V is now (a,e,z,j)
+% V is now (a,ebar,z,j)
 % Compare
 size(V)
 % with
@@ -193,22 +193,22 @@ size(Policy)
 %% Let's take a quick look at what we have calculated, namely V and Policy
 
 % Convert the policy function to values (rather than indexes).
-% Policy(1,:,:,:,:) is h, Policy(2,:,:,:,:) is aprime [as function of (a,e,z,j)]
-% Because e is an experienceassetz, eprime is not chosen directly so is not in Policy
+% Policy(1,:,:,:,:) is h, Policy(2,:,:,:,:) is aprime [as function of (a,ebar,z,j)]
+% Because ebar is an experienceassetz, ebarprime is not chosen directly so is not in Policy
 % When using grid interpolation layer there is also a Policy(3,:,:,:,:) that is related to aprime on the interpolation layer (not something you need to understand as user, just mentioning)
 
 % Plots are conditional on median z, and on two different levels of entitlement
 zind=ceil(n_z/2);
-eind_low=ceil(n_a(2)/6);
-eind_high=ceil(5*n_a(2)/6);
+ebarind_low=ceil(n_a(2)/6);
+ebarind_high=ceil(5*n_a(2)/6);
 PolicyVals=PolicyInd2Val_FHorz(Policy,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions);
 figure(2)
-subplot(2,1,1); surf(asset_grid*ones(1,Params.J),ones(n_a(1),1)*(1:1:Params.J),reshape(PolicyVals(1,:,eind_low,zind,:),[n_a(1),Params.J]))
+subplot(2,1,1); surf(asset_grid*ones(1,Params.J),ones(n_a(1),1)*(1:1:Params.J),reshape(PolicyVals(1,:,ebarind_low,zind,:),[n_a(1),Params.J]))
 title('Policy function: fraction of time worked (h), low entitlement, median z')
 xlabel('Assets (a)')
 ylabel('Age j')
 zlabel('Fraction of time worked (h)')
-subplot(2,1,2); surf(asset_grid*ones(1,Params.J),ones(n_a(1),1)*(1:1:Params.J),reshape(PolicyVals(1,:,eind_high,zind,:),[n_a(1),Params.J]))
+subplot(2,1,2); surf(asset_grid*ones(1,Params.J),ones(n_a(1),1)*(1:1:Params.J),reshape(PolicyVals(1,:,ebarind_high,zind,:),[n_a(1),Params.J]))
 title('Policy function: fraction of time worked (h), high entitlement, median z')
 xlabel('Assets (a)')
 ylabel('Age j')
@@ -219,13 +219,13 @@ zlabel('Fraction of time worked (h)')
 % the second bend point and only gets 15 cents. So the pension system gives
 % the two of them quite different incentives to work.
 
-% Because e is an experienceassetz, eprime is not chosen directly so is not in Policy
-% But then how does eprime evolve? Remember that eprime(h,e,z), so you can
-% use the current e, together with h (which is in Policy) and the current z,
+% Because ebar is an experienceassetz, ebarprime is not chosen directly so is not in Policy
+% But then how does ebarprime evolve? Remember that ebarprime(h,ebar,z), so you can
+% use the current ebar, together with h (which is in Policy) and the current z,
 % and you would then need to pass these as inputs into aprimeFn, which
-% outputs the value of eprime(h,e,z). That is what the toolkit is doing
+% outputs the value of ebarprime(h,ebar,z). That is what the toolkit is doing
 % internally (as well as then using linear interpolation to put the value
-% of eprime(h,e,z) back onto the two nearest points on e_grid)
+% of ebarprime(h,ebar,z) back onto the two nearest points on ebar_grid)
 
 %% Now, we want to graph Life-Cycle Profiles
 
@@ -247,12 +247,12 @@ AgeWeightsParamNames={'mewj'}; % So VFI Toolkit knows which parameter is the mas
 StationaryDist=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightsParamNames,Policy,n_d,n_a,n_z,N_j,pi_z,Params,simoptions);
 
 %% FnsToEvaluate are how we say what we want to graph the life-cycles of
-% Like with return function, we have to include (h,aprime,a,e,z) as first inputs, then just any relevant parameters.
-FnsToEvaluate.fractiontimeworked=@(h,aprime,a,e,z) h; % h is fraction of time worked
-FnsToEvaluate.earnings=@(h,aprime,a,e,z,w,kappa_j) w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings
-FnsToEvaluate.entitlement=@(h,aprime,a,e,z) e; % e is lifetime average earnings so far
-FnsToEvaluate.assets=@(h,aprime,a,e,z) a; % a is the current asset holdings
-FnsToEvaluate.pension=@(h,aprime,a,e,z,agej,Jr,pensionbp1,pensionbp2,pensionrate1,pensionrate2,pensionrate3,pensionscale,pensionmin) (agej>=Jr)*max(pensionscale*(pensionrate1*min(e,pensionbp1)+pensionrate2*max(min(e,pensionbp2)-pensionbp1,0)+pensionrate3*max(e-pensionbp2,0)),pensionmin); % the pension actually received (zero while working)
+% Like with return function, we have to include (h,aprime,a,ebar,z) as first inputs, then just any relevant parameters.
+FnsToEvaluate.fractiontimeworked=@(h,aprime,a,ebar,z) h; % h is fraction of time worked
+FnsToEvaluate.earnings=@(h,aprime,a,ebar,z,w,kappa_j) w*kappa_j*z*h; % w*kappa_j*z*h is the labor earnings
+FnsToEvaluate.entitlement=@(h,aprime,a,ebar,z) ebar; % ebar is lifetime average earnings so far
+FnsToEvaluate.assets=@(h,aprime,a,ebar,z) a; % a is the current asset holdings
+FnsToEvaluate.pension=@(h,aprime,a,ebar,z,agej,Jr,pensionbp1,pensionbp2,pensionrate1,pensionrate2,pensionrate3,pensionscale,pensionmin) (agej>=Jr)*max(pensionscale*(pensionrate1*min(ebar,pensionbp1)+pensionrate2*max(min(ebar,pensionbp2)-pensionbp1,0)+pensionrate3*max(ebar-pensionbp2,0)),pensionmin); % the pension actually received (zero while working)
 % notice that we have called these fractiontimeworked, earnings, entitlement, assets and pension
 
 %% Calculate the life-cycle profiles
@@ -265,7 +265,7 @@ title('Life Cycle Profile: Fraction Time Worked (h)')
 subplot(5,1,2); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.earnings.Mean)
 title('Life Cycle Profile: Labor Earnings (w kappa_j z h)')
 subplot(5,1,3); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.entitlement.Mean)
-title('Life Cycle Profile: Lifetime Average Earnings (e)')
+title('Life Cycle Profile: Lifetime Average Earnings (ebar)')
 subplot(5,1,4); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.pension.Mean)
 title('Life Cycle Profile: Pension')
 subplot(5,1,5); plot(Params.agejshifter+(1:1:Params.J),AgeConditionalStats.assets.Mean)

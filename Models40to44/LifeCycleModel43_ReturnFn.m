@@ -1,9 +1,9 @@
-function F=LifeCycleModel43_ReturnFn(h,aprime,a,e,z,w,sigma,psi,eta,agej,Jr,r,kappa_j,pensionbp1,pensionbp2,pensionrate1,pensionrate2,pensionrate3,pensionscale,pensionmin,wg1,wg2,wg3,beta,sj)
+function F=LifeCycleModel43_ReturnFn(h,aprime,a,ebar,z,w,sigma,psi,eta,agej,Jr,r,kappa_j,pensionbp1,pensionbp2,pensionrate1,pensionrate2,pensionrate3,pensionscale,pensionmin,wg1,wg2,wg3,beta,sj)
 % As usual the inputs are: decision variable, next period endogenous states,
 % this period endogenous states, exogenous states.
-% Here we have 1 decision variable, h, and two endogenous states, a and e.
-% But e is an experienceassetz, so eprime is not chosen and so is not an
-% input. Hence we have (h,aprime,a,e,z,...)
+% Here we have 1 decision variable, h, and two endogenous states, a and ebar.
+% But ebar is an experienceassetz, so ebarprime is not chosen and so is not an
+% input. Hence we have (h,aprime,a,ebar,z,...)
 % After that we need all the parameters the return function uses, it
 % doesn't matter what order we put them here.
 
@@ -12,8 +12,8 @@ if agej<Jr % If working age
     c=w*kappa_j*z*h+(1+r)*a-aprime;
 else % Retirement
     % The pension is a piecewise-linear function of lifetime average
-    % earnings e, with two bend points, and a minimum pension.
-    pension=pensionscale*(pensionrate1*min(e,pensionbp1)+pensionrate2*max(min(e,pensionbp2)-pensionbp1,0)+pensionrate3*max(e-pensionbp2,0));
+    % earnings ebar, with two bend points, and a minimum pension.
+    pension=pensionscale*(pensionrate1*min(ebar,pensionbp1)+pensionrate2*max(min(ebar,pensionbp2)-pensionbp1,0)+pensionrate3*max(ebar-pensionbp2,0));
     pension=max(pension,pensionmin);
     c=pension+(1+r)*a-aprime;
 end

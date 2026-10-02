@@ -98,29 +98,29 @@ More generally, experienceassetu will be useful for any kind of model where you 
 \subsection{Life-Cycle model 43: experienceassetz (Earnings-Indexed Pensions)}
 Every model so far has paid retirees a pension that was simply a parameter, identical for everyone. Some pension systems instead pay you according to what you earned while working, and so the pension is a function of your own earnings history. To model this we need to carry that history around as a state.
 
-The household will have two endogenous states, the first is a standard endogenous state $a$, and the second is lifetime average earnings $e$, which is an 'experienceassetz'. Each period the household decides what fraction of time to work (a decision variable, $h$), and the entitlement evolves based on this decision, on its current level, and on the exogenous shock, $eprime(h,e,z)$.
+The household will have two endogenous states, the first is a standard endogenous state $a$, and the second is lifetime average earnings $\bar{e}$, which is an 'experienceassetz'. Each period the household decides what fraction of time to work (a decision variable, $h$), and the entitlement evolves based on this decision, on its current level, and on the exogenous shock, $\bar{e}prime(h,\bar{e},z)$.
 
 Why experienceassetz and not the plain experienceasset of Life-Cycle model 41? Because earnings are $w \kappa_j z h$, and so depend on the exogenous shock $z$. With $aprime(d,a)$ we could not write down how the entitlement evolves, as the shock is part of it. This is the reason the \textit{z} variants of the experience asset exist.
 
 The household problem is,
 \begin{eqnarray*}
- V(a,e,z,j) &=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)    \\
- && \quad \quad \quad \quad \quad \quad  + s_j \beta E[V(aprime,eprime,zprime,j+1)|z] \\
+ V(a,\bar{e},z,j) &=& \max_{c,aprime,h} \frac{c^{1-\sigma}}{1-\sigma} - \psi \frac{h^{1+\eta}}{1+\eta} + (1-s_j)\beta  \mathbb{I}_{(j>=Jr+10)} warmglow(aprime)    \\
+ && \quad \quad \quad \quad \quad \quad  + s_j \beta E[V(aprime,\bar{e}prime,zprime,j+1)|z] \\
 && \text{if }j<Jr: \; c+aprime=(1+r)a+ w \kappa_j z h \\
-&& \phantom{\text{if }j<Jr:} \; eprime=e+\frac{w \kappa_j z h - e}{j} \\
-&& \text{if }j>=Jr: \; c+aprime=(1+r)a + pension(e) \\
-&& \phantom{\text{if }j>=Jr:} \; eprime=e \\
+&& \phantom{\text{if }j<Jr:} \; \bar{e}prime=\bar{e}+\frac{w \kappa_j z h - \bar{e}}{j} \\
+&& \text{if }j>=Jr: \; c+aprime=(1+r)a + pension(\bar{e}) \\
+&& \phantom{\text{if }j>=Jr:} \; \bar{e}prime=\bar{e} \\
 && 0 \leq h \leq 1, aprime\geq 0 \\
 && log(zprime)=\rho_z log(z) + \epsilon, \; \epsilon \sim N(0,\sigma_{\epsilon,z}^2)
 \end{eqnarray*}
 where the pension is
 \begin{eqnarray*}
-pension(e) &=& \max \left\{ p_{min}, \; p_{scale} \left[ p_1 \min\{e,b_1\} + p_2 \max\{\min\{e,b_2\}-b_1,0\} + p_3 \max\{e-b_2,0\} \right] \right\}
+pension(\bar{e}) &=& \max \left\{ p_{min}, \; p_{scale} \left[ p_1 \min\{\bar{e},b_1\} + p_2 \max\{\min\{\bar{e},b_2\}-b_1,0\} + p_3 \max\{\bar{e}-b_2,0\} \right] \right\}
 \end{eqnarray*}
 
-The law of motion for the entitlement, $eprime=e+(w \kappa_j z h - e)/j$, is just saying that $e$ is the running average of earnings: at age $j$ the new average is the old one, plus $1/j$ of the gap between this periods earnings and the old average. So at age $j$ the entitlement is the mean of earnings over the first $j$ periods of life. Once retired it is frozen, $eprime=e$, as you stop accruing. It is this that we set up as \textit{vfoptions.aprimeFn} for $aprime(d,a,z)$. (Actual systems typically average your best $N$ years, which would need a state per year and is not tractable; a running average over all years is the standard stand-in.)
+The law of motion for the entitlement, $\bar{e}prime=\bar{e}+(w \kappa_j z h - \bar{e})/j$, is just saying that $\bar{e}$ is the running average of earnings: at age $j$ the new average is the old one, plus $1/j$ of the gap between this periods earnings and the old average. So at age $j$ the entitlement is the mean of earnings over the first $j$ periods of life. Once retired it is frozen, $\bar{e}prime=\bar{e}$, as you stop accruing. It is this that we set up as \textit{vfoptions.aprimeFn} for $aprime(d,a,z)$. (Actual systems typically average your best $N$ years, which would need a state per year and is not tractable; a running average over all years is the standard stand-in.)
 
-The pension is a piecewise-linear, concave function of $e$ with two 'bend points', $b_1$ and $b_2$, which is how the US social security system works: you receive 90 cents of pension per dollar of average earnings below the first bend point ($p_1=0.9$), 32 cents per dollar between the bend points ($p_2=0.32$), and 15 cents per dollar above the second ($p_3=0.15$). There is also a minimum pension $p_{min}$, paid even to someone who never worked. Because the marginal replacement rate falls as lifetime earnings rise, the system redistributes from high to low lifetime earners. Note that the pension is no longer one of the parameters of the return function; it is computed inside the return function out of $e$.
+The pension is a piecewise-linear, concave function of $\bar{e}$ with two 'bend points', $b_1$ and $b_2$, which is how the US social security system works: you receive 90 cents of pension per dollar of average earnings below the first bend point ($p_1=0.9$), 32 cents per dollar between the bend points ($p_2=0.32$), and 15 cents per dollar above the second ($p_3=0.15$). There is also a minimum pension $p_{min}$, paid even to someone who never worked. Because the marginal replacement rate falls as lifetime earnings rise, the system redistributes from high to low lifetime earners. Note that the pension is no longer one of the parameters of the return function; it is computed inside the return function out of $\bar{e}$.
 
 The interesting economics is what this does to labor supply. Working an extra hour now raises consumption now, and also raises the pension in every year of retirement. How much it raises it depends on where you sit in the pension formula: an agent below the first bend point gets 90 cents on the dollar, an agent above the second gets 15. So two otherwise identical agents with different earnings histories face quite different incentives to work, and the codes plot the two labor supply policy functions side by side so you can see this. Because the pension now depends on your own history, retirees are also no longer identical in their pension income; the codes report the Gini of pensions and of lifetime average earnings at the first year of retirement, and the former is the smaller of the two.
 
