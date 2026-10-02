@@ -237,11 +237,12 @@ if doPart(6)==1
     fprintf('Now solving Life-Cycle Model 42: experienceassetu (Uncertain Human Capital) \n')
     LifeCycleModel42
 
-    % Models 43 and 44 are not finished yet (their subsections in the pdf are
-    % still commented out), so leave them out of the test for now
-    % clearvars -except doPart
-    % fprintf('Now solving Life-Cycle Model 43: Pensions based on Lifetime Earnings (experienceassetz) \n')
-    % LifeCycleModel43
+    clearvars -except doPart
+    fprintf('Now solving Life-Cycle Model 43: experienceassetz (Earnings-Indexed Pensions) \n')
+    LifeCycleModel43
+
+    % Model 44 is not finished yet (its subsection in the pdf is still
+    % commented out), so leave it out of the test for now
 
     % clearvars -except doPart
     % fprintf('Now solving Life-Cycle Model 44: Liquid and Illiquid Assets \n')
